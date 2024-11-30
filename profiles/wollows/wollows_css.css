@@ -3,7 +3,7 @@
     src: url("../../font/main_font.OTF");
 }
 
-.body_wollows{
+.body{
     font-family: main_font;
 }
 
@@ -57,7 +57,7 @@ h1{
     color: #333; /* Couleur du texte */
 }
 
-.wollows_logo_centrage{
+.logo_centrage{
     margin: 0;
     padding: 0;
     display: flex;
@@ -66,20 +66,20 @@ h1{
 
 }
 
-.wollows_logo_centrage img{
+.logo_centrage img{
     max-width: 100%;        /* Évite que l'image dépasse la taille de la fenêtre */
     height: auto;          /* Maintient le ratio de l'image */
     border: 2px solid black; /* Bordure fine et grise */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Ombre légère */
 }
 
-.wollows_list {  /* Ce qui permet de faire centrer les buttons */
+.list {  /* Ce qui permet de faire centrer les buttons */
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
-.wollows_list button{   /* Style à copier pour chaque boutton. Par contre j'arrive pas à le centrer ça me pète les couilles*/
+.list button{   /* Style à copier pour chaque boutton. Par contre j'arrive pas à le centrer ça me pète les couilles*/
     border: none;
     text-align: center;  
     padding: 15px 32px;

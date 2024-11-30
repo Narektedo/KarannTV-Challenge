@@ -70,7 +70,7 @@ a[href$=".html"]:hover{
     text-align: center;
 }
 
-.wollows, .giacomo, .karann, .narek, .lea, .xemon, .pazid, .zehcnaze, .latman {
+.wollows, .giacomo, .karann, .narek, .lea, .xemon, .pazid, .zehcnaze, .latman, .shika, .adrian {
     display: flex;
     align-items: center;
 }
@@ -82,10 +82,6 @@ a[href$=".html"]:hover{
     margin-right: 10px;
     border: 2px solid black; /* Bordure fine et grise */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Ombre légère */
-}
-
-.wollows span, .giacomo span, .karann span , .narek span{
-    font-size: 45px;
 }
 
 .list_player_1 button, .list_player_2 button, .list_player_3 button{

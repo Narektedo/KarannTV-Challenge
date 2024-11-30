@@ -1,0 +1,98 @@
+@font-face {
+    font-family: main_font;
+    src: url("../../font/main_font.OTF");
+}
+
+.body{
+    font-family: main_font;
+}
+
+h1{
+    font-family: main_font;
+    font-size: 70px;
+    color: black;
+    text-align: center;
+    margin-top: 5%;
+}
+
+.site_header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%; /* S'étend sur toute la largeur */
+    display: flex;
+    align-items: center;
+    background-color: #f8f9fa; /* Couleur de fond, ajustable */
+    padding: 10px 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Ombre subtile */
+    z-index: 1000; /* Toujours au-dessus du contenu principal */
+}
+
+.home_button {
+    margin-right: 20px;
+    display: flex;
+    align-items: center;
+}
+
+.home_button .icon {
+    width: 60px;
+    height: 60px;
+    cursor: pointer;
+}
+
+.site_info {
+    display: flex;
+    align-items: center;
+}
+
+.site_info .logo {
+    width: 60px; /* Taille du logo */
+    height: 60px;
+    margin-right: 10px;
+}
+
+.site_info .site_name {
+    font-size: 65px;
+    font-weight: bold;
+    color: #333; /* Couleur du texte */
+}
+
+.logo_centrage{
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center; /* Centre horizontalement */
+    align-items: center;    /* Centre verticalement */
+
+}
+
+.logo_centrage img{
+    max-width: 100%;        /* Évite que l'image dépasse la taille de la fenêtre */
+    height: auto;          /* Maintient le ratio de l'image */
+    border: 2px solid black; /* Bordure fine et grise */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Ombre légère */
+}
+
+.list {  /* Ce qui permet de faire centrer les buttons */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.list button{   /* Style à copier pour chaque boutton. Par contre j'arrive pas à le centrer ça me pète les couilles*/
+    border: none;
+    text-align: center;  
+    padding: 15px 32px;
+    font-size: 45px;
+    cursor: pointer;
+    margin: 4px 2px;
+}
+
+a[href*="https://"]{  /* Enlève le soulignement moche quand c'est un lien */
+    text-decoration: none;
+    color: black;
+}
+
+a[href*="https://"]:hover{  /* Change la couleur de n'importe quel lien qui contient "...https://.." */
+    color: cadetblue;
+}

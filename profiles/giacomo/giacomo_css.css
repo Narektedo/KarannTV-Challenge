@@ -1,0 +1,12 @@
+@font-face {
+    font-family: main_font;
+    src: url("../../font/main_font.OTF");
+}
+
+h1{
+    font-family: main_font;
+    font-size: 70px;
+    color: black;
+    text-align: center;
+}
+

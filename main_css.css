@@ -94,9 +94,18 @@ a[href$=".html"]:hover{
     margin: 4px 2px;
 }
 
-.list_player_1, .list_player_2, .list_player_3{
+.list_player_1, .list_player_2 {
     display: grid;
     grid-template-columns: repeat(4, 1fr); /* 4 colonnes */
     gap: 20px; /* Espacement entre les joueurs */
     padding: 20px;
+    justify-items: center;
+}
+
+.list_player_3{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 4 colonnes */
+    gap: 20px; /* Espacement entre les joueurs */
+    padding: 20px;
+    justify-items: center;
 }

@@ -1,0 +1,216 @@
+@font-face {
+  font-family: main_font;
+  src: url(/font/main_font.OTF);
+}
+
+body{
+  font-family: "main_font";
+}
+
+h1 {
+  font-size: 70px;
+  color: black;
+  text-align: center;
+}
+
+.site_header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%; /* S'étend sur toute la largeur */
+  display: flex;
+  align-items: center;
+  background-color: #f8f9fa; /* Couleur de fond, ajustable */
+  padding: 10px 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Ombre subtile */
+  z-index: 1000; /* Toujours au-dessus du contenu principal */
+}
+
+.container{
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 1400px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 120px;
+}
+
+.home_button {
+  margin-right: 20px;
+  display: flex;
+  align-items: center;
+}
+
+.home_button .icon {
+  width: 60px;
+  height: 60px;
+  cursor: pointer;
+}
+
+.site_info {
+  display: flex;
+  align-items: center;
+}
+
+.site_info .logo {
+  width: 60px; /* Taille du logo */
+  height: 60px;
+  margin-right: 10px;
+}
+
+.site_info .site_name {
+  font-size: 65px;
+  font-weight: bold;
+  color: #333; /* Couleur du texte */
+}
+
+a[href$=".html"]{
+  text-decoration: none;
+  color: black;
+}
+
+a[href$=".html"]:hover{
+  color: cadetblue;
+}
+
+.body_main {
+  font-family: main_font;
+  margin-top: 5%;
+}
+
+
+
+.titre_principal {
+  font-size: 60px;
+  text-align: center;
+}
+
+.profile {
+  display: flex;
+  align-items: center;
+}
+
+.list_player_1 img{
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  margin-right: 18px;
+  border: 2px solid black; /* Bordure fine et grise */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Ombre légère */
+}
+
+.profile_button{
+  text-decoration: none;
+  color: black;
+  border: none;
+  text-align: center;
+  padding: 15px 32px;
+  display: inline-block;
+  font-size: 45px;
+  cursor: pointer;
+  margin: 4px 2px;
+  min-width: 250px;
+
+  background-color : #F0F0F0;
+
+}
+
+.profile_button:hover{
+  background-color: #5e61e2;
+  color: #fafafa;
+}
+
+.list_player_1 {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  gap: 32px;
+
+}
+
+.profile_title{
+  font-family: main_font;
+  font-size: 70px;
+  color: black;
+  text-align: center;
+  margin-top: 5%;
+}
+
+.site_header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%; /* S'étend sur toute la largeur */
+  display: flex;
+  align-items: center;
+  background-color: #f8f9fa; /* Couleur de fond, ajustable */
+  padding: 10px 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Ombre subtile */
+  z-index: 1000; /* Toujours au-dessus du contenu principal */
+}
+
+.home_button {
+  margin-right: 20px;
+  display: flex;
+  align-items: center;
+}
+
+.home_button .icon {
+  width: 60px;
+  height: 60px;
+  cursor: pointer;
+}
+
+.site_info {
+  display: flex;
+  align-items: center;
+}
+
+.site_info .logo {
+  width: 60px;
+  height: 60px;
+  margin-right: 10px;
+}
+
+.site_info .site_name {
+  font-size: 65px;
+  font-weight: bold;
+  color: #333; 
+}
+
+.logo_centrage{
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;    
+
+}
+
+.logo_centrage img{
+  max-width: 100%;        
+  height: auto;          
+  border: 2px solid black; 
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); 
+}
+
+.list { 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.list button{   
+  border: none;
+  text-align: center;  
+  padding: 15px 32px;
+  font-size: 45px;
+  cursor: pointer;
+  margin: 4px 2px;
+}
+
+
+
+
+

@@ -1,0 +1,159 @@
+[
+    {
+        "name": "Narek",
+        "link": "narek",
+        "image": "/images/narekboss18.png",
+        "nicknames" : [
+            {
+                "username": "narekted",
+                "link": "https://www.op.gg/summoners/euw/narekted-EUW"
+            },
+            {
+                "username": "TOPshocKING",
+                "link": "https://www.op.gg/summoners/euw/topshocking-EUW"
+            }
+        ]
+    },
+    {
+        "name": "Wollows",
+        "link": "wollows",
+        "image": "/images/zoe_wollows.png",
+        "nicknames" : [
+            {
+                "username": "i8é",
+                "link": "https://www.op.gg/summoners/euw/i8%C3%A9-EUW"
+            },
+            {
+                "username": "PVG",
+                "link": "https://www.op.gg/summoners/euw/PVG-EUW"
+            }
+        ]
+    },
+    {
+        "name": "Giacomo",
+        "link": "giacomo",
+        "image": "/images/giapingou.jpg",
+        "nicknames" : [
+            {
+                "username": "gia",
+                "link": "https://www.op.gg/summoners/euw/gia-EUW"
+            },
+            {
+                "username": "GiaPingou",
+                "link": "https://www.op.gg/summoners/euw/giasus-EUW"
+            },
+            {
+                "username": "giacom",
+                "link": "https://www.op.gg/summoners/euw/giacom-EUW"
+            }
+        ]
+    },
+    {
+        "name" : "Karann",
+        "link" : "karann",
+        "image" : "/images/karann_ak.jpg",
+        "nicknames" : [
+            {
+                "username": "K4RANN",
+                "link": "https://www.op.gg/summoners/euw/K4RANN-EUW"
+            },
+            {
+                "username": "PROPHETKARANN",
+                "link": "https://www.op.gg/summoners/euw/PROPHETKARANN-EUW"
+            }
+        ]
+    },
+    {
+        "name" : "Xëmon",
+        "link" : "xemon",
+        "image" : "/images/xemon.png",
+        "nicknames" : [
+            {
+                "username": "Xëmon",
+                "link": "https://www.op.gg/summoners/euw/X%C3%ABmon-gojo"
+            }
+        ]
+    },
+    {
+        "name" : "Zehcnas",
+        "link" : "zehcnas",
+        "image" : "/images/zechnaze.png",
+        "nicknames" : [
+            {
+                "username": "KC Houdi",
+                "link": "https://www.op.gg/summoners/euw/KC%20Houdi-EUW"
+            }
+        ]
+    },
+    {
+        "name" : "Pazid",
+        "link" : "pazid",
+        "image" : "/images/kabyle.png",
+        "nicknames" : [
+            {
+                "username": "Pazid",
+                "link": "https://www.op.gg/summoners/euw/Pazid-EUW"
+            },
+            {
+                "username": "Kenpachi ZK",
+                "link": "https://www.op.gg/summoners/euw/Kenpachi%20ZK-EUW"
+            }
+        ]
+
+    },
+    {
+        "name" : "Lea",
+        "link" : "lea",
+        "image" : "/images/lea.png",
+        "nicknames" : [
+            {
+                "username": "Leeeeea",
+                "link": "https://www.op.gg/summoners/euw/leeeeea-EUW"
+            }
+        ]
+    },
+    {
+        "name" : "latman",
+        "link" : "latman",
+        "image" : "/images/latman.png",
+        "nicknames" : [
+            {
+                "username": "LathIbnFreeza",
+                "link": "https://www.op.gg/summoners/euw/LathIbnFreeza#Namek"
+            },
+            {
+                "username": "Echec 24h sur 24",
+                "link": "https://www.op.gg/summoners/euw/Echec%2024h%20sur%2024-echec"
+            }
+        ]
+    },
+    {
+        "name" : "Shikacho",
+        "link" : "shikacho",
+        "image" : "/images/shika.png",
+        "nicknames" : [
+            {
+                "username": "Shika",
+                "link": "https://www.op.gg/summoners/euw/shika-EUW10"
+            }
+        ]
+    },
+    {
+        "name" : "Adrian",
+        "link" : "adrian",
+        "image" : "/images/adri.png",
+        "nicknames" : [
+            {
+                "username": "Adrianjz",
+                "link": "https://www.op.gg/summoners/euw/Adrianjz-EUW"
+            },
+            {
+                "username": "Adri0212",
+                "link": "https://www.op.gg/summoners/euw/adri0212-EUW"
+            }
+        ]
+    }
+
+
+
+]

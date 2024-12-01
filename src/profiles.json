@@ -39,7 +39,7 @@
                 "link": "https://www.op.gg/summoners/euw/gia-EUW"
             },
             {
-                "username": "GiaPingou",
+                "username": "Giasus",
                 "link": "https://www.op.gg/summoners/euw/giasus-EUW"
             },
             {
@@ -152,8 +152,16 @@
                 "link": "https://www.op.gg/summoners/euw/adri0212-EUW"
             }
         ]
+    },
+    {
+        "name" : "Amine",
+        "link" : "amine",
+        "image" : "/images/amine.png",
+        "nicknames" : [
+            {
+                "username": "amine",
+                "link": "https://www.op.gg/summoners/euw/amine-flex"
+            }
+        ]
     }
-
-
-
 ]

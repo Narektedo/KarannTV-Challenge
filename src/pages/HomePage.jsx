@@ -2,6 +2,7 @@ import React from "react"
 import Header from '../components/Header'
 import profiles from '../profiles.json'
 
+
 export default function Home() {
 
 

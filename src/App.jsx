@@ -4,8 +4,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 // Pages
 import HomePage from "./pages/HomePage";
 import ProfilePage from "./pages/ProfilePage";
-import LadderPage from "./pages/LadderPage";
-import LadderLeagueOfLegends from "./pages/LadderLeaugeOfLegends";
 
 export default function App() {
 	return (

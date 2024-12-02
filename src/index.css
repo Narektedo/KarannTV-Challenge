@@ -56,7 +56,7 @@ h1 {
 .site_info .site_name {
   font-size: 65px;
   font-weight: bold;
-  color: #333; /* Couleur du texte */
+  color: #333;
 }
 
 a[href$=".html"]{
@@ -111,7 +111,7 @@ a[href$=".html"]:hover{
   color: black;
   border: 2px rgb(149, 148, 148) solid;
   text-align: center;
-  padding: 15px 32px;
+  padding: 10px 10px;
   display: inline-block;
   font-size: 25px;
   cursor: pointer;
@@ -122,6 +122,9 @@ a[href$=".html"]:hover{
 .profile_button:hover, .ladder_button:hover{
   background-color: #5e61e2;
   color: #fafafa;
+}
+
+.ladder_button:hover{
   border: 2px #5e61e2 solid;
 }
 
@@ -164,6 +167,7 @@ a[href$=".html"]:hover{
   font-size: 40px;
   font-weight: bold;
   color: #333; 
+  margin-left: 15px;
 }
 
 .logo_centrage{

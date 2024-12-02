@@ -17,13 +17,13 @@ h1 {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%; /* S'étend sur toute la largeur */
+  width: 100%; 
   display: flex;
   align-items: center;
-  background-color: #f8f9fa; /* Couleur de fond, ajustable */
+  background-color: #f8f9fa;
   padding: 10px 20px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Ombre subtile */
-  z-index: 1000; /* Toujours au-dessus du contenu principal */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
 }
 
 .container{
@@ -42,21 +42,15 @@ h1 {
   align-items: center;
 }
 
-.home_button .icon {
-  width: 60px;
-  height: 60px;
+.home_button, .icon, .logo {
+  width: 55px;
+  height: 55px;
   cursor: pointer;
 }
 
 .site_info {
   display: flex;
   align-items: center;
-}
-
-.site_info .logo {
-  width: 60px; /* Taille du logo */
-  height: 60px;
-  margin-right: 10px;
 }
 
 .site_info .site_name {
@@ -78,8 +72,6 @@ a[href$=".html"]:hover{
   font-family: main_font;
   margin-top: 5%;
 }
-
-
 
 .titre_principal {
   font-size: 60px;
@@ -111,22 +103,42 @@ a[href$=".html"]:hover{
   cursor: pointer;
   margin: 4px 2px;
   min-width: 250px;
-
   background-color : #F0F0F0;
-
 }
 
-.profile_button:hover{
+.ladder_button{
+  text-decoration: none;
+  color: black;
+  border: 2px rgb(149, 148, 148) solid;
+  text-align: center;
+  padding: 15px 32px;
+  display: inline-block;
+  font-size: 25px;
+  cursor: pointer;
+  margin: 4px 2px;
+  max-width: 210px;
+}
+
+.profile_button:hover, .ladder_button:hover{
   background-color: #5e61e2;
   color: #fafafa;
+  border: 2px #5e61e2 solid;
 }
 
-.list_player_1 {
+.list_player_1{
   display: flex;
   flex-wrap: wrap;
   flex-direction: row;
   gap: 32px;
+}
 
+.header_ladder_button
+{
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  gap: 52px;
+  margin-left: 70px;
 }
 
 .profile_title{
@@ -137,29 +149,10 @@ a[href$=".html"]:hover{
   margin-top: 5%;
 }
 
-.site_header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%; /* S'étend sur toute la largeur */
-  display: flex;
-  align-items: center;
-  background-color: #f8f9fa; /* Couleur de fond, ajustable */
-  padding: 10px 20px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Ombre subtile */
-  z-index: 1000; /* Toujours au-dessus du contenu principal */
-}
-
 .home_button {
   margin-right: 20px;
   display: flex;
   align-items: center;
-}
-
-.home_button .icon {
-  width: 60px;
-  height: 60px;
-  cursor: pointer;
 }
 
 .site_info {
@@ -167,14 +160,8 @@ a[href$=".html"]:hover{
   align-items: center;
 }
 
-.site_info .logo {
-  width: 60px;
-  height: 60px;
-  margin-right: 10px;
-}
-
 .site_info .site_name {
-  font-size: 65px;
+  font-size: 40px;
   font-weight: bold;
   color: #333; 
 }

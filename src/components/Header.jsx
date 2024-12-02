@@ -1,4 +1,4 @@
-
+import Ladder from '../ladder.json';
 
 export default function Header() {
     return(
@@ -10,6 +10,16 @@ export default function Header() {
                 <img src="/images/logo_lol.png" alt="Logo du site" className="logo"/>
                 <span className="site_name">Tracker KTV</span>
             </div>
+
+            <div className="header_ladder_button">
+
+                {Ladder.map((ladder, i) => (
+                    <div key={i} className="ladder">
+                    <a className='ladder_button' href={`ladder/${ladder.link}`}>{ladder.ladder_type}</a>
+                </div>
+            ))}
+            </div>
+
         </header>
     )
 

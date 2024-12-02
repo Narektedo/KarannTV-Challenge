@@ -1,0 +1,10 @@
+[
+    {
+        "ladder_type": "League of Legends",
+        "link" : "ladder_leagueoflegends"
+    },
+    {
+        "ladder_type": "Valorant",
+        "link": "ladder_valorant"
+    }
+]

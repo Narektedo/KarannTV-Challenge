@@ -6,7 +6,7 @@ function App() {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        fetch("http://localhost:8080/data") // Appel au backend
+        fetch("https://walopvgapi-9c205847a91e.herokuapp.com/info/PVG/EUW") // Appel au backend
             .then(response => {
                 if (!response.ok) {
                     throw new Error("Erreur lors de la récupération des données !");

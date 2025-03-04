@@ -19,8 +19,8 @@ function App() {
 
     return (
         <div>
-            <h1>📊 Données du backend</h1>
-            {error && <p style={{ color: "red" }}>❌ {error.message}</p>}
+            <h1> Données du backend</h1>
+            {error && <p style={{ color: "red" }}> {error.message}</p>}
             <pre>{data ? JSON.stringify(data, null, 2) : "Chargement..."}</pre>
         </div>
     );

@@ -2,8 +2,6 @@ import React from "react"
 import { useParams } from "react-router-dom"
 import Header from '../components/Header'
 import profiles from '../profiles.json'
-import { useEffect, useState } from "react";
-
 
 export default function ProfilePage() {
     const id = useParams();
@@ -33,8 +31,6 @@ export default function ProfilePage() {
                     <h1>Profile not found</h1>
                 )}
             </div>
-            
-
         </>
     )
 }

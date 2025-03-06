@@ -5,6 +5,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import ProfilePage from "./pages/ProfilePage";
 import PageTest from "./pages/pagetest";
+import PageTestWollows from "./pages/pagetestwollows";
 
 export default function App() {
 	return (
@@ -13,6 +14,7 @@ export default function App() {
         <Route path="/" element={<HomePage />} /> 
         <Route path="/profiles/:user" element={<ProfilePage />} />
 		<Route path="/test" element={<PageTest />} />
+		<Route path="/test2/:user" element={<PageTestWollows />} />
 			</Routes>
 		</BrowserRouter>
 	);

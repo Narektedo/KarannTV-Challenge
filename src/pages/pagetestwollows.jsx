@@ -29,7 +29,7 @@ function Profile() {
 
             {/* Affichage de l'icône du joueur en fonction du iconId */}
             {data && data.iconId && (
-                <img
+                <img className="container"
                     src={`https://ddragon.leagueoflegends.com/cdn/15.4.1/img/profileicon/${data.iconId}.png`}
                     alt="Icône du joueur"
                     style={{ width: 100, height: 100, borderRadius: "50%" }}

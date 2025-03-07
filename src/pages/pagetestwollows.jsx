@@ -37,7 +37,8 @@ function Profile() {
 
     return (
         <div>
-            <h1>Données du backend</h1>
+            <Header />
+            <h1 className="container">Données du backend</h1>
             {loading && <p>Chargement...</p>}
             {error && <p style={{ color: "red" }}>{error.message}</p>}
 

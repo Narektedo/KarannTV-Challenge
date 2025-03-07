@@ -18,7 +18,7 @@ function Profile() {
                 return response.json();
             })
             .then(data => {
-                console.log("Données reçues :", data); // 🔍 Vérification dans la console
+                console.log("Données complètes reçues :", data); // 🔍 Vérification
                 setData(data);
                 setError(null);
             })
@@ -34,12 +34,7 @@ function Profile() {
     if (!data || typeof data !== "object" || !("summonerInfo" in data)) {
         return <p style={{ color: "red" }}>Données non disponibles</p>;
     }
-    
-    console.log("profileIconId:", Object?.data?.summonerInfo?.profileIconId);
-    console.log("Image URL:", `https://ddragon.leagueoflegends.com/cdn/15.4.1/img/profileicon/${Object?.data?.summonerInfo?.profileIconId}.png`);
-    console.log("Données complètes reçues :", data);
-
-
+    if (data) return <p>XD</p>;
 
     return (
         <div>
@@ -48,13 +43,15 @@ function Profile() {
 
             {/* Affichage de l'icône de profil */}
             <img
-                src={`https://ddragon.leagueoflegends.com/cdn/15.4.1/img/profileicon/${Object.data.summonerInfo.profileIconId}.png`}
+                src={`https://ddragon.leagueoflegends.com/cdn/15.4.1/img/profileicon/${data.summonerInfo.profileIconId}.png`}
                 alt="Icône du joueur"
                 style={{ width: 100, height: 100, borderRadius: "50%" }}
-                    onError={(e) => { e.target.src = "/images/default_icon.png"; }} // Fallback si l'image ne charge pas
             />
 
             <p>Niveau : {data.summonerInfo.summonerLevel}</p>
+
+            {/* Affichage des données brutes pour debug */}
+            <pre>{JSON.stringify(data, null, 2)}</pre>
         </div>
     );
 }

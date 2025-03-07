@@ -23,7 +23,7 @@ function Profile() {
     }, [gameName, tagLine]);
 
     return (
-        <div>
+        <div className="container">
             <Header />
             <h1>Données du backend</h1>
             {error && <p style={{ color: "red" }}>{error.message}</p>}

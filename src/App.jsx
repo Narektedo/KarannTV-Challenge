@@ -16,7 +16,7 @@ export default function App() {
         <Route path="/profiles/:user" element={<ProfilePage />} />
 		<Route path="/test" element={<PageTest />} />
 		<Route path="/test2/:gameName/:tagLine" element={<PageTestWollows />} />
-		<Route path="/profiles/:user/:gameName/:tagLine" element={<AccountPage />} />
+		<Route path="/profiles/:gameName/:tagLine" element={<AccountPage />} />
 			</Routes>
 		</BrowserRouter>
 	);

@@ -27,11 +27,14 @@ function Profile() {
             <h1 className="container">Données du backend</h1>
             {error && <p style={{ color: "red" }}>{error.message}</p>}
 
+            {/* Affichage de l'icône du joueur en fonction du iconId */}
+            {data && data.iconId && (
                 <img
-                    src={`https://ddragon.leagueoflegends.com/cdn/15.4.1/img/profileicon/${data.summonerInfo.iconId}.png`}
+                    src={`https://ddragon.leagueoflegends.com/cdn/15.4.1/img/profileicon/${data.iconId}.png`}
                     alt="Icône du joueur"
                     style={{ width: 100, height: 100, borderRadius: "50%" }}
                 />
+            )}
 
             <pre>{data ? JSON.stringify(data, null, 2) : "Chargement..."}</pre>
         </div>

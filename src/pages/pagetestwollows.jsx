@@ -34,11 +34,11 @@ function Profile() {
     if (!data || typeof data !== "object" || !("summonerInfo" in data)) {
         return <p style={{ color: "red" }}>Données non disponibles</p>;
     }
-    if (data) return <p>XD</p>;
 
     return (
         <div>
-            <h1>Profil du joueur</h1>
+            <Header />
+            <h1 className="container">Profil du joueur</h1>
             <h2>{data.accountInfo?.gameName}#{data.accountInfo?.tagLine}</h2>
 
             {/* Affichage de l'icône de profil */}

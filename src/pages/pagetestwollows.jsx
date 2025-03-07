@@ -31,10 +31,14 @@ function Profile() {
 
     if (loading) return <p>Chargement...</p>;
     if (error) return <p style={{ color: "red" }}>Erreur : {error.message}</p>;
-    if (!data || !data.summonerInfo) return <p style={{ color: "red" }}>Données non disponibles</p>;
-
+    if (!data || typeof data !== "object" || !("summonerInfo" in data)) {
+        return <p style={{ color: "red" }}>Données non disponibles</p>;
+    }
+    
     console.log("profileIconId:", data?.summonerInfo?.profileIconId);
     console.log("Image URL:", `https://ddragon.leagueoflegends.com/cdn/15.4.1/img/profileicon/${data?.summonerInfo?.profileIconId}.png`);
+    console.log("Données complètes reçues :", data);
+
 
 
     return (

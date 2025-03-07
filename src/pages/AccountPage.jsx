@@ -23,9 +23,9 @@ function Profile() {
     }, [gameName, tagLine]);
 
     return (
-        <div className="container">
+        <div>
             <Header />
-            <h1>Données du backend</h1>
+            <h1 className="container">Données du backend</h1>
             {error && <p style={{ color: "red" }}>{error.message}</p>}
             <pre>{data ? JSON.stringify(data, null, 2) : "Chargement..."}</pre>
         </div>

@@ -23,7 +23,7 @@ export default function ProfilePage() {
 
                         <div className="list">
                             {profile.nicknames.map((nickname, i) => (
-                                <a className="profile_button" key={i} href={nickname.link} target="_blank">{nickname.username}</a>
+                                <a className="profile_button" key={i} href={`https://karanntv-challenge.pages.dev/profiles/${nickname.gameName}/${nickname.tagLine}`}>{nickname.username}</a>
                             ))}
                         </div>
                     </div>

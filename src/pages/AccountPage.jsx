@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import Header from '../components/Header'
+
 
 function Profile() {
     const { gameName, tagLine } = useParams();
@@ -22,6 +24,7 @@ function Profile() {
 
     return (
         <div>
+            <Header />
             <h1>Données du backend</h1>
             {error && <p style={{ color: "red" }}>{error.message}</p>}
             <pre>{data ? JSON.stringify(data, null, 2) : "Chargement..."}</pre>

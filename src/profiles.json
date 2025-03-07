@@ -5,7 +5,7 @@
         "image": "/images/sett_drip.webp",
         "nicknames" : [
             {
-                "username": "narekted",
+                "username": "NAREKTED",
                 "link": "https://www.op.gg/summoners/euw/narekted-EUW"
             },
             {
@@ -25,7 +25,9 @@
             },
             {
                 "username": "PVG",
-                "link": "https://www.op.gg/summoners/euw/PVG-EUW"
+                "link": "https://www.op.gg/summoners/euw/PVG-EUW",
+                "gameName": "PVG",
+                "tagLine": "EUW"
             }
         ]
     },

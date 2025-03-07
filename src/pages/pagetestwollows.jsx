@@ -38,8 +38,23 @@ function Profile() {
     return (
         <div>
             <h1>Données du backend</h1>
+            {loading && <p>Chargement...</p>}
             {error && <p style={{ color: "red" }}>{error.message}</p>}
-            <pre>{data ? JSON.stringify(data, null, 2) : "Chargement..."}</pre>
+
+            {!loading && !error && data && (
+                <div>
+                    <h2>{data.accountInfo.gameName}#{data.accountInfo.tagLine}</h2>
+
+                    {/* Affichage de l'icône de profil */}
+                    <img
+                        src={`https://ddragon.leagueoflegends.com/cdn/15.4.1/img/profileicon/${data.summonerInfo.profileIconId}.png`}
+                        alt="Icône du joueur"
+                        style={{ width: 100, height: 100, borderRadius: "50%" }}
+                    />
+
+                    <p>Niveau : {data.summonerInfo.summonerLevel}</p>
+                </div>
+            )}
         </div>
     );
 }

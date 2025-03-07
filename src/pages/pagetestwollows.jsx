@@ -9,7 +9,7 @@ function Profile() {
 
     useEffect(() => {
         const apiUrl = `https://walopvgapi-9c205847a91e.herokuapp.com/info/${gameName}/${tagLine}`;
-
+    
         fetch(apiUrl)
             .then(response => {
                 if (!response.ok) {
@@ -17,10 +17,13 @@ function Profile() {
                 }
                 return response.json();
             })
-            .then(setData)
+            .then(responseData => {
+                console.log(responseData); // Vérifie si profileIconId existe bien
+                setData(responseData);
+            })
             .catch(setError);
     }, [gameName, tagLine]);
-
+    
     return (
         <div>
             <Header />
@@ -30,9 +33,9 @@ function Profile() {
             {/* Affichage de l'icône du joueur en fonction du profileIconId */}
             {data?.summonerInfo?.profileIconId && (
                 <img
-                     src={`https://ddragon.leagueoflegends.com/cdn/15.4.1/img/profileicon/${data.summonerInfo.profileIconId}.png`}
-                    alt="Icône du joueur"
-                    style={{ width: 100, height: 100, borderRadius: "50%" }}
+                        src={`https://ddragon.leagueoflegends.com/cdn/15.4.1/img/profileicon/${data.summonerInfo.profileIconId}.png`}
+                        alt="Icône du joueur"
+                        style={{ width: 100, height: 100, borderRadius: "50%" }}
                 />
             )}
 

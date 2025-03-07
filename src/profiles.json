@@ -6,11 +6,15 @@
         "nicknames" : [
             {
                 "username": "NAREKTED",
-                "link": "https://www.op.gg/summoners/euw/narekted-EUW"
+                "link": "https://www.op.gg/summoners/euw/narekted-EUW",
+                "gameName": "NAREKTED",
+                "tagLine": "EUW"
             },
             {
-                "username": "TOPshocKING",
-                "link": "https://www.op.gg/summoners/euw/topshocking-EUW"
+                "username": "AESPA KARINA",
+                "link": "https://www.op.gg/summoners/euw/topshocking-EUW",
+                "gameName": "AESPA KARINA",
+                "tagLine": "NRK"
             }
         ]
     },
@@ -21,7 +25,9 @@
         "nicknames" : [
             {
                 "username": "i8é",
-                "link": "https://www.op.gg/summoners/euw/i8%C3%A9-EUW"
+                "link": "https://www.op.gg/summoners/euw/i8%C3%A9-EUW",
+                "gameName": "i8é",
+                "tagLine": "HEX"
             },
             {
                 "username": "PVG",
@@ -38,15 +44,21 @@
         "nicknames" : [
             {
                 "username": "Gia",
-                "link": "https://www.op.gg/summoners/euw/gia-EUW"
+                "link": "https://www.op.gg/summoners/euw/gia-EUW",
+                "gameName": "Gia",
+                "tagLine": "15886"
             },
             {
                 "username": "Giasus",
-                "link": "https://www.op.gg/summoners/euw/giasus-EUW"
+                "link": "https://www.op.gg/summoners/euw/giasus-EUW",
+                "gameName": "Giasus",
+                "tagLine": "EUW"
             },
             {
                 "username": "giacom",
-                "link": "https://www.op.gg/summoners/euw/giacom-EUW"
+                "link": "https://www.op.gg/summoners/euw/giacom-EUW",
+                "gameName": "giacom",
+                "tagLine": "EUW"
             }
         ]
     },
@@ -57,11 +69,15 @@
         "nicknames" : [
             {
                 "username": "K4RANN",
-                "link": "https://www.op.gg/summoners/euw/K4RANN-EUW"
+                "link": "https://www.op.gg/summoners/euw/K4RANN-EUW",
+                "gameName": "K4rann",
+                "tagLine": "EUW"
             },
             {
                 "username": "PROPHETKARANN",
-                "link": "https://www.op.gg/summoners/euw/PROPHETKARANN-EUW"
+                "link": "https://www.op.gg/summoners/euw/PROPHETKARANN-EUW",
+                "gameName": "PROPHETKARANN",
+                "tagLine": "EUW"
             }
         ]
     },
@@ -72,7 +88,9 @@
         "nicknames" : [
             {
                 "username": "Xëmon",
-                "link": "https://www.op.gg/summoners/euw/X%C3%ABmon-gojo"
+                "link": "https://www.op.gg/summoners/euw/X%C3%ABmon-gojo",
+                "gameName": "Xëmon",
+                "tagLine": "gojo"
             }
         ]
     },
@@ -83,7 +101,9 @@
         "nicknames" : [
             {
                 "username": "KC Houdi",
-                "link": "https://www.op.gg/summoners/euw/KC%20Houdi-EUW"
+                "link": "https://www.op.gg/summoners/euw/KC%20Houdi-EUW",
+                "gameName": "KC Houdi",
+                "tagLine": "EUW"
             }
         ]
     },
@@ -94,11 +114,15 @@
         "nicknames" : [
             {
                 "username": "Pazid",
-                "link": "https://www.op.gg/summoners/euw/Pazid-EUW"
+                "link": "https://www.op.gg/summoners/euw/Pazid-EUW",
+                "gameName": "Pazid",
+                "tagLine": "EUW"
             },
             {
                 "username": "Kenpachi ZK",
-                "link": "https://www.op.gg/summoners/euw/Kenpachi%20ZK-EUW"
+                "link": "https://www.op.gg/summoners/euw/Kenpachi%20ZK-EUW",
+                "gameName": "Kenpachi ZK",
+                "tagLine": "EUW"
             }
         ]
 
@@ -110,7 +134,9 @@
         "nicknames" : [
             {
                 "username": "Leeeeea",
-                "link": "https://www.op.gg/summoners/euw/leeeeea-EUW"
+                "link": "https://www.op.gg/summoners/euw/leeeeea-EUW",
+                "gameName": "Leeeeea",
+                "tagLine": "EUW"
             }
         ]
     },
@@ -121,11 +147,15 @@
         "nicknames" : [
             {
                 "username": "LathIbnFreeza",
-                "link": "https://www.op.gg/summoners/euw/LathIbnFreeza-Namek"
+                "link": "https://www.op.gg/summoners/euw/LathIbnFreeza-Namek",
+                "gameName": "LathIbnFreeza",
+                "tagLine": "Namek"
             },
             {
                 "username": "Echec 24h sur 24",
-                "link": "https://www.op.gg/summoners/euw/Echec%2024h%20sur%2024-echec"
+                "link": "https://www.op.gg/summoners/euw/Echec%2024h%20sur%2024-echec",
+                "gameName": "Echec 24h sur 24h",
+                "tagLine": "echec"
             }
         ]
     },
@@ -136,7 +166,9 @@
         "nicknames" : [
             {
                 "username": "Shika",
-                "link": "https://www.op.gg/summoners/euw/shika-EUW10"
+                "link": "https://www.op.gg/summoners/euw/shika-EUW10",
+                "gameName": "Shika",
+                "tagLine": "EUW10"
             }
         ]
     },
@@ -147,11 +179,15 @@
         "nicknames" : [
             {
                 "username": "Adrianjz",
-                "link": "https://www.op.gg/summoners/euw/Adrianjz-EUW"
+                "link": "https://www.op.gg/summoners/euw/Adrianjz-EUW",
+                "gameName": "Adrianjz",
+                "tagLine": "EUW"
             },
             {
                 "username": "Adri0212",
-                "link": "https://www.op.gg/summoners/euw/adri0212-EUW"
+                "link": "https://www.op.gg/summoners/euw/adri0212-EUW",
+                "gameName": "Adri0212",
+                "tagLine": "EUW"
             }
         ]
     },
@@ -162,7 +198,9 @@
         "nicknames" : [
             {
                 "username": "amine",
-                "link": "https://www.op.gg/summoners/euw/amine-flex"
+                "link": "https://www.op.gg/summoners/euw/amine-flex",
+                "gameName": "amine",
+                "tagLine": "flex"
             }
         ]
     }

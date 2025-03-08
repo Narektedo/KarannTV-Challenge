@@ -44,10 +44,17 @@ function Profile() {
         if (rankInfo.tier === 'UNRANKED') {
             return 'Unranked';
         } else {
-            return `${rankInfo.tier} ${rankInfo.rank} ${rankInfo.leaguePoints} LP`;
+            const totalGames = rankInfo.wins + rankInfo.losses;
+            const winRate = totalGames > 0 ? ((rankInfo.wins / totalGames) * 100).toFixed(1) : 0;
+            return (
+                <div className="rank-details">
+                    <div>{`${rankInfo.tier} ${rankInfo.rank} ${rankInfo.leaguePoints} LP`}</div>
+                    <div>{`${rankInfo.wins}W ${rankInfo.losses}L (${winRate}%)`}</div>
+                </div>
+            );
         }
     };
-
+    
     return (
         <div>
             <Header />
@@ -84,25 +91,26 @@ function Profile() {
 
             {data?.data?.rankInfo && (
                 <div className="rank-container">
-
                     {/*###########*/}
                     {/* SoloQueue */}
                     {/*###########*/}
                     {(() => {
                         const soloRank = getRankInfo(data.data.rankInfo, 'RANKED_SOLO_5x5');
                         return (
-                            <div className="rank-icon">
+                            <div className="rank-row">
                                 <div className="rank-text-title">Solo/Duo</div>
-                                <img
-                                    src={getLocalRankIcon(soloRank.tier)}
-                                    alt={`Solo/Duo ${soloRank.tier}`}
-                                    style={{ width: 100, height: 100, borderRadius: "50%" }}
-                                    onError={(e) => {
-                                        e.target.src = '/rank/Rank=Unranked.png';
-                                    }}
-                                />
-                                <div className="rank-text">
-                                    {renderRankInfo(soloRank)}
+                                <div className="rank-info">
+                                    <img
+                                        src={getLocalRankIcon(soloRank.tier)}
+                                        alt={`Solo/Duo ${soloRank.tier}`}
+                                        className="rank-icon"
+                                        onError={(e) => {
+                                            e.target.src = '/rank/Rank=Unranked.png';
+                                        }}
+                                    />
+                                    <div className="rank-text">
+                                        {renderRankInfo(soloRank)}
+                                    </div>
                                 </div>
                             </div>
                         );
@@ -114,18 +122,20 @@ function Profile() {
                     {(() => {
                         const flexRank = getRankInfo(data.data.rankInfo, 'RANKED_FLEX_SR');
                         return (
-                            <div className="rank-icon">
+                            <div className="rank-row">
                                 <div className="rank-text-title">Flex</div>
-                                <img
-                                    src={getLocalRankIcon(flexRank.tier)}
-                                    alt={`Flex ${flexRank.tier}`}
-                                    style={{ width: 100, height: 100, borderRadius: "50%" }}
-                                    onError={(e) => {
-                                        e.target.src = '/rank/Rank=Unranked.png';
-                                    }}
-                                />
-                                <div className="rank-text">
-                                    {renderRankInfo(flexRank)}
+                                <div className="rank-info">
+                                    <img
+                                        src={getLocalRankIcon(flexRank.tier)}
+                                        alt={`Flex ${flexRank.tier}`}
+                                        className="rank-icon"
+                                        onError={(e) => {
+                                            e.target.src = '/rank/Rank=Unranked.png';
+                                        }}
+                                    />
+                                    <div className="rank-text">
+                                        {renderRankInfo(flexRank)}
+                                    </div>
                                 </div>
                             </div>
                         );

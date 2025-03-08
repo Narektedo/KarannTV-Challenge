@@ -249,6 +249,13 @@ a[href$=".html"]:hover{
   font-weight: bold;
 }
 
+.player-name{
+  color: black;
+  font-weight: bold;
+  font-size: 35px;
+  text-align: center;
+}
+
 
 
 

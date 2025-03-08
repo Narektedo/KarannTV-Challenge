@@ -210,8 +210,8 @@ a[href$=".html"]:hover{
 }
 
 .icon-player{
-  width: 150;
-  height: 150;
+  width: 110px;
+  height: 110px;
   border-radius: 50%;
   justify-content: center;
 }
@@ -229,6 +229,8 @@ a[href$=".html"]:hover{
   font-size: 1.2rem;
   text-transform: uppercase;
   letter-spacing: 1px;
+  width: 100px;
+  height: 100px;
 }
 
 .rank-text {
@@ -237,6 +239,12 @@ a[href$=".html"]:hover{
   text-align: center;
   min-height: 24px;
   font-size: 30px;
+}
+
+.rank-text-title{
+  color: black;
+  font-size: 33px;
+  text-align: center;
 }
 
 

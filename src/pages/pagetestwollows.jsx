@@ -71,7 +71,7 @@ function Profile() {
                         const soloRank = getRankInfo(data.data.rankInfo, 'RANKED_SOLO_5x5');
                         return (
                             <div className="rank-icon">
-                                <h3>Solo/Duo</h3>
+                                <h3 className="rank-text-title">Solo/Duo</h3>
                                 <img
                                     src={getLocalRankIcon(soloRank.tier)}
                                     alt={`Solo/Duo ${soloRank.tier}`}
@@ -96,7 +96,7 @@ function Profile() {
                         const flexRank = getRankInfo(data.data.rankInfo, 'RANKED_FLEX_SR');
                         return (
                             <div className="rank-icon">
-                                <h3>Flex</h3>
+                                <h3 className="rank-text-title">Flex</h3>
                                 <img
                                     src={getLocalRankIcon(flexRank.tier)}
                                     alt={`Flex ${flexRank.tier}`}

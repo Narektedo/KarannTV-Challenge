@@ -237,7 +237,7 @@ a[href$=".html"]:hover{
   margin-right: auto;
   max-width: 1400px;
   display: flex;
-  margin-top: 120px;
+  margin-top: 5px;
 }
 
 .rank-text {
@@ -254,6 +254,7 @@ a[href$=".html"]:hover{
   justify-content: center;
   font-weight: bold;
   text-align: center;
+  margin-bottom: 30px;
 }
 
 .player-name{

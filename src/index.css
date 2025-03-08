@@ -224,7 +224,7 @@ a[href$=".html"]:hover{
   gap: 0.5rem;
 }
 
-.rank-icon h3 {
+.rank-icon{
   margin: 0;
   color: #ffffff;
   font-size: 1.2rem;

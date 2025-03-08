@@ -1,10 +1,22 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import Header from '../components/Header'
+import Header from '../components/Header';
+import rankIcons from '../rank.json';
 
 // Fonction utilitaire pour récupérer le rang spécifique
 const getRankInfo = (rankData, queueType) => {
     return rankData?.find(rank => rank.queueType === queueType) || { tier: 'UNRANKED' };
+};
+
+// Fonction pour récupérer l'icône locale
+const getLocalRankIcon = (tier) => {
+    const formattedTier = tier.charAt(0).toUpperCase() + tier.slice(1).toLowerCase();
+    const foundRank = rankIcons.find(icon => 
+        icon["rank-tier"].toLowerCase() === formattedTier.toLowerCase()
+    );
+    return foundRank 
+        ? foundRank["rank-icon"][0]["rank-icon-link"] 
+        : '/rank/Rank=Unranked.png';
 };
 
 function Profile() {
@@ -23,7 +35,6 @@ function Profile() {
                 return response.json();
             })
             .then(responseData => {
-                console.log(responseData); // Vérifie si profileIconId existe bien
                 setData(responseData);
             })
             .catch(setError);
@@ -35,11 +46,8 @@ function Profile() {
             <h1 className="container">Profil du joueur</h1>
             {error && <p style={{ color: "red" }}>{error.message}</p>}
 
-            {/*#############################################################*/}
             {/* Affichage Icone */}
-            {/*#############################################################*/}
-
-            {data && data.data && data.data.summonerInfo && data.data.summonerInfo.profileIconId ? (
+            {data?.data?.summonerInfo?.profileIconId ? (
                 <img
                     src={`https://ddragon.leagueoflegends.com/cdn/15.4.1/img/profileicon/${data.data.summonerInfo.profileIconId}.png?${new Date().getTime()}`}
                     alt="Icône du joueur"
@@ -49,10 +57,7 @@ function Profile() {
                 <p>Chargement de l'icône...</p>
             )}
 
-            {/*#############################################################*/}
             {/* Affichage des Rangs */}
-            {/*#############################################################*/}
-
             {data?.data?.rankInfo && (
                 <div className="rank-container">
                     {/* Solo/Duo Rank */}
@@ -61,10 +66,10 @@ function Profile() {
                         return (
                             <div className="rank-icon">
                                 <img
-                                    src={`https://opgg-static.akamaized.net/images/medals/${soloRank.tier.toLowerCase()}.png`}
+                                    src={getLocalRankIcon(soloRank.tier)}
                                     alt={`Solo/Duo ${soloRank.tier}`}
                                     onError={(e) => {
-                                        e.target.src = 'https://opgg-static.akamaized.net/images/medals/unranked.png';
+                                        e.target.src = '/rank/Rank=Unranked.png';
                                     }}
                                 />
                                 {soloRank.tier !== 'UNRANKED' && (
@@ -80,10 +85,10 @@ function Profile() {
                         return (
                             <div className="rank-icon">
                                 <img
-                                    src={`https://opgg-static.akamaized.net/images/medals/${flexRank.tier.toLowerCase()}.png`}
+                                    src={getLocalRankIcon(flexRank.tier)}
                                     alt={`Flex ${flexRank.tier}`}
                                     onError={(e) => {
-                                        e.target.src = 'https://opgg-static.akamaized.net/images/medals/unranked.png';
+                                        e.target.src = '/rank/Rank=Unranked.png';
                                     }}
                                 />
                                 {flexRank.tier !== 'UNRANKED' && (

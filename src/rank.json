@@ -1,0 +1,102 @@
+[
+    {
+        "rank-tier": "Unranked",
+        "rank-icon": [
+            {
+                "rank-icon-link": "/rank/Rank=Unranked.png"
+            }
+            
+        ]
+        
+    },
+    {
+        "rank-tier": "Iron",
+        "rank-icon": [
+            {
+                "rank-icon-link": "/rank/Rank=Iron.png"
+            }
+            
+        ]
+    },
+    {
+        "rank-tier": "Bronze",
+        "rank-icon": [
+            {
+                "rank-icon-link": "/rank/Rank=Bronze.png"
+            }
+            
+        ]
+    },
+    {
+        "rank-tier": "Silver",
+        "rank-icon": [
+            {
+                "rank-icon-link": "/rank/Rank=Silver.png"
+            }
+            
+        ]
+    },
+    {
+        "rank-tier": "Gold",
+        "rank-icon": [
+            {
+                "rank-icon-link": "/rank/Rank=Gold.png"
+            }
+            
+        ]
+    },
+    {
+        "rank-tier": "Platinum",
+        "rank-icon": [
+            {
+                "rank-icon-link": "/rank/Rank=Platinum.png"
+            }
+            
+        ]
+    },
+    {
+        "rank-tier": "Emerald",
+        "rank-icon": [
+            {
+                "rank-icon-link": "/rank/Rank=Emerald.png"
+            }
+            
+        ]
+    },
+    {
+        "rank-tier": "Diamond",
+        "rank-icon": [
+            {
+                "rank-icon-link": "/rank/Rank=Diamond.png"
+            }
+            
+        ]
+    },
+    {
+        "rank-tier": "Master",
+        "rank-icon": [
+            {
+                "rank-icon-link": "/rank/Rank=Master.png"
+            }
+            
+        ]
+    },
+    {
+        "rank-tier": "Grandmaster",
+        "rank-icon": [
+            {
+                "rank-icon-link": "/rank/Rank=Grandmaster.png"
+            }
+            
+        ]
+    },
+    {
+        "rank-tier": "Challenger",
+        "rank-icon": [
+            {
+                "rank-icon-link": "/rank/Rank=Challenger.png"
+            }
+            
+        ]
+    }
+]

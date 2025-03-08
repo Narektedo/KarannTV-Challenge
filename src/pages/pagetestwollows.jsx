@@ -131,8 +131,9 @@ function Profile() {
                     </div>
                 )}
 
-                <pre>{data ? JSON.stringify(data, null, 2) : "Chargement..."}</pre>
+                
             </div>
+            <pre className="json">{data ? JSON.stringify(data, null, 2) : "Chargement..."}</pre>
         </div>
     );
 }

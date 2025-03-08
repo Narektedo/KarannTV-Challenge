@@ -15,7 +15,7 @@ export default function Header() {
 
                 {Ladder.map((ladder, i) => (
                     <div key={i} className="ladder">
-                    <a className='ladder_button' href={`ladder/${ladder.link}`}>{ladder.ladder_type}</a>
+                    <a className='ladder_button' href={`https://karanntv-challenge.pages.dev/ladder`}></a>
                 </div>
             ))}
             </div>

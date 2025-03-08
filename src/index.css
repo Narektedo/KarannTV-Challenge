@@ -244,7 +244,7 @@ a[href$=".html"]:hover{
 .rank-text-title{
   color: black;
   font-size: 33px;
-  text-align: center;
+  justify-content: center;
 }
 
 

@@ -51,7 +51,7 @@ function Profile() {
     return (
         <div>
             <Header />
-            <h1 className="container">
+            <div className="container">
             {error && <p style={{ color: "red" }}>{error.message}</p>}
 
             {/*#############################################################*/}
@@ -68,14 +68,18 @@ function Profile() {
                 <p>Chargement de l'icône...</p>
             )}
 
-            </h1>
+            </div>
+
             {/*#############################################################*/}
             {/* Affichage Ranks */}
             {/*#############################################################*/}
 
             {data?.data?.rankInfo && (
                 <div className="rank-container">
+
+                    {/*###########*/}
                     {/* SoloQueue */}
+                    {/*###########*/}
                     {(() => {
                         const soloRank = getRankInfo(data.data.rankInfo, 'RANKED_SOLO_5x5');
                         return (
@@ -96,7 +100,9 @@ function Profile() {
                         );
                     })()}
 
+                    {/*######*/}
                     {/* Flex */}
+                    {/*######*/}
                     {(() => {
                         const flexRank = getRankInfo(data.data.rankInfo, 'RANKED_FLEX_SR');
                         return (

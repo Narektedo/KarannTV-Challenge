@@ -52,21 +52,29 @@ function Profile() {
         <div>
             <Header />
             <div className="container">
-            {error && <p style={{ color: "red" }}>{error.message}</p>}
+                {error && <p style={{ color: "red" }}>{error.message}</p>}
 
-            {/*#############################################################*/}
-            {/* Affichage Icone */}
-            {/*#############################################################*/}
+                {/*#############################################################*/}
+                {/* Affichage Icone et Pseudo */}
+                {/*#############################################################*/}
 
-            {data?.data?.summonerInfo?.profileIconId ? (
-                <img
-                    className="icon-player"
-                    src={`https://ddragon.leagueoflegends.com/cdn/15.4.1/img/profileicon/${data.data.summonerInfo.profileIconId}.png?${new Date().getTime()}`}
-                    alt="Icône du joueur"
-                />
-            ) : (
-                <p>Chargement de l'icône...</p>
-            )}
+                <div className="player-info">
+                    {data?.data?.summonerInfo?.profileIconId ? (
+                        <img
+                            className="icon-player"
+                            src={`https://ddragon.leagueoflegends.com/cdn/15.4.1/img/profileicon/${data.data.summonerInfo.profileIconId}.png?${new Date().getTime()}`}
+                            alt="Icône du joueur"
+                        />
+                    ) : (
+                        <p>Chargement de l'icône...</p>
+                    )}
+                    
+                    {data?.data?.accountInfo && (
+                        <div className="player-name">
+                            {data.data.accountInfo.gameName}#{data.data.accountInfo.tagLine}
+                        </div>
+                    )}
+                </div>
 
             </div>
 

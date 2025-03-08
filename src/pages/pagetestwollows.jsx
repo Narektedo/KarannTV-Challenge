@@ -54,17 +54,14 @@ function Profile() {
             );
         }
     };
-    
+
     return (
         <div>
             <Header />
             <div className="container">
                 {error && <p style={{ color: "red" }}>{error.message}</p>}
 
-                {/*#############################################################*/}
-                {/* Affichage Icone et Pseudo */}
-                {/*#############################################################*/}
-
+                {/* Affichage Icone & gameName+tagLine */}
                 <div className="player-info">
                     {data?.data?.summonerInfo?.profileIconId ? (
                         <img
@@ -83,67 +80,59 @@ function Profile() {
                     )}
                 </div>
 
+                {/* Affichage Rank */}
+                {data?.data?.rankInfo && (
+                    <div className="rank-list">
+                        {/* SoloQueue */}
+                        {(() => {
+                            const soloRank = getRankInfo(data.data.rankInfo, 'RANKED_SOLO_5x5');
+                            return (
+                                <div className="rank-item">
+                                    <div className="rank-text-title">Solo/Duo</div>
+                                    <div className="rank-info">
+                                        <img
+                                            src={getLocalRankIcon(soloRank.tier)}
+                                            alt={`Solo/Duo ${soloRank.tier}`}
+                                            className="rank-icon"
+                                            onError={(e) => {
+                                                e.target.src = '/rank/Rank=Unranked.png';
+                                            }}
+                                        />
+                                        <div className="rank-text">
+                                            {renderRankInfo(soloRank)}
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })()}
+
+                        {/* Flex */}
+                        {(() => {
+                            const flexRank = getRankInfo(data.data.rankInfo, 'RANKED_FLEX_SR');
+                            return (
+                                <div className="rank-item">
+                                    <div className="rank-text-title">Flex</div>
+                                    <div className="rank-info">
+                                        <img
+                                            src={getLocalRankIcon(flexRank.tier)}
+                                            alt={`Flex ${flexRank.tier}`}
+                                            className="rank-icon"
+                                            onError={(e) => {
+                                                e.target.src = '/rank/Rank=Unranked.png';
+                                            }}
+                                        />
+                                        <div className="rank-text">
+                                            {renderRankInfo(flexRank)}
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })()}
+                    </div>
+                )}
+
+                <pre>{data ? JSON.stringify(data, null, 2) : "Chargement..."}</pre>
             </div>
-
-            {/*#############################################################*/}
-            {/* Affichage Ranks */}
-            {/*#############################################################*/}
-
-            {data?.data?.rankInfo && (
-                <div className="rank-container">
-                    {/*###########*/}
-                    {/* SoloQueue */}
-                    {/*###########*/}
-                    {(() => {
-                        const soloRank = getRankInfo(data.data.rankInfo, 'RANKED_SOLO_5x5');
-                        return (
-                            <div className="rank-row">
-                                <div className="rank-text-title">Solo/Duo</div>
-                                <div className="rank-info">
-                                    <img
-                                        src={getLocalRankIcon(soloRank.tier)}
-                                        alt={`Solo/Duo ${soloRank.tier}`}
-                                        className="rank-icon"
-                                        onError={(e) => {
-                                            e.target.src = '/rank/Rank=Unranked.png';
-                                        }}
-                                    />
-                                    <div className="rank-text">
-                                        {renderRankInfo(soloRank)}
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    })()}
-
-                    {/*######*/}
-                    {/* Flex */}
-                    {/*######*/}
-                    {(() => {
-                        const flexRank = getRankInfo(data.data.rankInfo, 'RANKED_FLEX_SR');
-                        return (
-                            <div className="rank-row">
-                                <div className="rank-text-title">Flex</div>
-                                <div className="rank-info">
-                                    <img
-                                        src={getLocalRankIcon(flexRank.tier)}
-                                        alt={`Flex ${flexRank.tier}`}
-                                        className="rank-icon"
-                                        onError={(e) => {
-                                            e.target.src = '/rank/Rank=Unranked.png';
-                                        }}
-                                    />
-                                    <div className="rank-text">
-                                        {renderRankInfo(flexRank)}
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    })()}
-                </div>
-            )}
-
-            <pre>{data ? JSON.stringify(data, null, 2) : "Chargement..."}</pre>
         </div>
     );
 }

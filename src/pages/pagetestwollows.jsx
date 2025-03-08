@@ -58,7 +58,7 @@ function Profile() {
     return (
         <div>
             <Header />
-            <div className="container">
+            <div>
                 {error && <p style={{ color: "red" }}>{error.message}</p>}
 
                 {/* Affichage Icone & gameName+tagLine */}

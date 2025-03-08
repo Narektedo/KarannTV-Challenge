@@ -46,7 +46,10 @@ function Profile() {
             <h1 className="container">Profil du joueur</h1>
             {error && <p style={{ color: "red" }}>{error.message}</p>}
 
+            {/*#############################################################*/}
             {/* Affichage Icone */}
+            {/*#############################################################*/}
+
             {data?.data?.summonerInfo?.profileIconId ? (
                 <img
                     src={`https://ddragon.leagueoflegends.com/cdn/15.4.1/img/profileicon/${data.data.summonerInfo.profileIconId}.png?${new Date().getTime()}`}
@@ -57,10 +60,13 @@ function Profile() {
                 <p>Chargement de l'icône...</p>
             )}
 
-            {/* Affichage des Rangs */}
+            {/*#############################################################*/}
+            {/* Affichage Ranks */}
+            {/*#############################################################*/}
+
             {data?.data?.rankInfo && (
                 <div className="rank-container">
-                    {/* Solo/Duo Rank */}
+                    {/* SoloQueue */}
                     {(() => {
                         const soloRank = getRankInfo(data.data.rankInfo, 'RANKED_SOLO_5x5');
                         return (
@@ -68,6 +74,7 @@ function Profile() {
                                 <img
                                     src={getLocalRankIcon(soloRank.tier)}
                                     alt={`Solo/Duo ${soloRank.tier}`}
+                                    style={{ width: 100, height: 100, borderRadius: "50%" }}
                                     onError={(e) => {
                                         e.target.src = '/rank/Rank=Unranked.png';
                                     }}
@@ -79,7 +86,7 @@ function Profile() {
                         );
                     })()}
 
-                    {/* Flex Rank */}
+                    {/* Flex */}
                     {(() => {
                         const flexRank = getRankInfo(data.data.rankInfo, 'RANKED_FLEX_SR');
                         return (
@@ -87,6 +94,7 @@ function Profile() {
                                 <img
                                     src={getLocalRankIcon(flexRank.tier)}
                                     alt={`Flex ${flexRank.tier}`}
+                                    style={{ width: 100, height: 100, borderRadius: "50%" }}
                                     onError={(e) => {
                                         e.target.src = '/rank/Rank=Unranked.png';
                                     }}

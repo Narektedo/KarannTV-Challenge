@@ -130,9 +130,9 @@ function Profile() {
                         })()}
                     </div>
                 )}
-
-                
             </div>
+            
+            {/* Mise en commentaire pour eviter de print tout le json sur la page */}
             {/* <pre className="json">{data ? JSON.stringify(data, null, 2) : "Chargement..."}</pre> */}
         </div>
     );

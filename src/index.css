@@ -219,6 +219,7 @@ a[href$=".html"]:hover{
   max-width: 1400px;
   display: flex;
   margin-top: 120px;
+  margin-bottom: 10px;
 }
 
 .rank-icon {
@@ -279,7 +280,7 @@ a[href$=".html"]:hover{
   justify-content: center;
   align-items: center;
   margin-top: 120px;
-  margin-bottom: 30px;
+  margin-bottom: 45px;
 }
 
 

@@ -49,7 +49,7 @@ function Profile() {
             return (
                 <div className="rank-details">
                     <div>{`${rankInfo.tier} ${rankInfo.rank} ${rankInfo.leaguePoints} LP`}</div>
-                    <div>{`${rankInfo.wins}W ${rankInfo.losses}L (${winRate}%)`}</div>
+                    <div>{`${rankInfo.wins}W - ${rankInfo.losses}L (${winRate}%)`}</div>
                 </div>
             );
         }

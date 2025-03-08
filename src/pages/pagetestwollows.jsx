@@ -21,10 +21,17 @@ const getLocalRankIcon = (tier) => {
 
 // Fonction pour calculer la couleur du winrate
 const getWinRateColor = (winRate) => {
-    const r = winRate < 50 ? 255 : Math.floor(255 - (winRate - 50) * 5.1);
-    const g = winRate > 50 ? 255 : Math.floor(winRate * 5.1);
-    const color = `rgb(${r}, ${g}, 0)`;
-    return color;
+    let r, g, b = 0;
+
+    if (winRate < 50) {
+        r = 255;
+        g = Math.floor(255 * (winRate / 50));
+    } else {
+        g = 255;
+        r = Math.floor(255 * (1 - (winRate - 50) / 50));
+    }
+
+    return `rgb(${r}, ${g}, ${b})`;
 };
 
 function Profile() {

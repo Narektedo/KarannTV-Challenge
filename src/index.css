@@ -212,7 +212,6 @@ a[href$=".html"]:hover{
 .icon-player{
   width: 115px;
   height: 115px;
-  border-radius: 50%;
   justify-content: center;
   align-items: center;
 }
@@ -256,7 +255,12 @@ a[href$=".html"]:hover{
   text-align: center;
 }
 
-
+.rank-details{
+  color: black;
+  font-weight: bold;
+  text-align: center;
+  font-size: 30px;
+}
 
 
 

@@ -253,7 +253,7 @@ a[href$=".html"]:hover{
   justify-content: center;
   font-weight: bold;
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 2px;
 }
 
 .player-name{
@@ -269,6 +269,7 @@ a[href$=".html"]:hover{
   font-weight: bold;
   text-align: center;
   font-size: 30px;
+  margin-bottom: 30px;
 }
 
 .player-info{

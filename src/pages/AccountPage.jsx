@@ -71,7 +71,7 @@ function Profile() {
                             alt="Icône du joueur"
                         />
                     ) : (
-                        <img src={loadingGif} alt="Chargement..." /> // GIF de chargement
+                        <img className="icon-player" src={loadingGif} alt="Chargement..." /> // GIF de chargement
                     )}
                     
                     {data?.data?.accountInfo && (

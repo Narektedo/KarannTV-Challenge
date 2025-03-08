@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Header from '../components/Header';
 import rankIcons from '../rank.json';
+import loadingGif from '../../public/loading/load01.gif';
 
 // Fonction utilitaire pour récupérer le rang spécifique
 const getRankInfo = (rankData, queueType) => {
@@ -70,7 +71,7 @@ function Profile() {
                             alt="Icône du joueur"
                         />
                     ) : (
-                        <p>Chargement de l'icône...</p>
+                        <img src={loadingGif} alt="Chargement..." /> // GIF de chargement
                     )}
                     
                     {data?.data?.accountInfo && (

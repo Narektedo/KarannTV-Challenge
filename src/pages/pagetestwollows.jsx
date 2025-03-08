@@ -31,14 +31,14 @@ function Profile() {
             {error && <p style={{ color: "red" }}>{error.message}</p>}
 
             {/* Affichage de l'icône du joueur en fonction du profileIconId */}
-            {data?.summonerInfo?.profileIconId && (
+            {data && data.summonerInfo && data.summonerInfo.profileIconId ? (
                 <img
-                        src={`https://ddragon.leagueoflegends.com/cdn/15.4.1/img/profileicon/${data.summonerInfo.profileIconId}.png?${new Date().getTime()}`}
-                        alt="Icône du joueur"
-                        style={{ width: 100, height: 100, borderRadius: "50%" }}
-                        onError={(e) => { e.target.src = 'fallback-image-url.png'; }} // Afficher une image de remplacement en cas d'erreur
-                        onLoad={() => console.log('Image chargée avec succès')} // Pour vérifier si l'image est bien chargée
+                    src={`https://ddragon.leagueoflegends.com/cdn/15.4.1/img/profileicon/${data.summonerInfo.profileIconId}.png`}
+                    alt="Icône du joueur"
+                    style={{ width: 100, height: 100, borderRadius: "50%" }}
                 />
+            ) : (
+                <p>Chargement de l'icône...</p>
             )}
 
             <pre>{data ? JSON.stringify(data, null, 2) : "Chargement..."}</pre>

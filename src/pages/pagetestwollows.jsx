@@ -133,7 +133,7 @@ function Profile() {
 
                 
             </div>
-            <pre className="json">{data ? JSON.stringify(data, null, 2) : "Chargement..."}</pre>
+            {/* <pre className="json">{data ? JSON.stringify(data, null, 2) : "Chargement..."}</pre> */}
         </div>
     );
 }

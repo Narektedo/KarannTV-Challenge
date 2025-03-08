@@ -40,6 +40,14 @@ function Profile() {
             .catch(setError);
     }, [gameName, tagLine]);
 
+    const renderRankInfo = (rankInfo) => {
+        if (rankInfo.tier === 'UNRANKED') {
+            return 'Unranked';
+        } else {
+            return `${rankInfo.tier} ${rankInfo.rank} ${rankInfo.leaguePoints} LP`;
+        }
+    };
+
     return (
         <div>
             <Header />
@@ -81,11 +89,7 @@ function Profile() {
                                     }}
                                 />
                                 <div className="rank-text">
-                                    {soloRank.tier === 'UNRANKED' ? (
-                                        'Unranked'
-                                    ) : (
-                                        `${soloRank.tier} ${soloRank.rank}`
-                                    )}
+                                    {renderRankInfo(soloRank)}
                                 </div>
                             </div>
                         );
@@ -106,11 +110,7 @@ function Profile() {
                                     }}
                                 />
                                 <div className="rank-text">
-                                    {flexRank.tier === 'UNRANKED' ? (
-                                        'Unranked'
-                                    ) : (
-                                        `${flexRank.tier} ${flexRank.rank}`
-                                    )}
+                                    {renderRankInfo(flexRank)}
                                 </div>
                             </div>
                         );

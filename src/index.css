@@ -210,8 +210,8 @@ a[href$=".html"]:hover{
 }
 
 .icon-player{
-  width: 115px;
-  height: 115px;
+  width: 150px;
+  height: 150px;
   justify-content: center;
   align-items: center;
   margin-left: auto;
@@ -229,8 +229,8 @@ a[href$=".html"]:hover{
 }
 
 .rank-icon{
-  width: 115px;
-  height: 115px;
+  width: 135px;
+  height: 135px;
   justify-content: center;
   align-items: center;
   margin-left: auto;

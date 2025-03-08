@@ -9,7 +9,7 @@ export default function ProfilePage() {
         <>
             <Header />
             <div className="container">
-            Test
+            Test A
             </div>
         </>
     )

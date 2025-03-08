@@ -71,6 +71,7 @@ function Profile() {
                         const soloRank = getRankInfo(data.data.rankInfo, 'RANKED_SOLO_5x5');
                         return (
                             <div className="rank-icon">
+                                <h3>Solo/Duo</h3>
                                 <img
                                     src={getLocalRankIcon(soloRank.tier)}
                                     alt={`Solo/Duo ${soloRank.tier}`}
@@ -79,9 +80,13 @@ function Profile() {
                                         e.target.src = '/rank/Rank=Unranked.png';
                                     }}
                                 />
-                                {soloRank.tier !== 'UNRANKED' && (
-                                    <span>{soloRank.tier} {soloRank.rank}</span>
-                                )}
+                                <div className="rank-text">
+                                    {soloRank.tier === 'UNRANKED' ? (
+                                        'Unranked'
+                                    ) : (
+                                        `${soloRank.tier} ${soloRank.rank}`
+                                    )}
+                                </div>
                             </div>
                         );
                     })()}
@@ -91,6 +96,7 @@ function Profile() {
                         const flexRank = getRankInfo(data.data.rankInfo, 'RANKED_FLEX_SR');
                         return (
                             <div className="rank-icon">
+                                <h3>Flex</h3>
                                 <img
                                     src={getLocalRankIcon(flexRank.tier)}
                                     alt={`Flex ${flexRank.tier}`}
@@ -99,9 +105,13 @@ function Profile() {
                                         e.target.src = '/rank/Rank=Unranked.png';
                                     }}
                                 />
-                                {flexRank.tier !== 'UNRANKED' && (
-                                    <span>{flexRank.tier} {flexRank.rank}</span>
-                                )}
+                                <div className="rank-text">
+                                    {flexRank.tier === 'UNRANKED' ? (
+                                        'Unranked'
+                                    ) : (
+                                        `${flexRank.tier} ${flexRank.rank}`
+                                    )}
+                                </div>
                             </div>
                         );
                     })()}

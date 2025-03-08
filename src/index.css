@@ -278,6 +278,8 @@ a[href$=".html"]:hover{
   justify-content: center;
   align-items: center;
   margin-top: 120px;
+  margin-bottom: 30px;
+  gap: 10px;
 }
 
 

@@ -246,6 +246,7 @@ a[href$=".html"]:hover{
   color: black;
   font-size: 32px;
   justify-content: center;
+  font-weight: bold;
 }
 
 

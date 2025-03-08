@@ -51,7 +51,7 @@ function Profile() {
     return (
         <div>
             <Header />
-            <h1 className="container">Profil du joueur</h1>
+            <h1 className="container">
             {error && <p style={{ color: "red" }}>{error.message}</p>}
 
             {/*#############################################################*/}
@@ -68,6 +68,7 @@ function Profile() {
                 <p>Chargement de l'icône...</p>
             )}
 
+            </h1>
             {/*#############################################################*/}
             {/* Affichage Ranks */}
             {/*#############################################################*/}

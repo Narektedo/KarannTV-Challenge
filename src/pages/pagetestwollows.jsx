@@ -52,9 +52,9 @@ function Profile() {
 
             {data?.data?.summonerInfo?.profileIconId ? (
                 <img
+                    className="icon-player"
                     src={`https://ddragon.leagueoflegends.com/cdn/15.4.1/img/profileicon/${data.data.summonerInfo.profileIconId}.png?${new Date().getTime()}`}
                     alt="Icône du joueur"
-                    style={{ width: 100, height: 100, borderRadius: "50%" }}
                 />
             ) : (
                 <p>Chargement de l'icône...</p>

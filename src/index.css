@@ -206,6 +206,14 @@ a[href$=".html"]:hover{
   gap: 2rem;
   justify-content: center;
   margin: 2rem 0;
+  color: black;
+}
+
+.icon-player{
+  width: 150;
+  height: 150;
+  border-radius: 50%;
+  justify-content: center;
 }
 
 .rank-icon {
@@ -224,10 +232,11 @@ a[href$=".html"]:hover{
 }
 
 .rank-text {
-  color: #ffeb3b;
+  color:  black;
   font-weight: bold;
   text-align: center;
   min-height: 24px;
+  font-size: 30px;
 }
 
 

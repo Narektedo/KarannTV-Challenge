@@ -19,6 +19,14 @@ const getLocalRankIcon = (tier) => {
         : '/rank/Rank=Unranked.png';
 };
 
+// Fonction pour calculer la couleur du winrate
+const getWinRateColor = (winRate) => {
+    const r = winRate < 50 ? 255 : Math.floor(255 - (winRate - 50) * 5.1);
+    const g = winRate > 50 ? 255 : Math.floor(winRate * 5.1);
+    const color = `rgb(${r}, ${g}, 0)`;
+    return color;
+};
+
 function Profile() {
     const { gameName, tagLine } = useParams();
     const [data, setData] = useState(null);
@@ -46,10 +54,14 @@ function Profile() {
         } else {
             const totalGames = rankInfo.wins + rankInfo.losses;
             const winRate = totalGames > 0 ? ((rankInfo.wins / totalGames) * 100).toFixed(1) : 0;
+            const winRateColor = getWinRateColor(winRate);
             return (
                 <div className="rank-details">
                     <div>{`${rankInfo.tier} ${rankInfo.rank} ${rankInfo.leaguePoints} LP`}</div>
-                    <div>{`${rankInfo.wins}W - ${rankInfo.losses}L (${winRate}%)`}</div>
+                    <div>
+                        {`${rankInfo.wins}W - ${rankInfo.losses}L `}
+                        <span style={{ color: winRateColor }}>({winRate}%)</span>
+                    </div>
                 </div>
             );
         }

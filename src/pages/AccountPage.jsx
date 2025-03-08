@@ -1,6 +1,23 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import Header from '../components/Header'
+import Header from '../components/Header';
+import rankIcons from '../rank.json';
+
+// Fonction utilitaire pour récupérer le rang spécifique
+const getRankInfo = (rankData, queueType) => {
+    return rankData?.find(rank => rank.queueType === queueType) || { tier: 'UNRANKED' };
+};
+
+// Fonction pour récupérer l'icône locale
+const getLocalRankIcon = (tier) => {
+    const formattedTier = tier.charAt(0).toUpperCase() + tier.slice(1).toLowerCase();
+    const foundRank = rankIcons.find(icon => 
+        icon["rank-tier"].toLowerCase() === formattedTier.toLowerCase()
+    );
+    return foundRank 
+        ? foundRank["rank-icon"][0]["rank-icon-link"] 
+        : '/rank/Rank=Unranked.png';
+};
 
 function Profile() {
     const { gameName, tagLine } = useParams();
@@ -18,34 +35,105 @@ function Profile() {
                 return response.json();
             })
             .then(responseData => {
-                console.log(responseData); // Vérifie si profileIconId existe bien
                 setData(responseData);
             })
             .catch(setError);
     }, [gameName, tagLine]);
 
+    const renderRankInfo = (rankInfo) => {
+        if (rankInfo.tier === 'UNRANKED') {
+            return 'Unranked';
+        } else {
+            const totalGames = rankInfo.wins + rankInfo.losses;
+            const winRate = totalGames > 0 ? ((rankInfo.wins / totalGames) * 100).toFixed(1) : 0;
+            return (
+                <div className="rank-details">
+                    <div>{`${rankInfo.tier} ${rankInfo.rank} ${rankInfo.leaguePoints} LP`}</div>
+                    <div>{`${rankInfo.wins}W - ${rankInfo.losses}L (${winRate}%)`}</div>
+                </div>
+            );
+        }
+    };
+
     return (
         <div>
             <Header />
-            <h1 className="container">Profil du joueur</h1>
-            {error && <p style={{ color: "red" }}>{error.message}</p>}
+            <div>
+                {error && <p style={{ color: "red" }}>{error.message}</p>}
 
+                {/* Affichage Icone & gameName+tagLine */}
+                <div className="player-info">
+                    {data?.data?.summonerInfo?.profileIconId ? (
+                        <img
+                            className="icon-player"
+                            src={`https://ddragon.leagueoflegends.com/cdn/15.4.1/img/profileicon/${data.data.summonerInfo.profileIconId}.png?${new Date().getTime()}`}
+                            alt="Icône du joueur"
+                        />
+                    ) : (
+                        <p>Chargement de l'icône...</p>
+                    )}
+                    
+                    {data?.data?.accountInfo && (
+                        <div className="player-name">
+                            {data.data.accountInfo.gameName}#{data.data.accountInfo.tagLine}
+                        </div>
+                    )}
+                </div>
+
+                {/* Affichage Rank */}
+                {data?.data?.rankInfo && (
+                    <div className="rank-list">
+                        {/* SoloQueue */}
+                        {(() => {
+                            const soloRank = getRankInfo(data.data.rankInfo, 'RANKED_SOLO_5x5');
+                            return (
+                                <div className="rank-item">
+                                    <div className="rank-text-title">Solo/Duo</div>
+                                    <div className="rank-info">
+                                        <img
+                                            src={getLocalRankIcon(soloRank.tier)}
+                                            alt={`Solo/Duo ${soloRank.tier}`}
+                                            className="rank-icon"
+                                            onError={(e) => {
+                                                e.target.src = '/rank/Rank=Unranked.png';
+                                            }}
+                                        />
+                                        <div className="rank-text">
+                                            {renderRankInfo(soloRank)}
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })()}
+
+                        {/* Flex */}
+                        {(() => {
+                            const flexRank = getRankInfo(data.data.rankInfo, 'RANKED_FLEX_SR');
+                            return (
+                                <div className="rank-item">
+                                    <div className="rank-text-title">Flex</div>
+                                    <div className="rank-info">
+                                        <img
+                                            src={getLocalRankIcon(flexRank.tier)}
+                                            alt={`Flex ${flexRank.tier}`}
+                                            className="rank-icon"
+                                            onError={(e) => {
+                                                e.target.src = '/rank/Rank=Unranked.png';
+                                            }}
+                                        />
+                                        <div className="rank-text">
+                                            {renderRankInfo(flexRank)}
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })()}
+                    </div>
+                )}
+            </div>
             
-            {/*#############################################################*/}
-            {/* Affichage Icone */}
-            {/*#############################################################*/}
-
-            {data && data.data && data.data.summonerInfo && data.data.summonerInfo.profileIconId ? (
-                <img
-                        className="icon-player"
-                        src={`https://ddragon.leagueoflegends.com/cdn/15.4.1/img/profileicon/${data.data.summonerInfo.profileIconId}.png?${new Date().getTime()}`}
-                        alt="Icône du joueur"
-                />
-            ) : (
-                <p>Chargement de l'icône...</p>
-            )}
-
-            <pre>{data ? JSON.stringify(data, null, 2) : "Chargement..."}</pre>
+            {/* Mise en commentaire pour eviter de print tout le json sur la page */}
+            {/* <pre className="json">{data ? JSON.stringify(data, null, 2) : "Chargement..."}</pre> */}
         </div>
     );
 }

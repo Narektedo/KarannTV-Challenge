@@ -31,11 +31,11 @@ function Profile() {
             {error && <p style={{ color: "red" }}>{error.message}</p>}
 
             {/* Affichage de l'icône du joueur en fonction du profileIconId */}
-            {data && data.summonerInfo && data.summonerInfo.profileIconId ? (
+            {data && data.data && data.data.summonerInfo && data.data.summonerInfo.profileIconId ? (
                 <img
-                    src={`https://ddragon.leagueoflegends.com/cdn/15.4.1/img/profileicon/${data.summonerInfo.profileIconId}.png?${new Date().getTime()}`}
-                    alt="Icône du joueur"
-                    style={{ width: 100, height: 100, borderRadius: "50%" }}
+                        src={`https://ddragon.leagueoflegends.com/cdn/15.4.1/img/profileicon/${data.data.summonerInfo.profileIconId}.png?${new Date().getTime()}`}
+                        alt="Icône du joueur"
+                        style={{ width: 100, height: 100, borderRadius: "50%" }}
                 />
             ) : (
                 <p>Chargement de l'icône...</p>

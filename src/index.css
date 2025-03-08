@@ -236,6 +236,8 @@ a[href$=".html"]:hover{
   letter-spacing: 1px;
   width: 115px;
   height: 115px;
+  justify-content: center;
+  align-items: center;
 }
 
 .rank-text {
@@ -251,6 +253,7 @@ a[href$=".html"]:hover{
   font-size: 32px;
   justify-content: center;
   font-weight: bold;
+  align-items: center;
 }
 
 .player-name{
@@ -258,6 +261,7 @@ a[href$=".html"]:hover{
   font-weight: bold;
   font-size: 35px;
   text-align: center;
+  justify-content: center;
 }
 
 .rank-details{
@@ -271,7 +275,6 @@ a[href$=".html"]:hover{
   margin-left: auto;
   margin-right: auto;
   max-width: 1400px;
-  display: flex;
   justify-content: center;
   align-items: center;
   margin-top: 120px;

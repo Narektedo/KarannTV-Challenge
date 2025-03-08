@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Header from '../components/Header'
 
-
 function Profile() {
     const { gameName, tagLine } = useParams();
     const [data, setData] = useState(null);
@@ -10,7 +9,7 @@ function Profile() {
 
     useEffect(() => {
         const apiUrl = `https://walopvgapi-9c205847a91e.herokuapp.com/info/${gameName}/${tagLine}`;
-
+    
         fetch(apiUrl)
             .then(response => {
                 if (!response.ok) {
@@ -18,22 +17,35 @@ function Profile() {
                 }
                 return response.json();
             })
-            .then(setData)
+            .then(responseData => {
+                console.log(responseData); // Vérifie si profileIconId existe bien
+                setData(responseData);
+            })
             .catch(setError);
     }, [gameName, tagLine]);
 
     return (
         <div>
             <Header />
-            <h1 className="container">Données du backend</h1>
+            <h1 className="container">Profil du joueur</h1>
             {error && <p style={{ color: "red" }}>{error.message}</p>}
-            <img
-                        src={`https://ddragon.leagueoflegends.com/cdn/15.4.1/img/profileicon/6044.png`}
+
+            
+            {/*#############################################################*/}
+            {/* Affichage Icone */}
+            {/*#############################################################*/}
+
+            {data && data.data && data.data.summonerInfo && data.data.summonerInfo.profileIconId ? (
+                <img
+                        src={`https://ddragon.leagueoflegends.com/cdn/15.4.1/img/profileicon/${data.data.summonerInfo.profileIconId}.png?${new Date().getTime()}`}
                         alt="Icône du joueur"
                         style={{ width: 100, height: 100, borderRadius: "50%" }}
-                    />
+                />
+            ) : (
+                <p>Chargement de l'icône...</p>
+            )}
+
             <pre>{data ? JSON.stringify(data, null, 2) : "Chargement..."}</pre>
-            
         </div>
     );
 }

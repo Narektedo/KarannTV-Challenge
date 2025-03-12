@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Header from '../components/Header';
-import axios from 'axios'; // Assurez-vous d'avoir installé axios
+import axios from 'axios';
+import rankIcons from './rank.json';
 
 export default function LadderPage() {
     const [players, setPlayers] = useState([]);
@@ -15,7 +16,7 @@ export default function LadderPage() {
         setIsLoading(true);
         setError(null);
         try {
-            const response = await axios.get('https://walopvgapi-9c205847a91e.herokuapp.com/ladder');
+            const response = await axios.get('YOUR_API_ENDPOINT/ladder');
             setPlayers(response.data);
         } catch (err) {
             setError('Erreur lors du chargement du classement');
@@ -26,6 +27,11 @@ export default function LadderPage() {
 
     const refreshLadder = () => {
         fetchLadder();
+    };
+
+    const getRankIcon = (tier) => {
+        const rank = rankIcons.find((rank) => rank.tier === tier);
+        return rank ? rank.image : '/images/default_rank_icon.png'; // Chemin par défaut si non trouvé
     };
 
     return (
@@ -54,9 +60,15 @@ export default function LadderPage() {
                             {players.map((player, index) => (
                                 <tr key={player.puuid}>
                                     <td>{index + 1}</td>
-                                    <td>{player.name}</td>
+                                    <td>
+                                        <img src={player.image} alt={player.name} style={{ width: '30px', height: '30px', marginRight: '5px' }} />
+                                        {player.name}
+                                    </td>
                                     <td>{player.gameName}#{player.tagLine}</td>
-                                    <td>{player.tier}</td>
+                                    <td>
+                                        <img src={getRankIcon(player.tier)} alt={player.tier} style={{ width: '30px', height: '30px', marginRight: '5px' }} />
+                                        {player.tier}
+                                    </td>
                                     <td>{player.rank}</td>
                                     <td>{player.leaguePoints}</td>
                                 </tr>

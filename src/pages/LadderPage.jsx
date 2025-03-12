@@ -108,7 +108,7 @@ export default function LadderPage() {
         <>
             <Header />
             <div className="container">
-                <h1>Classement des joueurs</h1>
+                <h1>Ladder SoloQueue</h1>
                 <button onClick={refreshLadder} disabled={refreshCooldown}>
                     {refreshCooldown ? `Refresh up dans ${cooldownTime}s` : 'Refresh'}
                 </button>
@@ -118,7 +118,7 @@ export default function LadderPage() {
                 ) : error ? (
                     <p>{error}</p>
                 ) : (
-                    <table>
+                    <table className="ladder-table">
                         <thead>
                             <tr>
                                 <th>Rang</th>

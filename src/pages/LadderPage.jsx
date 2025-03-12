@@ -3,6 +3,7 @@ import Header from '../components/Header';
 import axios from 'axios';
 import rankIcons from '../rank.json';
 import profiles from '../profiles.json';
+import './LadderPage.css'; // Import du fichier CSS
 
 export default function LadderPage() {
     const [players, setPlayers] = useState([]);
@@ -108,9 +109,9 @@ export default function LadderPage() {
         <>
             <Header />
             <div className="container">
-                <h1>Ladder SoloQueue</h1>
-                <button onClick={refreshLadder} disabled={refreshCooldown}>
-                    {refreshCooldown ? `Refresh up dans ${cooldownTime}s` : 'Refresh'}
+                <h1>Classement des joueurs</h1>
+                <button onClick={refreshLadder} disabled={refreshCooldown} className="refresh-button">
+                    {refreshCooldown ? `Réactualisation dans ${cooldownTime}s` : 'Actualiser'}
                 </button>
                 {lastRefresh && <p>Dernière actualisation : {lastRefresh.toLocaleTimeString()}</p>}
                 {isLoading ? (
@@ -133,15 +134,15 @@ export default function LadderPage() {
                             {players.map((player, index) => (
                                 <tr key={player.puuid}>
                                     <td>{index + 1}</td>
-                                    <td>
+                                    <td className="player-info">
                                         {player.image && (
-                                            <img src={player.image} alt={player.name} style={{ width: '30px', height: '30px', marginRight: '5px' }} />
+                                            <img src={player.image} alt={player.name} className="player-image" />
                                         )}
                                         {player.name}
                                     </td>
                                     <td>{player.gameName}#{player.tagLine}</td>
                                     <td>
-                                        <img src={getRankIcon(player.tier)} alt={player.tier} style={{ width: '30px', height: '30px', marginRight: '5px' }} />
+                                        <img src={getRankIcon(player.tier)} alt={player.tier} className="rank-icon" />
                                         {player.tier}
                                     </td>
                                     <td>{player.rank}</td>

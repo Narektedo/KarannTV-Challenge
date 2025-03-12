@@ -43,7 +43,8 @@ export default function LadderPage() {
                         <thead>
                             <tr>
                                 <th>Rang</th>
-                                <th>Nom du joueur</th>
+                                <th>Joueur</th>
+                                <th>Compte</th>
                                 <th>Tier</th>
                                 <th>Division</th>
                                 <th>LP</th>
@@ -53,6 +54,7 @@ export default function LadderPage() {
                             {players.map((player, index) => (
                                 <tr key={player.puuid}>
                                     <td>{index + 1}</td>
+                                    <td>{player.name}</td>
                                     <td>{player.gameName}#{player.tagLine}</td>
                                     <td>{player.tier}</td>
                                     <td>{player.rank}</td>
@@ -66,5 +68,3 @@ export default function LadderPage() {
         </>
     );
 }
-
-//test A 

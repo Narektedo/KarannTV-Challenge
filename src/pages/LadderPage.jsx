@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Header from '../components/Header';
 import axios from 'axios';
 import rankIcons from '../rank.json';
@@ -10,10 +10,33 @@ export default function LadderPage() {
     const [error, setError] = useState(null);
     const [lastRefresh, setLastRefresh] = useState(null);
     const [refreshCooldown, setRefreshCooldown] = useState(false);
+    const [cooldownTime, setCooldownTime] = useState(0);
+    const cooldownIntervalRef = useRef(null);
 
     useEffect(() => {
         fetchLadder();
     }, []);
+
+    useEffect(() => {
+        if (refreshCooldown) {
+            setCooldownTime(60);
+            cooldownIntervalRef.current = setInterval(() => {
+                setCooldownTime(prevTime => {
+                    if (prevTime <= 1) {
+                        clearInterval(cooldownIntervalRef.current);
+                        setRefreshCooldown(false);
+                        return 0;
+                    }
+                    return prevTime - 1;
+                });
+            }, 1000);
+        } else {
+            clearInterval(cooldownIntervalRef.current);
+            setCooldownTime(0);
+        }
+
+        return () => clearInterval(cooldownIntervalRef.current);
+    }, [refreshCooldown]);
 
     const fetchLadder = async () => {
         setIsLoading(true);
@@ -42,14 +65,10 @@ export default function LadderPage() {
 
     const refreshLadder = async () => {
         if (refreshCooldown) {
-            alert("Veuillez attendre avant d'actualiser à nouveau.");
             return;
         }
 
         setRefreshCooldown(true);
-        setTimeout(() => {
-            setRefreshCooldown(false);
-        }, 60000); // 60 secondes
 
         setIsLoading(true);
         setError(null);
@@ -91,7 +110,7 @@ export default function LadderPage() {
             <div className="container">
                 <h1>Classement des joueurs</h1>
                 <button onClick={refreshLadder} disabled={refreshCooldown}>
-                    {refreshCooldown ? 'Actualisation en cours...' : 'Actualiser'}
+                    {refreshCooldown ? `Réactualisation dans ${cooldownTime}s` : 'Actualiser'}
                 </button>
                 {lastRefresh && <p>Dernière actualisation : {lastRefresh.toLocaleTimeString()}</p>}
                 {isLoading ? (

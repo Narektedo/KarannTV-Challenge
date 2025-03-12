@@ -110,7 +110,7 @@ export default function LadderPage() {
             <div className="container">
                 <h1>Classement des joueurs</h1>
                 <button onClick={refreshLadder} disabled={refreshCooldown}>
-                    {refreshCooldown ? `Réactualisation dans ${cooldownTime}s` : 'Actualiser'}
+                    {refreshCooldown ? `Refresh up dans ${cooldownTime}s` : 'Refresh'}
                 </button>
                 {lastRefresh && <p>Dernière actualisation : {lastRefresh.toLocaleTimeString()}</p>}
                 {isLoading ? (

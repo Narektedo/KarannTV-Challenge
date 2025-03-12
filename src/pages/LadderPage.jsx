@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Header from '../components/Header';
 import axios from 'axios';
 import rankIcons from '../rank.json';
+import profiles from '../profiles.json';
 
 export default function LadderPage() {
     const [players, setPlayers] = useState([]);
@@ -17,7 +18,19 @@ export default function LadderPage() {
         setError(null);
         try {
             const response = await axios.get('https://walopvgapi-9c205847a91e.herokuapp.com/ladder');
-            setPlayers(response.data);
+            const ladderData = response.data;
+            
+            // Fusionner les données de l'API avec les informations locales
+            const enrichedPlayers = ladderData.map(player => {
+                const profileInfo = profiles.find(p => p.nicknames.some(n => n.gameName === player.gameName && n.tagLine === player.tagLine));
+                return {
+                    ...player,
+                    name: profileInfo ? profileInfo.name : player.gameName,
+                    image: profileInfo ? profileInfo.image : null
+                };
+            });
+
+            setPlayers(enrichedPlayers);
         } catch (err) {
             setError('Erreur lors du chargement du classement');
             console.error(err);
@@ -30,7 +43,7 @@ export default function LadderPage() {
     };
 
     const getRankIcon = (tier) => {
-        const rank = rankIcons.find((rank) => rank['rank-tier'] === tier);
+        const rank = rankIcons.find((rank) => rank['rank-tier'].toUpperCase() === tier);
         return rank ? rank['rank-icon'][0]['rank-icon-link'] : '/rank/Rank=Unranked.png';
     };
 
@@ -61,7 +74,9 @@ export default function LadderPage() {
                                 <tr key={player.puuid}>
                                     <td>{index + 1}</td>
                                     <td>
-                                        <img src={player.image} alt={player.name} style={{ width: '30px', height: '30px', marginRight: '5px' }} />
+                                        {player.image && (
+                                            <img src={player.image} alt={player.name} style={{ width: '30px', height: '30px', marginRight: '5px' }} />
+                                        )}
                                         {player.name}
                                     </td>
                                     <td>{player.gameName}#{player.tagLine}</td>

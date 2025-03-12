@@ -54,8 +54,24 @@ export default function LadderPage() {
         setIsLoading(true);
         setError(null);
         try {
-            const response = await axios.get('https://walopvgapi-9c205847a91e.herokuapp.com/refresh-ladder');
-            setPlayers(response.data);
+            // Effectuer la requête pour actualiser les données sur le backend
+            await axios.get('https://walopvgapi-9c205847a91e.herokuapp.com/refresh-ladder');
+
+            // Récupérer les données actualisées du ladder
+            const response = await axios.get('https://walopvgapi-9c205847a91e.herokuapp.com/ladder');
+            const ladderData = response.data;
+
+            // Fusionner les données de l'API avec les informations locales
+            const enrichedPlayers = ladderData.map(player => {
+                const profileInfo = profiles.find(p => p.nicknames.some(n => n.gameName === player.gameName && n.tagLine === player.tagLine));
+                return {
+                    ...player,
+                    name: profileInfo ? profileInfo.name : player.gameName,
+                    image: profileInfo ? profileInfo.image : null
+                };
+            });
+
+            setPlayers(enrichedPlayers);
             setLastRefresh(new Date());
         } catch (err) {
             setError('Erreur lors de l\'actualisation du classement');

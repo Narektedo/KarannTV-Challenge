@@ -279,11 +279,10 @@ a[href$=".html"]:hover{
   max-width: 1400px;
   justify-content: center;
   align-items: center;
-  margin-top: 120px;
-  margin-bottom: 45px;
+  margin-top: auto;
 }
 
-.ladder-table{
+.ladder-container {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -295,44 +294,46 @@ a[href$=".html"]:hover{
   margin-bottom: 45px;
 }
 
+/* Ajoute des styles pour la disposition du tableau du classement */
 .ladder-table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 20px;
-  font-size: 14px;
+  font-size: 16px; /* Augmente la taille de la police */
 }
 
 .ladder-table th,
 .ladder-table td {
-  padding: 12px 15px;
-  text-align: left;
+  padding: 15px; /* Augmente l'espacement interne des cellules */
   border-bottom: 1px solid #ddd;
 }
 
 .ladder-table th {
   background-color: #f2f2f2;
   font-weight: bold;
+  font-size: 35px;
 }
 
 .ladder-table tbody tr:hover {
   background-color: #f5f5f5;
 }
 
-.player-info {
+.player-info td {
   display: flex;
   align-items: center;
+  font-size: 40px;
+  text-align: center;
 }
 
 .player-image {
-  width: 30px;
-  height: 30px;
-  margin-right: 5px;
-  border-radius: 50%;
+  width: 120px; /* Augmente la largeur de l'image */
+  height: 120px; /* Augmente la hauteur de l'image */
+  margin-right: 10px; /* Augmente l'espacement à droite */
 }
 
-.rank-icon {
-  width: 30px;
-  height: 30px;
+.rank-icon-ladder {
+  width: 120px;
+  height: 120px;
   margin-right: 5px;
 }
 
@@ -351,3 +352,29 @@ a[href$=".html"]:hover{
   cursor: not-allowed;
 }
 
+/* Styles pour le conteneur du titre et du bouton d'actualisation */
+.ladder-header {
+  display: flex;
+  justify-content: space-between; /* Aligne le titre et le bouton aux extrémités */
+  align-items: center;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+/* Styles pour la date de la dernière actualisation */
+.last-refresh {
+  font-size: 14px;
+  color: #777;
+}
+
+.ladder-refresh-button:hover {
+  background-color: #5e61e2;
+  color: #fafafa;
+}
+
+.ladder-header {
+  font-size: 40px;
+  font-weight: bold;
+  color: black;
+  ;
+}

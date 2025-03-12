@@ -16,7 +16,7 @@ export default function LadderPage() {
         setIsLoading(true);
         setError(null);
         try {
-            const response = await axios.get('YOUR_API_ENDPOINT/ladder');
+            const response = await axios.get('https://walopvgapi-9c205847a91e.herokuapp.com/ladder');
             setPlayers(response.data);
         } catch (err) {
             setError('Erreur lors du chargement du classement');
@@ -30,8 +30,8 @@ export default function LadderPage() {
     };
 
     const getRankIcon = (tier) => {
-        const rank = rankIcons.find((rank) => rank.tier === tier);
-        return rank ? rank.image : '/images/default_rank_icon.png'; // Chemin par défaut si non trouvé
+        const rank = rankIcons.find((rank) => rank['rank-tier'] === tier);
+        return rank ? rank['rank-icon'][0]['rank-icon-link'] : '/rank/Rank=Unranked.png';
     };
 
     return (

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Header from '../components/Header';
 import axios from 'axios';
-import rankIcons from './rank.json';
+import rankIcons from '../rank.json';
 
 export default function LadderPage() {
     const [players, setPlayers] = useState([]);

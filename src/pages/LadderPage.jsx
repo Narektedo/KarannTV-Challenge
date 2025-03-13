@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import Header from '../components/Header';
 import axios from 'axios';
 import rankIcons from '../rank.json';
 import profiles from '../profiles.json';
-import '../index.css'; // Import du fichier CSS
+import '../index.css';
+import loadingGif from '../../public/loading/load01.gif';
 
 export default function LadderPage() {
     const [players, setPlayers] = useState([]);
@@ -13,6 +15,8 @@ export default function LadderPage() {
     const [refreshCooldown, setRefreshCooldown] = useState(false);
     const [cooldownTime, setCooldownTime] = useState(0);
     const cooldownIntervalRef = useRef(null);
+
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetchLadder();
@@ -74,7 +78,7 @@ export default function LadderPage() {
         setIsLoading(true);
         setError(null);
         try {
-            // Effectuer la requête pour actualiser les données sur le backend
+            // Actualisation backend
             await axios.get('https://walopvgapi-9c205847a91e.herokuapp.com/refresh-ladder');
 
             // Récupérer les données actualisées du ladder
@@ -105,11 +109,19 @@ export default function LadderPage() {
         return rank ? rank['rank-icon'][0]['rank-icon-link'] : '/rank/Rank=Unranked.png';
     };
 
+    const goToPlayerProfile = (playerName) => {
+        navigate(`/profiles/${playerName}`);
+    };
+
+    const goToAccountProfile = (gameName, tagLine) => {
+        navigate(`/profiles/${gameName}/${tagLine}`);
+    };
+
     return (
         <>
             <Header />
             <div className="ladder-container">
-                <h1 className="ladder-title">Ladder SoloQueue</h1>
+                <div className="ladder-title">Ladder SoloQueue</div>
                 <div className="ladder-header">
                     <button onClick={refreshLadder} disabled={refreshCooldown} className="ladder-refresh-button">
                         {refreshCooldown ? `Refresh up dans ${cooldownTime}s` : 'Refresh'}
@@ -117,7 +129,7 @@ export default function LadderPage() {
                     {lastRefresh && <p className="last-refresh">Dernière actualisation : {lastRefresh.toLocaleTimeString()}</p>}
                 </div>
                 {isLoading ? (
-                    <p>Chargement en cours...</p>
+                    <img className="icon-player" src={loadingGif} alt="Chargement..." />
                 ) : error ? (
                     <p>{error}</p>
                 ) : (
@@ -126,7 +138,11 @@ export default function LadderPage() {
                             <tr>
                                 <th>Rang</th>
                                 <th>Joueur</th>
-                                <th>Compte</th>
+                                <th className="player-account-width">
+                                    <div className="player-account-header">
+                                        Compte
+                                    </div>
+                                </th>
                                 <th>Tier</th>
                                 <th>Division</th>
                                 <th>LP</th>
@@ -136,17 +152,29 @@ export default function LadderPage() {
                             {players.map((player, index) => (
                                 <tr key={player.puuid}>
                                     <td>{index + 1}</td>
-                                    <td className="player-info">
+                                    <td>
                                         {player.image && (
                                             <img src={player.image} alt={player.name} className="player-image" />
                                         )}
-                                        {player.name}
+                                        <div 
+                                            className="player-name-ladder clickable" 
+                                            onClick={() => goToPlayerProfile(player.name)}
+                                        >
+                                            {player.name}
+                                        </div>
                                     </td>
-                                    <td>{player.gameName}#{player.tagLine}</td>
-                                    <td>
+                                    <td className="">
+                                        <div 
+                                            className="player-account clickable" 
+                                            onClick={() => goToAccountProfile(player.gameName, player.tagLine)}
+                                        >
+                                            {player.gameName}#{player.tagLine}
+                                        </div>
+                                    </td>
+                                    <div className="rank-ladder">
                                         <img src={getRankIcon(player.tier)} alt={player.tier} className="rank-icon-ladder" />
-                                        {player.tier}
-                                    </td>
+
+                                    </div>
                                     <td>{player.rank}</td>
                                     <td>{player.leaguePoints}</td>
                                 </tr>

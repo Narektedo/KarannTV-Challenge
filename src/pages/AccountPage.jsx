@@ -47,9 +47,11 @@ function Profile() {
         } else {
             const totalGames = rankInfo.wins + rankInfo.losses;
             const winRate = totalGames > 0 ? ((rankInfo.wins / totalGames) * 100).toFixed(1) : 0;
+            const rankString = rankInfo.formattedRank ? `${rankInfo.formattedRank} ${rankInfo.leaguePoints} LP` : `${rankInfo.tier} ${rankInfo.rank} ${rankInfo.leaguePoints} LP`;
+
             return (
                 <div className="rank-details">
-                    <div className="rank-tier">{`${rankInfo.tier} ${rankInfo.rank} ${rankInfo.leaguePoints} LP`}</div>
+                    <div className="rank-tier">{rankString}</div>
                     <div className="rank-wr">{`${rankInfo.wins}W - ${rankInfo.losses}L (${winRate}%)`}</div>
                 </div>
             );
@@ -91,7 +93,7 @@ function Profile() {
                 <div className="container-name">
                                 {data?.data?.accountInfo && (
                             <div>
-                                {data.data.accountInfo.gameName}<span className="tagLine"> #{data.data.accountInfo.tagLine}</span>
+                                <span className="gameName">{data.data.accountInfo.gameName}</span><span className="tagLine"> #{data.data.accountInfo.tagLine}</span>
                             </div>
                         )}
                 </div>
@@ -103,7 +105,7 @@ function Profile() {
                         {(() => {
                             const soloRank = getRankInfo(data.data.rankInfo, 'RANKED_SOLO_5x5');
                             return (
-                                <div className="rank-item">
+                                <div className="rank-item-solo">
                                     <div className="rank-text-title">Solo/Duo</div>
                                     <div className="rank-info">
                                         <img
@@ -126,7 +128,7 @@ function Profile() {
                         {(() => {
                             const flexRank = getRankInfo(data.data.rankInfo, 'RANKED_FLEX_SR');
                             return (
-                                <div className="rank-item">
+                                <div className="rank-item-flex">
                                     <div className="rank-text-title">Flex</div>
                                     <div className="rank-info">
                                         <img
@@ -137,7 +139,7 @@ function Profile() {
                                                 e.target.src = '/rank/Rank=Unranked.png';
                                             }}
                                         />
-                                        <div className="rank-text">
+                                        <div className="rank-details">
                                             {renderRankInfo(flexRank)}
                                         </div>
                                     </div>

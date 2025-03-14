@@ -5,6 +5,7 @@
 
 body{
   font-family: "main_font";
+  background-color: #171a1d
 }
 
 h1 {
@@ -20,7 +21,7 @@ h1 {
   width: 100%; 
   display: flex;
   align-items: center;
-  background-color: #f8f9fa;
+  background-color: #1d2025e8;
   padding: 10px 20px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   z-index: 1000;
@@ -56,7 +57,7 @@ h1 {
 .site_info .site_name {
   font-size: 65px;
   font-weight: bold;
-  color: #333;
+  color: white;
 }
 
 a[href$=".html"]{
@@ -108,7 +109,7 @@ a[href$=".html"]:hover{
 
 .ladder_button, .ladder-refresh-button{
   text-decoration: none;
-  color: black;
+  color: white;
   border: 2px rgb(149, 148, 148) solid;
   text-align: center;
   padding: 10px 10px;
@@ -117,6 +118,7 @@ a[href$=".html"]:hover{
   cursor: pointer;
   margin: 4px 2px;
   max-width: 210px;
+  background-color: #2e323be8;
 }
 
 .profile_button:hover, .ladder_button:hover, .ladder-refresh-button:hover{
@@ -147,7 +149,7 @@ a[href$=".html"]:hover{
 .profile_title{
   font-family: main_font;
   font-size: 70px;
-  color: black;
+  color: rgb(233, 233, 233);
   text-align: center;
   margin-top: 5%;
 }
@@ -166,7 +168,6 @@ a[href$=".html"]:hover{
 .site_info .site_name {
   font-size: 40px;
   font-weight: bold;
-  color: #333; 
   margin-left: 15px;
 }
 
@@ -216,6 +217,7 @@ a[href$=".html"]:hover{
   margin-right: auto;
   max-width: 1400px;
   border-radius: 7%;
+  border: #b7bcda solid 3px;
 }
 
 .rank-icon {
@@ -226,8 +228,8 @@ a[href$=".html"]:hover{
 }
 
 .rank-icon{
-  width: 135px;
-  height: 135px;
+  width: 145px;
+  height: 145px;
   justify-content: center;
   align-items: center;
   margin-left: auto;
@@ -237,13 +239,13 @@ a[href$=".html"]:hover{
 }
 
 .rank-text {
-  color:  black;
+  color:  white;
   min-height: 24px;
   font-size: 30px;
 }
 
 .rank-text-title{
-  color: black;
+  color: #b7bcda;
   font-size: 32px;
   justify-content: center;
   font-weight: bold;
@@ -260,13 +262,13 @@ a[href$=".html"]:hover{
 }
 
 .rank-details{
-  color: black;
-  font-size: 30px;
+  color: #b7bcda;
+  font-size: 19px;
   margin-bottom: 30px;
 }
 
 .player-info{
-  margin-left: 370px;
+  margin-left: 391px;
   margin-right: auto;
   max-width: 150px;
   margin-top: 45px;
@@ -291,6 +293,10 @@ a[href$=".html"]:hover{
   font-size: 20px; 
 }
 
+.profile-container{
+  max-width: fit-content;
+}
+
 .ladder-table th,
 .ladder-table td,
 .ladder-table tr {
@@ -301,23 +307,29 @@ a[href$=".html"]:hover{
 }
 
 .ladder-table th {
-  background-color: #f2f2f2;
+  background-color: #3d454d;
   font-weight: bold;
   font-size: 35px;
   text-align: center;
   align-items: center;
   max-width: fit-content;
+  color: white;
 }
 
 .ladder-table tbody tr:hover {
-  background-color: #f5f5f5;
+  background-color: #55606b;
 }
 
+.ladder-table td{
+  background-color: #1f2228e8;
+  color: white;
+}
 .player-info td {
   display: flex;
   font-size: 40px;
   text-align: center;
   max-width: 500px;
+  color: white;
 }
 
 .player-image {
@@ -380,6 +392,7 @@ a[href$=".html"]:hover{
 
 .player-name-ladder, .rank-ladder, .rank-tier, .player-account{
   font-size: 30px;
+  color: white;
 }
 
 .player-name-ladder{
@@ -401,6 +414,7 @@ a[href$=".html"]:hover{
 
 .ladder-title {
   font-size: 55px;
+  color: white;
 }
 
 .player-account-width,
@@ -439,12 +453,16 @@ a[href$=".html"]:hover{
   background-color: rgba(0, 0, 0, 0.733);
   max-width: 200px;
   border-radius: .25rem;
+  border :rgb(0, 0, 0) solid 2px;
 }
 
 .player-level-container{
   max-width: fit-content;
   text-align: center;
-margin-left: 31%;
+  margin-left: auto;
+  margin-right: auto;
+  border: rgba(83, 79, 79, 0.61) solid 2px;
+  border-radius: .25rem;
 }
 
 .player-container {
@@ -454,6 +472,8 @@ max-width: fit-content;
 
 .container-icon-level {
   max-width: 150px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .container-icon-level-name{
@@ -463,15 +483,59 @@ max-width: fit-content;
 .container-name{
   max-width: fit-content;
   font-size: 41px;
-  margin-left: 555px;
+  margin-left: 670px;
   margin-top: -185px;
-  display: flex
+  display: flex;
+  color : #b7bcda;
+  border: #51535f solid 2px;
+  border-radius: .60rem;
+  padding-top: 3px;
+  padding-bottom: 3px;
+  padding-left: 6px;
+  padding-right: 6px;
 }
 
 .tagLine {
+  color : #9095ac;
   font-weight: bold;
+}
+
+.gameName {
+  color : white;
 }
 
 .rank-tier, .rank-wr {
   font-size: 19px;
+  color: #b7bcda;
+  text-align: center;
+}
+
+.rank-item-solo {
+  color: white;
+  margin-top: 20px;
+  background-color: #1f2228e8;
+  padding-top: 3px;
+  padding-bottom: 3px;
+  padding-left: 6px;
+  padding-right: 6px;
+  border-radius: .25rem;
+  max-height: fit-content;
+  border: #b7bcda solid 3px;
+  margin-bottom: 50px;
+  width: 250px;
+
+}
+
+.rank-item-flex{
+  margin-top: 20px;
+  background-color: #1f2228e8;
+  padding-top: 3px;
+  padding-bottom: 3px;
+  padding-left: 6px;
+  padding-right: 6px;
+  border-radius: .25rem;
+  max-height: fit-content;
+  border: #b7bcda solid 3px;
+  margin-bottom: 100px;
+  width: 250px;
 }

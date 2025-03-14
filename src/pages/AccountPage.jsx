@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Header from '../components/Header';
 import rankIcons from '../rank.json';
-import loadingGif from '../../public/loading/load01.gif';
+import loadingGif from '../components/Loading.jsx';
 
 // Fonction utilitaire pour récupérer le rang spécifique
 const getRankInfo = (rankData, queueType) => {

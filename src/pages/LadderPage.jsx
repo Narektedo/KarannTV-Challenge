@@ -5,7 +5,7 @@ import axios from 'axios';
 import rankIcons from '../rank.json';
 import profiles from '../profiles.json';
 import '../index.css';
-import loadingGif from '../../public/loading/load01.gif';
+import Loader from '../components/Loading.jsx';
 
 export default function LadderPage() {
     const [players, setPlayers] = useState([]);
@@ -129,7 +129,7 @@ export default function LadderPage() {
                     {lastRefresh && <p className="last-refresh">Dernière actualisation : {lastRefresh.toLocaleTimeString()}</p>}
                 </div>
                 {isLoading ? (
-                    <img className="icon-player" src={loadingGif} alt="Chargement..." />
+                    <Loader className="icon-player" />
                 ) : error ? (
                     <p>{error}</p>
                 ) : (

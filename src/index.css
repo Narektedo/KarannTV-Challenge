@@ -215,6 +215,7 @@ a[href$=".html"]:hover{
   margin-left: auto;
   margin-right: auto;
   max-width: 1400px;
+  border-radius: 7%;
 }
 
 .rank-icon {
@@ -237,8 +238,6 @@ a[href$=".html"]:hover{
 
 .rank-text {
   color:  black;
-  font-weight: bold;
-  text-align: center;
   min-height: 24px;
   font-size: 30px;
 }
@@ -254,17 +253,14 @@ a[href$=".html"]:hover{
 
 .player-name{
   color: black;
-  font-weight: bold;
   font-size: 35px;
   text-align: center;
   justify-content: center;
-  position: absolute;
+  max-width: fit-content;
 }
 
 .rank-details{
   color: black;
-  font-weight: bold;
-  text-align: center;
   font-size: 30px;
   margin-bottom: 30px;
 }
@@ -310,6 +306,7 @@ a[href$=".html"]:hover{
   font-size: 35px;
   text-align: center;
   align-items: center;
+  max-width: fit-content;
 }
 
 .ladder-table tbody tr:hover {
@@ -326,11 +323,8 @@ a[href$=".html"]:hover{
 .player-image {
   width: 80px;
   height: 80px; 
-  margin-left: 10px;
   margin-top: 10px;
-  align-items: center;
   border: 1px solid rgb(233, 233, 233);
- 
 }
 
 .rank-icon-ladder {
@@ -374,6 +368,10 @@ a[href$=".html"]:hover{
   color: #fafafa;
 }
 
+.ladder-refresh-button:disabled{
+ color: grey;
+}
+
 .ladder-header {
   font-size: 40px;
   color: black;
@@ -382,27 +380,33 @@ a[href$=".html"]:hover{
 
 .player-name-ladder, .rank-ladder, .rank-tier, .player-account{
   font-size: 30px;
-  color: black;
-  align-items: center;
-  text-align: center;
+}
+
+.player-name-ladder{
+  margin-left: 33%;
+  max-width: fit-content;
+}
+.player-account {
+  max-width: fit-content;
+  margin-left: 25%;
+  margin-right: 25%;
   display: flex;
 }
 
-.player-account {
-  max-width: 650px;
-}
-
 .player-account-header{
-  max-width: 600px;
+  max-width: fit-content;
   text-align: center;
+  margin-left: 170px;
 }
 
 .ladder-title {
   font-size: 55px;
 }
 
-.player-account-width, .td-player-account{
-  max-width: 600px;
+.player-account-width,
+.td-player-account {
+  max-width: 200px; /* Réduit la largeur maximale */
+  word-wrap: break-word; /* Permet de couper les mots si nécessaire */
 }
 
 .clickable:hover {
@@ -411,12 +415,20 @@ a[href$=".html"]:hover{
   max-width: auto;
 }
 
+.ladder-table {
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
 .rank-list {
-  margin-left: 100px;
+  max-width: fit-content;
+  margin-left: 370px;
+  margin-right: auto;
+  margin-top: 200px;
 }
 
 .player-level{
-  font-size: 30px;
+  font-size: 20px;
   color: white;
   text-align: center;
   padding-top: 3px;
@@ -424,21 +436,42 @@ a[href$=".html"]:hover{
   padding-left: 6px;
   padding-right: 6px;
   --tw-bg-opacity: 1;
-  background-color: rgb(99, 99, 99);
-  max-width: 50px;
+  background-color: rgba(0, 0, 0, 0.733);
+  max-width: 200px;
   border-radius: .25rem;
 }
 
 .player-level-container{
-  max-width: 50px;
+  max-width: fit-content;
   text-align: center;
-  margin-left: 50px;
-  }
+margin-left: 31%;
+}
 
 .player-container {
 margin-top: 150px;
+max-width: fit-content;
 }
 
 .container-icon-level {
   max-width: 150px;
+}
+
+.container-icon-level-name{
+  max-width: fit-content;
+}
+
+.container-name{
+  max-width: fit-content;
+  font-size: 41px;
+  margin-left: 555px;
+  margin-top: -185px;
+  display: flex
+}
+
+.tagLine {
+  font-weight: bold;
+}
+
+.rank-tier, .rank-wr {
+  font-size: 19px;
 }

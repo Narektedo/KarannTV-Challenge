@@ -49,8 +49,8 @@ function Profile() {
             const winRate = totalGames > 0 ? ((rankInfo.wins / totalGames) * 100).toFixed(1) : 0;
             return (
                 <div className="rank-details">
-                    <div>{`${rankInfo.tier} ${rankInfo.rank} ${rankInfo.leaguePoints} LP`}</div>
-                    <div>{`${rankInfo.wins}W - ${rankInfo.losses}L (${winRate}%)`}</div>
+                    <div className="rank-tier">{`${rankInfo.tier} ${rankInfo.rank} ${rankInfo.leaguePoints} LP`}</div>
+                    <div className="rank-wr">{`${rankInfo.wins}W - ${rankInfo.losses}L (${winRate}%)`}</div>
                 </div>
             );
         }
@@ -62,41 +62,41 @@ function Profile() {
             <div>
                 {error && <p style={{ color: "red" }}>{error.message}</p>}
 
-
+            <div className="profile-container">
                 <div className="player-container">
-                    {/* Affichage Icone & gameName+tagLine */}
                     <div className="player-info">
+                        <div className="container-icon-level-name-test">
+                            <div className="container-icon-level">
+                                    {data?.data?.summonerInfo?.profileIconId ? (
+                                        <img
+                                            className="icon-player"
+                                            src={`https://ddragon.leagueoflegends.com/cdn/15.4.1/img/profileicon/${data.data.summonerInfo.profileIconId}.png?${new Date().getTime()}`}
+                                            alt="Icône du joueur"
+                                        />
+                                    ) : (
+                                        <img className="icon-player" src={loadingGif} alt="Chargement..." />
+                                    )}
 
-                        <div className="container-icon-level">
-                            {data?.data?.summonerInfo?.profileIconId ? (
-                                <img
-                                    className="icon-player"
-                                    src={`https://ddragon.leagueoflegends.com/cdn/15.4.1/img/profileicon/${data.data.summonerInfo.profileIconId}.png?${new Date().getTime()}`}
-                                    alt="Icône du joueur"
-                                />
-                            ) : (
-                                <img className="icon-player" src={loadingGif} alt="Chargement..." /> // GIF de chargement
-                            )}
-
-                            <div className="player-level-container">
-                                {data?.data?.summonerInfo && (
-                                    <div className="player-level">
-                                        {data.data.summonerInfo.summonerLevel}
-                                    </div>
-                                )}
+                                <div className="player-level-container">
+                                    {data?.data?.summonerInfo && (
+                                        <div className="player-level">
+                                            {data.data.summonerInfo.summonerLevel}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+                <div className="container-name">
+                                {data?.data?.accountInfo && (
+                            <div>
+                                {data.data.accountInfo.gameName}<span className="tagLine"> #{data.data.accountInfo.tagLine}</span>
+                            </div>
+                        )}
+                </div>
+            </div>            
 
-                    {data?.data?.accountInfo && (
-                        <div className="player-name">
-                            {data.data.accountInfo.gameName}#{data.data.accountInfo.tagLine}
-                        </div>
-                    )}
-                
-
-                {/* Affichage Rank */}
                 {data?.data?.rankInfo && (
                     <div className="rank-list">
                         {/* SoloQueue */}

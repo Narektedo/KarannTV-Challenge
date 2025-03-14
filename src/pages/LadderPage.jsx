@@ -153,14 +153,16 @@ export default function LadderPage() {
                                 <tr key={player.puuid}>
                                     <td>{index + 1}</td>
                                     <td>
-                                        {player.image && (
-                                            <img src={player.image} alt={player.name} className="player-image" />
-                                        )}
-                                        <div 
-                                            className="player-name-ladder clickable" 
-                                            onClick={() => goToPlayerProfile(player.name)}
-                                        >
-                                            {player.name}
+                                        <div className="container-image-name-ladder">
+                                            {player.image && (
+                                                <img src={player.image} alt={player.name} className="player-image" />
+                                            )}
+                                            <div 
+                                                className="player-name-ladder clickable" 
+                                                onClick={() => goToPlayerProfile(player.name)}
+                                            >
+                                                {player.name}
+                                            </div>
                                         </div>
                                     </td>
                                     <td className="">

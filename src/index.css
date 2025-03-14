@@ -212,14 +212,9 @@ a[href$=".html"]:hover{
 .icon-player{
   width: 150px;
   height: 150px;
-  justify-content: center;
-  align-items: center;
   margin-left: auto;
   margin-right: auto;
   max-width: 1400px;
-  display: flex;
-  margin-top: 120px;
-  margin-bottom: 10px;
 }
 
 .rank-icon {
@@ -263,6 +258,7 @@ a[href$=".html"]:hover{
   font-size: 35px;
   text-align: center;
   justify-content: center;
+  position: absolute;
 }
 
 .rank-details{
@@ -274,12 +270,10 @@ a[href$=".html"]:hover{
 }
 
 .player-info{
-  margin-left: auto;
+  margin-left: 370px;
   margin-right: auto;
-  max-width: 1400px;
-  justify-content: center;
-  align-items: center;
-  margin-top: auto;
+  max-width: 150px;
+  margin-top: 45px;
 }
 
 .ladder-container {
@@ -391,6 +385,7 @@ a[href$=".html"]:hover{
   color: black;
   align-items: center;
   text-align: center;
+  display: flex;
 }
 
 .player-account {
@@ -414,4 +409,36 @@ a[href$=".html"]:hover{
   color: #5e61e2;
   cursor: pointer;
   max-width: auto;
+}
+
+.rank-list {
+  margin-left: 100px;
+}
+
+.player-level{
+  font-size: 30px;
+  color: white;
+  text-align: center;
+  padding-top: 3px;
+  padding-bottom: 3px;
+  padding-left: 6px;
+  padding-right: 6px;
+  --tw-bg-opacity: 1;
+  background-color: rgb(99, 99, 99);
+  max-width: 50px;
+  border-radius: .25rem;
+}
+
+.player-level-container{
+  max-width: 50px;
+  text-align: center;
+  margin-left: 50px;
+  }
+
+.player-container {
+margin-top: 150px;
+}
+
+.container-icon-level {
+  max-width: 150px;
 }

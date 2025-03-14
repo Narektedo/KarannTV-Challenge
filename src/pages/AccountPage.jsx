@@ -62,24 +62,39 @@ function Profile() {
             <div>
                 {error && <p style={{ color: "red" }}>{error.message}</p>}
 
-                {/* Affichage Icone & gameName+tagLine */}
-                <div className="player-info">
-                    {data?.data?.summonerInfo?.profileIconId ? (
-                        <img
-                            className="icon-player"
-                            src={`https://ddragon.leagueoflegends.com/cdn/15.4.1/img/profileicon/${data.data.summonerInfo.profileIconId}.png?${new Date().getTime()}`}
-                            alt="Icône du joueur"
-                        />
-                    ) : (
-                        <img className="icon-player" src={loadingGif} alt="Chargement..." /> // GIF de chargement
-                    )}
-                    
+
+                <div className="player-container">
+                    {/* Affichage Icone & gameName+tagLine */}
+                    <div className="player-info">
+
+                        <div className="container-icon-level">
+                            {data?.data?.summonerInfo?.profileIconId ? (
+                                <img
+                                    className="icon-player"
+                                    src={`https://ddragon.leagueoflegends.com/cdn/15.4.1/img/profileicon/${data.data.summonerInfo.profileIconId}.png?${new Date().getTime()}`}
+                                    alt="Icône du joueur"
+                                />
+                            ) : (
+                                <img className="icon-player" src={loadingGif} alt="Chargement..." /> // GIF de chargement
+                            )}
+
+                            <div className="player-level-container">
+                                {data?.data?.summonerInfo && (
+                                    <div className="player-level">
+                                        {data.data.summonerInfo.summonerLevel}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                     {data?.data?.accountInfo && (
                         <div className="player-name">
                             {data.data.accountInfo.gameName}#{data.data.accountInfo.tagLine}
                         </div>
                     )}
-                </div>
+                
 
                 {/* Affichage Rank */}
                 {data?.data?.rankInfo && (

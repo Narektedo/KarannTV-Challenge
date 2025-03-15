@@ -1,0 +1,48 @@
+[
+    {
+        "position": "TOP",
+        "position-icon": [
+            {
+                "position-icon-link": "/role/TOP.png"
+            }
+            
+        ]
+        
+    },
+    {
+        "position": "JUNGLE",
+        "position-icon": [
+            {
+                "position-icon-link": "/role/JUNGLE.png"
+            }
+            
+        ]
+    },
+    {
+        "position": "MID",
+        "position-icon": [
+            {
+                "position-icon-link": "/role/MID.png"
+            }
+            
+        ]
+    },
+    {
+        "position": "BOTTOM",
+        "position-icon": [
+            {
+                "position-icon-link": "/role/BOTTOM.png"
+            }
+            
+        ]
+    },
+    {
+        "position": "UTILITY",
+        "position-icon": [
+            {
+                "position-icon-link": "/role/UTILITY.png"
+            }
+            
+        ]
+    }
+]

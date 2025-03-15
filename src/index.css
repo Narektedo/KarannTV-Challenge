@@ -119,6 +119,8 @@ a[href$=".html"]:hover{
   margin: 4px 2px;
   max-width: 210px;
   background-color: #2e323be8;
+  border: #b7bcda solid 2px;
+  border-radius: .45rem;
 }
 
 .profile_button:hover, .ladder_button:hover, .ladder-refresh-button:hover{
@@ -538,5 +540,69 @@ max-width: fit-content;
   border: #b7bcda solid 3px;
   margin-bottom: 100px;
   width: 250px;
+}
+
+.match-history-container {
+  position: absolute;
+  color: white;
+  margin-left: 805px;
+  margin-top: -546px;
+  max-width: 1000px;
+}
+
+.match-item {
+  padding: 10px;
+  margin-bottom: 10px;
+  width: 800px;
+  min-height: 100px;
+  display: flex;
+  align-items: center;
+}
+
+.match-info {
+  margin-right: 20px;
+  margin-left: 10px;
+}
+
+.player-info-matchs {
+  display: flex;
+  align-items: center;
+  margin-right: 20px;
+}
+
+.player-info img {
+  margin-right: 5px;
+}
+
+.opposing-player-info {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  margin-right: 15px;
+}
+
+.match-item.win {
+  border: 2px solid rgb(21, 21, 128);
+  border-radius: .25rem;
+}
+
+.match-item.loss {
+  border: 2px solid rgb(105, 14, 14);
+  border-radius: .25rem;
+}
+
+.match-champ-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: .50rem;
+}
+
+.VS {
+  margin-right: 2px;
+}
+
+.KDA {
+  margin-left: 10px;
+  font-size: 20px;
 }
 

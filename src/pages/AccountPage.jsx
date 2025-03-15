@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Header from '../components/Header';
 import rankIcons from '../rank.json';
-import loadingGif from '../components/Loading.jsx';
+import Loader from '../components/Loading.jsx';
+import roleIcons from '../role.json';
 
 // Fonction utilitaire pour récupérer le rang spécifique
 const getRankInfo = (rankData, queueType) => {
@@ -24,14 +25,16 @@ function Profile() {
     const { gameName, tagLine } = useParams();
     const [data, setData] = useState(null);
     const [error, setError] = useState(null);
+    const [matchHistory, setMatchHistory] = useState(null);
+    const [matchHistoryError, setMatchHistoryError] = useState(null);
 
     useEffect(() => {
         const apiUrl = `https://walopvgapi-9c205847a91e.herokuapp.com/info/${gameName}/${tagLine}`;
-    
+
         fetch(apiUrl)
             .then(response => {
                 if (!response.ok) {
-                    throw new Error("Erreur lors de la récupération des données !");
+                    throw new Error("Erreur lors de la récupération des données du joueur !");
                 }
                 return response.json();
             })
@@ -39,6 +42,28 @@ function Profile() {
                 setData(responseData);
             })
             .catch(setError);
+    }, [gameName, tagLine]);
+
+    useEffect(() => {
+        const matchHistoryApiUrl = `https://walopvgapi-9c205847a91e.herokuapp.com/matchs/${gameName}/${tagLine}`;
+
+        fetch(matchHistoryApiUrl)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Erreur lors de la récupération de l'historique des parties !");
+                }
+                return response.json();
+            })
+            .then(matchHistoryData => {
+                if (matchHistoryData.success && Array.isArray(matchHistoryData.data.matchInfo)) {
+                    setMatchHistory(matchHistoryData.data.matchInfo); // Accéder à data.matchInfo
+                } else {
+                    console.error("L'API n'a pas renvoyé un tableau :", matchHistoryData);
+                    setMatchHistoryError(new Error("L'API n'a pas renvoyé un tableau d'historique de parties."));
+                    setMatchHistory(null);
+                }
+            })
+            .catch(setMatchHistoryError);
     }, [gameName, tagLine]);
 
     const renderRankInfo = (rankInfo) => {
@@ -58,6 +83,50 @@ function Profile() {
         }
     };
 
+    // Fonction pour obtenir les informations du joueur actuel dans un match
+    const getPlayerInfo = (match, puuid) => {
+        const player = match.info.participants.find(p => p.puuid === puuid);
+        return player || null;
+    };
+
+     // Fonction pour déterminer si le joueur a gagné la partie
+    const didPlayerWin = (match, puuid) => {
+        const playerInfo = getPlayerInfo(match, data?.data?.accountInfo?.puuid);
+
+        if (!playerInfo) {
+            return false; // Ou une autre valeur par défaut si les infos du joueur ne sont pas trouvées
+        }
+        return playerInfo.win;
+    };
+
+    const getOpposingLaneChampion = (match, playerTeamPosition) => {
+        const opposingPlayer = match.info.participants.find(participant => 
+            participant.teamPosition === playerTeamPosition && 
+            participant.teamId !== getPlayerInfo(match, data?.data?.accountInfo?.puuid)?.teamId
+        );
+    
+        return opposingPlayer ? opposingPlayer.championName : 'Unknown';
+    };
+
+    const getRoleIconUrl = (role) => {
+        const roleInfo = roleIcons.find(r => r.position === role);
+        return roleInfo ? roleInfo["position-icon"][0]["position-icon-link"] : "/images/roles/unknown.png";
+    };
+    
+    const getChampionIconUrl = (championName) => {
+        // Adaptez cette URL en fonction de l'endroit où sont stockées vos icônes de champion
+        return `http://ddragon.leagueoflegends.com/cdn/14.1.1/img/champion/${championName}.png`;
+    };
+
+    // Fonction pour formater la durée du jeu en "min:sec"
+    const formatGameDuration = (durationInSeconds) => {
+        const minutes = Math.floor(durationInSeconds / 60);
+        const seconds = Math.floor(durationInSeconds % 60);
+        const formattedSeconds = seconds < 10 ? `0${seconds}` : seconds; // Ajouter un zéro devant si < 10
+        return `${minutes}:${formattedSeconds}`;
+    };
+
+    
     return (
         <div>
             <Header />
@@ -76,7 +145,7 @@ function Profile() {
                                             alt="Icône du joueur"
                                         />
                                     ) : (
-                                        <img className="icon-player" src={loadingGif} alt="Chargement..." />
+                                        <Loader className="icon-player" />
                                     )}
 
                                 <div className="player-level-container">
@@ -149,10 +218,47 @@ function Profile() {
                     </div>
                 )}
             </div>
-            
-            {/* Mise en commentaire pour eviter de print tout le json sur la page */}
-            {/* <pre className="json">{data ? JSON.stringify(data, null, 2) : "Chargement..."}</pre> */}
-        </div>
+
+                <div className="match-history-container">
+                    {matchHistoryError && <p style={{ color: "red" }}>{matchHistoryError.message}</p>}
+                    {matchHistory === null ? (
+                        <Loader />
+                    ) : matchHistory.length > 0 ? (
+                        matchHistory.map(match => {
+                            const playerInfo = getPlayerInfo(match, data?.data?.accountInfo?.puuid);
+                            const win = didPlayerWin(match, data?.data?.accountInfo?.puuid);
+                            const matchItemClass = `match-item ${win ? 'win' : 'loss'}`; // Classe conditionnelle
+
+                            const opposingLaneChampion = getOpposingLaneChampion(match, playerInfo?.teamPosition);
+                            const gameModeDisplay = match.info.gameMode === "CLASSIC" ? "Solo/Duo" : match.info.gameMode;
+                            const gameDurationFormatted = formatGameDuration(match.info.gameDuration); // Formater la durée
+                            return (
+                                <div
+                                    key={match.metadata.matchId}
+                                    className={matchItemClass}
+                                >
+                                    <div className="match-info">
+                                        <div className="game-mode">{gameModeDisplay}</div>
+                                        <div className="game-duration">{gameDurationFormatted}</div>
+                                    </div>
+                                    {playerInfo && (
+                                      <div className="player-info-matchs">
+                                            <img className="match-champ-icon" src={getChampionIconUrl(playerInfo.championName)} alt={playerInfo.championName}/>
+                                            <div className="KDA"> <span className="kills">{playerInfo.kills}</span>/<span className="deaths">{playerInfo.deaths}</span>/<span className="assists">{playerInfo.assists}</span></div>
+                                        </div>
+                                          )}
+                                            
+                                            <div className="opposing-player-info">
+                                                <span className="VS">VS</span><img className="match-champ-icon" src={getChampionIconUrl(opposingLaneChampion)} alt={opposingLaneChampion}/>
+                                            </div>
+                                </div>
+                            );
+                        })
+                    ) : (
+                        <p>Aucun historique de parties trouvé.</p>
+                    )}
+                </div>
+            </div>
     );
 }
 

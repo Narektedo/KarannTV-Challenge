@@ -125,7 +125,7 @@ function Profile() {
 
     // Fonction pour obtenir l'icône du champion
     const getChampionIconUrl = (championName) => {
-        return `http://ddragon.leagueoflegends.com/cdn/14.1.1/img/champion/${championName}.png`;
+        return `http://ddragon.leagueoflegends.com/cdn/15.5.1/img/champion/${championName}.png`;
     };
 
     // "min:sec"
@@ -159,6 +159,11 @@ function Profile() {
         if (kda <= 5) return interpolateColor(colors[2], colors[3], (kda - 3) / 2);
         return interpolateColor(colors[3], colors[4], Math.min((kda - 5) / 5, 1));
       };
+
+    // test pour obtenir le niveau du champion dans la partie actuelle
+    const getChampionLevel = (championLevel) => {
+        return championLevel.champLevel;
+    };
     
     return (
         <div>
@@ -265,6 +270,7 @@ function Profile() {
                             const opposingLaneChampion = getOpposingLaneChampion(match, playerInfo?.teamPosition);
                             const gameModeDisplay = match.info.gameMode === "CLASSIC" ? "Solo/Duo" : match.info.gameMode;
                             const gameDurationFormatted = formatGameDuration(match.info.gameDuration); // Formater la durée
+                            const championLevel = getChampionLevel(playerInfo);
 
                             const roleIcon = getRoleIconUrl(playerInfo?.teamPosition); 
                             return (
@@ -272,6 +278,8 @@ function Profile() {
                                     key={match.metadata.matchId}
                                     className={matchItemClass}
                                 >
+                                    
+
                                     <div className="match-info">
                                         <div className="game-mode">{gameModeDisplay}</div>
                                         <div className="game-duration">{gameDurationFormatted}</div>
@@ -280,7 +288,12 @@ function Profile() {
 
                                     {playerInfo && (
                                       <div className="player-info-matchs">
-                                            <img className="match-champ-icon" src={getChampionIconUrl(playerInfo.championName)} alt={playerInfo.championName}/>
+                                            <div className="champ-icon-level-container">
+                                                <img className="match-champ-icon" src={getChampionIconUrl(playerInfo.championName)} alt={playerInfo.championName}/>
+                                                <div className="match-champion-level">
+                                                    {championLevel}
+                                                </div>
+                                            </div>
                                             <div className="KDA"> <span className="kills">{playerInfo.kills}</span>/<span className="deaths">{playerInfo.deaths}</span>/<span className="assists">{playerInfo.assists}</span>
                                             <div className="KDA-calculated" style={{ color: getKDAColor(playerInfo) }}><span className="KDA-title">KDA   </span>{((playerInfo.kills + playerInfo.assists) / Math.max(1, playerInfo.deaths)).toFixed(1)}</div>
                                             </div>
@@ -321,18 +334,18 @@ function Profile() {
                                             </div>                                         
                                             <div className="match-items-container">
                                                 <div>
-                                                {playerInfo.item0 ? <img className="match-item-icon" src={`http://ddragon.leagueoflegends.com/cdn/11.16.1/img/item/${playerInfo.item0}.png`} alt={playerInfo.item0} /> : null}
-                                                {playerInfo.item1 ? <img className="match-item-icon" src={`http://ddragon.leagueoflegends.com/cdn/11.16.1/img/item/${playerInfo.item1}.png`} alt={playerInfo.item1} /> : null}
+                                                {playerInfo.item0 ? <img className="match-item-icon" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${playerInfo.item0}.png`} alt={playerInfo.item0} /> : null}
+                                                {playerInfo.item1 ? <img className="match-item-icon" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${playerInfo.item1}.png`} alt={playerInfo.item1} /> : null}
                                                 </div>
                                                 <div>
-                                                {playerInfo.item2 ? <img className="match-item-icon" src={`http://ddragon.leagueoflegends.com/cdn/11.16.1/img/item/${playerInfo.item2}.png`} alt={playerInfo.item2} /> : null}
-                                                {playerInfo.item3 ? <img className="match-item-icon" src={`http://ddragon.leagueoflegends.com/cdn/11.16.1/img/item/${playerInfo.item3}.png`} alt={playerInfo.item3} /> : null}
+                                                {playerInfo.item2 ? <img className="match-item-icon" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${playerInfo.item2}.png`} alt={playerInfo.item2} /> : null}
+                                                {playerInfo.item3 ? <img className="match-item-icon" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${playerInfo.item3}.png`} alt={playerInfo.item3} /> : null}
                                                 </div>
                                                 <div>
-                                                {playerInfo.item4 ? <img className="match-item-icon" src={`http://ddragon.leagueoflegends.com/cdn/11.16.1/img/item/${playerInfo.item4}.png`} alt={playerInfo.item4} /> : null}
-                                                {playerInfo.item5 ? <img className="match-item-icon" src={`http://ddragon.leagueoflegends.com/cdn/11.16.1/img/item/${playerInfo.item5}.png`} alt={playerInfo.item5} /> : null}
+                                                {playerInfo.item4 ? <img className="match-item-icon" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${playerInfo.item4}.png`} alt={playerInfo.item4} /> : null}
+                                                {playerInfo.item5 ? <img className="match-item-icon" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${playerInfo.item5}.png`} alt={playerInfo.item5} /> : null}
                                                 </div>
-                                                {playerInfo.item6 ? <img className="match-item-icon" src={`http://ddragon.leagueoflegends.com/cdn/11.16.1/img/item/${playerInfo.item6}.png`} alt={playerInfo.item6} /> : null}
+                                                {playerInfo.item6 ? <img className="match-item-icon" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${playerInfo.item6}.png`} alt={playerInfo.item6} /> : null}
                                             </div>
                                         </div>
                                           )}

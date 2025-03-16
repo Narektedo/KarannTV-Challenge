@@ -524,7 +524,7 @@ margin-left: 43px;
   border-radius: .25rem;
   max-height: fit-content;
   border: #b7bcda solid 3px;
-  margin-bottom: 50px;
+  margin-bottom: 20px;
   width: 250px;
 
 }
@@ -547,7 +547,7 @@ margin-left: 43px;
   position: absolute;
   color: white;
   margin-left: 675px;
-  margin-top: -673px;
+  margin-top: -643px;
   max-width: 1000px;
 }
 
@@ -611,6 +611,8 @@ margin-left: 43px;
 .KDA {
   margin-left: 10px;
   font-size: 20px;
+  max-width: 90px;
+  min-width: 90px;
 }
 
 .KDA-calculated {
@@ -640,13 +642,52 @@ margin-left: 43px;
 }
 
 .match-items-container{
-  margin-left: 300px;
-  margin-top: -20px;
+  margin-left: 10px;
   display: flex;
+  border: #55575ce8 solid 2px;
+  border-radius: .25rem;
+  padding-top: 3px;
+  padding-bottom: 3px;
+  padding-left: 6px;
+  padding-right: 6px;
+  min-height: 68px;
+  max-width: 120px;
 }
 
 .match-item-icon {
   width: 30px;
   height: 30px;
   border-radius: .50rem;
+}
+
+.match-rune-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: .25rem;
+}
+
+.player-runes {
+  align-items: center;
+  margin-left: 10px;
+  border: #55575ce8 solid 2px;
+  border-radius: .25rem;
+  padding-top: 3px;
+  padding-bottom: 3px;
+  padding-left: 6px;
+  padding-right: 6px;
+}
+
+.match-spell-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: .25rem;
+}
+
+.player-summoner-spells {
+  border: #55575ce8 solid 2px;
+  border-radius: .25rem;
+  padding-top: 3px;
+  padding-bottom: 3px;
+  padding-left: 6px;
+  padding-right: 6px;
 }

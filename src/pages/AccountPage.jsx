@@ -118,8 +118,9 @@ function Profile() {
     };
     
     // Summoner Icon
-    const getSummonerIconUrl = (spellId) => {
-        return `http://ddragon.leagueoflegends.com/cdn/15.4.1/img/spell/${spellId}.png`;
+    const getSummonerSpellIconUrl = (summonerId) => {
+        const spell = Object.values(summonerIcon.data).find(spell => spell.summonerId === summonerId.toString());
+        return spell ? `https://ddragon.leagueoflegends.com/cdn/15.5.1/img/spell/${spell.id}.png` : null;
     };
 
     // Fonction pour obtenir l'icône du champion
@@ -283,22 +284,24 @@ function Profile() {
                                             <div className="KDA"> <span className="kills">{playerInfo.kills}</span>/<span className="deaths">{playerInfo.deaths}</span>/<span className="assists">{playerInfo.assists}</span>
                                             <div className="KDA-calculated" style={{ color: getKDAColor(playerInfo) }}><span className="KDA-title">KDA   </span>{((playerInfo.kills + playerInfo.assists) / Math.max(1, playerInfo.deaths)).toFixed(1)}</div>
                                             </div>
+
                                             <div className="player-summoner-spells">
-                                                {playerInfo.summoner1Id && summonerIcon[playerInfo.summoner1Id] && (
-                                                    <img 
-                                                        className="match-spell-icon" 
-                                                        src={`https://ddragon.leagueoflegends.com/cdn/15.5.1/img/spell/${summonerIcon[playerInfo.summoner1Id].id}.png`} 
-                                                        alt={summonerIcon[playerInfo.summoner1Id].id} 
-                                                    />
-                                                )}
-                                                {playerInfo.summoner2Id && summonerIcon[playerInfo.summoner2Id] && (
-                                                    <img 
-                                                        className="match-spell-icon" 
-                                                        src={`https://ddragon.leagueoflegends.com/cdn/15.5.1/img/spell/${summonerIcon[playerInfo.summoner2Id].id}.png`} 
-                                                        alt={summonerIcon[playerInfo.summoner2Id].id} 
-                                                    />
-                                                )}
+                                                <div>
+                                                <img 
+                                                    className="match-spell-icon" 
+                                                    src={getSummonerSpellIconUrl(playerInfo.summoner1Id)} 
+                                                    alt={playerInfo.summoner1Id} 
+                                                />
+                                                </div>
+                                                <div>
+                                                <img 
+                                                    className="match-spell-icon" 
+                                                    src={getSummonerSpellIconUrl(playerInfo.summoner2Id)} 
+                                                    alt={playerInfo.summoner2Id} 
+                                                />
+                                                </div>
                                             </div>
+
                                             <div className="player-runes">
                                                 {playerInfo.perks.styles.map((style, styleIndex) => (
                                                     <div key={styleIndex} className="rune-style">
@@ -317,12 +320,19 @@ function Profile() {
                                                 ))}
                                             </div>                                         
                                             <div className="match-items-container">
+                                                <div>
                                                 {playerInfo.item0 ? <img className="match-item-icon" src={`http://ddragon.leagueoflegends.com/cdn/11.16.1/img/item/${playerInfo.item0}.png`} alt={playerInfo.item0} /> : null}
                                                 {playerInfo.item1 ? <img className="match-item-icon" src={`http://ddragon.leagueoflegends.com/cdn/11.16.1/img/item/${playerInfo.item1}.png`} alt={playerInfo.item1} /> : null}
+                                                </div>
+                                                <div>
                                                 {playerInfo.item2 ? <img className="match-item-icon" src={`http://ddragon.leagueoflegends.com/cdn/11.16.1/img/item/${playerInfo.item2}.png`} alt={playerInfo.item2} /> : null}
                                                 {playerInfo.item3 ? <img className="match-item-icon" src={`http://ddragon.leagueoflegends.com/cdn/11.16.1/img/item/${playerInfo.item3}.png`} alt={playerInfo.item3} /> : null}
+                                                </div>
+                                                <div>
                                                 {playerInfo.item4 ? <img className="match-item-icon" src={`http://ddragon.leagueoflegends.com/cdn/11.16.1/img/item/${playerInfo.item4}.png`} alt={playerInfo.item4} /> : null}
                                                 {playerInfo.item5 ? <img className="match-item-icon" src={`http://ddragon.leagueoflegends.com/cdn/11.16.1/img/item/${playerInfo.item5}.png`} alt={playerInfo.item5} /> : null}
+                                                </div>
+                                                {playerInfo.item6 ? <img className="match-item-icon" src={`http://ddragon.leagueoflegends.com/cdn/11.16.1/img/item/${playerInfo.item6}.png`} alt={playerInfo.item6} /> : null}
                                             </div>
                                         </div>
                                           )}

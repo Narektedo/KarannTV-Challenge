@@ -18,15 +18,15 @@
         },
         "SummonerDot": {
             "id": "SummonerDot",
-            "summonerId": "3"
+            "summonerId": "14"
         },
         "SummonerExhaust": {
             "id": "SummonerExhaust",
-            "summonerId": "4"
+            "summonerId": "3"
         },
         "SummonerFlash": {
             "id": "SummonerFlash",
-            "summonerId": "14"
+            "summonerId": "4"
         },
         "SummonerHaste": {
             "id": "SummonerHaste",

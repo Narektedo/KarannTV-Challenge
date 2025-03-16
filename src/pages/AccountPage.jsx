@@ -5,6 +5,7 @@ import rankIcons from '../rank.json';
 import Loader from '../components/Loading.jsx';
 import roleIcons from '../role.json';
 import summonerIcon from '../summoner.json';
+import runesIcon from '../perk.json';
 
 // Fonction utilitaire pour récupérer le rang spécifique
 const getRankInfo = (rankData, queueType) => {
@@ -299,11 +300,22 @@ function Profile() {
                                                 )}
                                             </div>
                                             <div className="player-runes">
-                                                <img className="match-rune-icon" src={`https://ddragon.leagueoflegends.com/cdn/img/${playerInfo.perks.styles[0].selections[0].perk}.png`} alt={playerInfo.perks.styles[0].selections[0].perk} />
-                                                <img className="match-rune-icon" src={`https://ddragon.leagueoflegends.com/cdn/img/${playerInfo.perks.styles[0].selections[1].perk}.png`} alt={playerInfo.perks.styles[0].selections[1].perk} />
-                                                <img className="match-rune-icon" src={`https://ddragon.leagueoflegends.com/cdn/img/${playerInfo.perks.styles[0].selections[2].perk}.png`} alt={playerInfo.perks.styles[0].selections[2].perk} />
-                                                <img className="match-rune-icon" src={`https://ddragon.leagueoflegends.com/cdn/img/${playerInfo.perks.styles[0].selections[3].perk}.png`} alt={playerInfo.perks.styles[0].selections[3].perk} />
-                                            </div>
+                                                {playerInfo.perks.styles.map((style, styleIndex) => (
+                                                    <div key={styleIndex} className="rune-style">
+                                                    {style.selections.map((selection, selectionIndex) => {
+                                                        const perk = runesIcon.perks.find(p => p.id === selection.perk.toString());
+                                                        return perk ? (
+                                                        <img 
+                                                            key={selectionIndex}
+                                                            className="match-rune-icon"
+                                                            src={`/${perk.icon}`} // Assurez-vous que ce chemin est correct
+                                                            alt={perk.name}
+                                                        />
+                                                        ) : null;
+                                                    })}
+                                                    </div>
+                                                ))}
+                                            </div>                                         
                                             <div className="match-items-container">
                                                 {playerInfo.item0 ? <img className="match-item-icon" src={`http://ddragon.leagueoflegends.com/cdn/11.16.1/img/item/${playerInfo.item0}.png`} alt={playerInfo.item0} /> : null}
                                                 {playerInfo.item1 ? <img className="match-item-icon" src={`http://ddragon.leagueoflegends.com/cdn/11.16.1/img/item/${playerInfo.item1}.png`} alt={playerInfo.item1} /> : null}

@@ -1,0 +1,316 @@
+{
+    "perks": [
+        {
+            "id": "8112",
+            "name": "Electrocute",
+            "icon": "perk-images/Styles/Domination/Electrocute/Electrocute.png"
+        },
+        {
+            "id": "8128",
+            "name": "DarkHarvest",
+            "icon": "perk-images/Styles/Domination/DarkHarvest/DarkHarvest.png"
+        },
+        {
+            "id": "9923",
+            "name": "HailOfBlades",
+            "icon": "perk-images/Styles/Domination/HailOfBlades/HailOfBlades.png"
+        },
+        {
+            "id": "8351",
+            "name": "GlacialAugment",
+            "icon": "perk-images/Styles/Inspiration/GlacialAugment/GlacialAugment.png"
+        },
+        {
+            "id": "8360",
+            "name": "UnsealedSpellbook",
+            "icon": "perk-images/Styles/Inspiration/UnsealedSpellbook/UnsealedSpellbook.png"
+        },
+        {
+            "id": "8369",
+            "name": "FirstStrike",
+            "icon": "perk-images/Styles/Inspiration/PrototypeOmnistone/PrototypeOmnistone.png"
+        },
+        {
+            "id": "8005",
+            "name": "PressTheAttack",
+            "icon": "perk-images/Styles/Precision/PressTheAttack/PressTheAttack.png"
+        },
+        {
+            "id": "8008",
+            "name": "LethalTempo",
+            "icon": "perk-images/Styles/Precision/LethalTempo/LethalTempo.png"
+        },
+        {
+            "id": "8021",
+            "name": "FleetFootwork",
+            "icon": "perk-images/Styles/Precision/FleetFootwork/FleetFootwork.png"
+        },
+        {
+            "id": "8437",
+            "name": "GraspOfTheUndying",
+            "icon": "perk-images/Styles/Resolve/GraspOfTheUndying/GraspOfTheUndying.png"
+        },
+        {
+            "id": "8439",
+            "name": "Aftershock",
+            "icon": "perk-images/Styles/Resolve/Aftershock/Aftershock.png"
+        },
+        {
+            "id": "8465",
+            "name": "Guardian",
+            "icon": "perk-images/Styles/Resolve/Guardian/Guardian.png"
+        },
+        {
+            "id": "8214",
+            "name": "SummonAery",
+            "icon": "perk-images/Styles/Sorcery/SummonAery/SummonAery.png"
+        },
+        {
+            "id": "8229",
+            "name": "ArcaneComet",
+            "icon": "perk-images/Styles/Sorcery/ArcaneComet/ArcaneComet.png"
+        },
+        {
+            "id": "8230",
+            "name": "PhaseRush",
+            "icon": "perk-images/Styles/Sorcery/PhaseRush/PhaseRush.png"
+        },
+        {
+            "id": "8126",
+            "name": "CheapShot",
+            "icon": "perk-images/Styles/Domination/CheapShot/CheapShot.png"
+        },
+        {
+            "id": "8139",
+            "name": "TasteOfBlood",
+            "icon": "perk-images/Styles/Domination/TasteOfBlood/GreenTerror_TasteOfBlood.png"
+        },
+        {
+            "id": "8143",
+            "name": "SuddenImpact",
+            "icon": "perk-images/Styles/Domination/SuddenImpact/SuddenImpact.png"
+        },
+        {
+            "id": "8137",
+            "name": "SixthSense",
+            "icon": "perk-images/Styles/Domination/SixthSense/SixthSense.png"
+        },
+        {
+            "id": "8140",
+            "name": "GrislyMementos",
+            "icon": "perk-images/Styles/Domination/GrislyMementos/GrislyMementos.png"
+        },
+        {
+            "id": "8141",
+            "name": "DeepWard",
+            "icon": "perk-images/Styles/Domination/DeepWard/DeepWard.png"
+        },
+        {
+            "id": "8306",
+            "name": "HextechFlashtraption",
+            "icon": "perk-images/Styles/Inspiration/HextechFlashtraption/HextechFlashtraption.png"
+        },
+        {
+            "id": "8304",
+            "name": "MagicalFootwear",
+            "icon": "perk-images/Styles/Inspiration/MagicalFootwear/MagicalFootwear.png"
+        },
+        {
+            "id": "8321",
+            "name": "CashBack",
+            "icon": "perk-images/Styles/Inspiration/CashBack/CashBack.png"
+        },
+        {
+            "id": "8313",
+            "name": "PerfectTiming",
+            "icon": "perk-images/Styles/Inspiration/PerfectTiming/PerfectTiming.png"
+        },
+        {
+            "id": "8352",
+            "name": "TimeWarpTonic",
+            "icon": "perk-images/Styles/Inspiration/TimeWarpTonic/TimeWarpTonic.png"
+        },
+        {
+            "id": "8345",
+            "name": "BiscuitDelivery",
+            "icon": "perk-images/Styles/Inspiration/BiscuitDelivery/BiscuitDelivery.png"
+        },
+        {
+            "id": "8347",
+            "name": "CosmicInsight",
+            "icon": "perk-images/Styles/Inspiration/CosmicInsight/CosmicInsight.png"
+        },
+        {
+            "id": "8410",
+            "name": "ApproachVelocity",
+            "icon": "perk-images/Styles/Resolve/ApproachVelocity/ApproachVelocity.png"
+        },
+         {
+            "id": "8316",
+            "name": "JackOfAllTrades",
+            "icon": "perk-images/Styles/Inspiration/JackOfAllTrades/JackOfAllTrades.png"
+         },
+         {
+            "id": "9101",
+            "name": "AbsorbLife",
+            "icon": "perk-images/Styles/Precision/AbsorbLife/AbsorbLife.png"
+         },
+         {
+            "id": "9111",
+            "name": "Triumph",
+            "icon": "perk-images/Styles/Precision/Triumph/Triumph.png"
+         },
+         {
+            "id": "8009",
+            "name": "PresenceOfMind",
+            "icon": "perk-images/Styles/Precision/PresenceOfMind/PresenceOfMind.png"
+         },
+         {
+            "id": "9104",
+            "name": "LegendAlacrity",
+            "icon": "perk-images/Styles/Precision/LegendAlacrity/LegendAlacrity.png"
+         },
+         {
+            "id": "9105",
+            "name": "LegendHaste",
+            "icon": "perk-images/Styles/Precision/LegendHaste/LegendHaste.png"
+         },
+         {
+            "id": "9103",
+            "name": "LegendTenacity",
+            "icon": "perk-images/Styles/Precision/LegendTenacity/LegendTenacity.png"
+         },
+        {
+            "id": "8014",
+            "name": "CoupDeGrace",
+            "icon": "perk-images/Styles/Precision/CoupDeGrace/CoupDeGrace.png"
+        },
+        {
+            "id": "8017",
+            "name": "CutDown",
+            "icon": "perk-images/Styles/Precision/CutDown/CutDown.png"
+        },
+        {
+            "id": "8299",
+            "name": "LastStand",
+            "icon": "perk-images/Styles/Precision/LastStand/LastStand.png"
+        },
+        {
+            "id": "8446",
+            "name": "Demolish",
+            "icon": "perk-images/Styles/Resolve/Demolish/Demolish.png"
+        },
+        {
+            "id": "8463",
+            "name": "FontOfLife",
+            "icon": "perk-images/Styles/Resolve/FontOfLife/FontOfLife.png"
+        },
+        {
+            "id": "8401",
+            "name": "ShieldBash",
+            "icon": "perk-images/Styles/Resolve/ShieldBash/ShieldBash.png"
+        },
+        {
+            "id": "8429",
+            "name": "Conditioning",
+            "icon": "perk-images/Styles/Resolve/Conditioning/Conditioning.png"
+        },
+        {
+            "id": "8444",
+            "name": "SecondWind",
+            "icon": "perk-images/Styles/Resolve/SecondWind/SecondWind.png"
+        },
+        {
+            "id": "8473",
+            "name": "BonePlating",
+            "icon": "perk-images/Styles/Resolve/BonePlating/BonePlating.png"
+        },
+        {
+            "id": "8451",
+            "name": "Overgrowth",
+            "icon": "perk-images/Styles/Resolve/Overgrowth/Overgrowth.png"
+        },
+        {
+            "id": "8453",
+            "name": "Revitalize",
+            "icon": "perk-images/Styles/Resolve/Revitalize/Revitalize.png"
+        },
+        {
+            "id": "8242",
+            "name": "Unflinching",
+            "icon": "perk-images/Styles/Resolve/Unflinching/Unflinching.png"
+        },
+        {
+            "id": "8210",
+            "name": "Transcendence",
+            "icon": "perk-images/Styles/Sorcery/Transcendence/Transcendence.png"
+        },
+        {
+            "id": "8224",
+            "name": "NullifyingOrb",
+            "icon": "perk-images/Styles/Sorcery/NullifyingOrb/NullifyingOrb.png"
+        },
+        {
+            "id": "8226",
+            "name": "ManaflowBand",
+            "icon": "perk-images/Styles/Sorcery/ManaflowBand/ManaflowBand.png"
+        },
+        {
+            "id": "8275",
+            "name": "NimbusCloak",
+            "icon": "perk-images/Styles/Sorcery/NimbusCloak/NimbusCloak.png"
+        },
+        {
+            "id": "8223",
+            "name": "AbsoluteFocus",
+            "icon": "perk-images/Styles/Sorcery/AbsoluteFocus/AbsoluteFocus.png"
+        },
+        {
+            "id": "8234",
+            "name": "Celerity",
+            "icon": "perk-images/Styles/Sorcery/Celerity/Celerity.png"
+        },
+        {
+            "id": "8237",
+            "name": "Scorch",
+            "icon": "perk-images/Styles/Sorcery/Scorch/Scorch.png"
+        },
+        {
+            "id": "8232",
+            "name": "Waterwalking",
+            "icon": "perk-images/Styles/Sorcery/Waterwalking/Waterwalking.png"
+        },
+        {
+            "id": "8236",
+            "name": "GatheringStorm",
+            "icon": "perk-images/Styles/Sorcery/GatheringStorm/GatheringStorm.png"
+        }
+    ],
+    "perkstyles": [
+        {
+            "id": "8000",
+            "name": "Precision",
+            "icon": "perk-images/Styles/Precision/Precision.png"
+        },
+        {
+            "id": "8100",
+            "name": "Domination",
+            "icon": "perk-images/Styles/Domination/Domination.png"
+        },
+        {
+            "id": "8200",
+            "name": "Sorcery",
+            "icon": "perk-images/Styles/Sorcery/Sorcery.png"
+        },
+        {
+            "id": "8300",
+            "name": "Inspiration",
+            "icon": "perk-images/Styles/Inspiration/Inspiration.png"
+        },
+        {
+            "id": "8400",
+            "name": "Resolve",
+            "icon": "perk-images/Styles/Resolve/Resolve.png"
+        }
+    ]
+}

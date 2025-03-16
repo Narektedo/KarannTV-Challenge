@@ -6,6 +6,7 @@ import Loader from '../components/Loading.jsx';
 import roleIcons from '../role.json';
 import summonerIcon from '../summoner.json';
 import runesIcon from '../perk.json';
+import Arrow from '../components/Arrow.jsx';
 
 // Fonction utilitaire pour récupérer le rang spécifique
 const getRankInfo = (rankData, queueType) => {
@@ -29,6 +30,8 @@ function Profile() {
     const [error, setError] = useState(null);
     const [matchHistory, setMatchHistory] = useState(null);
     const [matchHistoryError, setMatchHistoryError] = useState(null);
+    const [expandedMatches, setExpandedMatches] = useState({});
+    
 
     useEffect(() => {
         const apiUrl = `https://walopvgapi-9c205847a91e.herokuapp.com/info/${gameName}/${tagLine}`;
@@ -149,9 +152,9 @@ function Profile() {
         const colors = [
           [199, 104, 101],   // (KDA < 1)
           [230, 229, 209],   // KDA = 1)
-          [214, 213, 152],  // (KDA = 3)
+          [201, 201, 181],  // (KDA = 3)
           [212, 211, 131],   // (KDA = 5)
-          [201, 200, 101]  // KDA > 5)
+          [204, 203, 84]  // KDA > 5)
         ];
         
         if (kda <= 1) return interpolateColor(colors[0], colors[1], kda);
@@ -160,11 +163,60 @@ function Profile() {
         return interpolateColor(colors[3], colors[4], Math.min((kda - 5) / 5, 1));
       };
 
+      const getKPColor = (playerInfo, teamTotalKills) => {
+        const kp = (playerInfo.kills + playerInfo.assists) / teamTotalKills * 100;
+        const colors = [
+          [219, 88, 88],    // KP faible
+          [219, 143, 143],  // KP moyen
+          [176, 169, 169], // KP bon
+          [212, 211, 131],  // KP très bon
+          [201, 200, 101]  // KP excellent
+        ];
+    
+        if (kp <= 30) return interpolateColor(colors[0], colors[1], kp / 20);
+        if (kp <= 50) return interpolateColor(colors[1], colors[2], (kp - 20) / 20);
+        if (kp <= 60) return interpolateColor(colors[2], colors[3], (kp - 40) / 20);
+        return interpolateColor(colors[3], colors[4], Math.min((kp - 60) / 40, 1));
+    };
+
+
     // test pour obtenir le niveau du champion dans la partie actuelle
     const getChampionLevel = (championLevel) => {
         return championLevel.champLevel;
     };
     
+    const getTeamTotalKills = (match, teamId) => {
+        return match.info.participants
+            .filter(p => p.teamId === teamId)
+            .reduce((total, p) => total + p.kills, 0);
+    };
+
+    const calculateKP = (playerInfo, teamTotalKills) => {
+        if (teamTotalKills === 0) return 0;
+        return ((playerInfo.kills + playerInfo.assists) / teamTotalKills * 100).toFixed(0);
+    };
+
+    // Fonction pour obtenir les détails du match (menu déroulant)
+    function MatchDetails({ match, playerInfo }) {
+        return (
+          <div className="match-details">
+            <h3>Détails du match</h3>
+            {/* Ajoutez ici les informations détaillées du match */}
+            <p>Champion: {playerInfo.championName}</p>
+            <p>CS: {playerInfo.totalMinionsKilled}</p>
+            <p>Gold: {playerInfo.goldEarned}</p>
+            {/* Ajoutez d'autres détails selon vos besoins */}
+          </div>
+        );
+      }
+
+      const toggleMenu = () => {
+        setIsMenuOpen(!isMenuOpen);
+      };
+
+      const [isMenuOpen, setIsMenuOpen] = useState(false);
+      
+
     return (
         <div>
             <Header />
@@ -278,8 +330,6 @@ function Profile() {
                                     key={match.metadata.matchId}
                                     className={matchItemClass}
                                 >
-                                    
-
                                     <div className="match-info">
                                         <div className="game-mode">{gameModeDisplay}</div>
                                         <div className="game-duration">{gameDurationFormatted}</div>
@@ -287,73 +337,107 @@ function Profile() {
                                     <span className="player-role-container"><img src={roleIcon} alt="role-icon" className="player-role" /></span>
 
                                     {playerInfo && (
-                                      <div className="player-info-matchs">
+                                        <div className="player-info-matchs">
                                             <div className="champ-icon-level-container">
-                                                <img className="match-champ-icon" src={getChampionIconUrl(playerInfo.championName)} alt={playerInfo.championName}/>
+                                                <img className="match-champ-icon" src={getChampionIconUrl(playerInfo.championName)} alt={playerInfo.championName} />
                                                 <div className="match-champion-level">
                                                     {championLevel}
                                                 </div>
                                             </div>
-                                            <div className="KDA"> <span className="kills">{playerInfo.kills}</span>/<span className="deaths">{playerInfo.deaths}</span>/<span className="assists">{playerInfo.assists}</span>
-                                            <div className="KDA-calculated" style={{ color: getKDAColor(playerInfo) }}><span className="KDA-title">KDA   </span>{((playerInfo.kills + playerInfo.assists) / Math.max(1, playerInfo.deaths)).toFixed(1)}</div>
+                                            <div className="KDA">
+                                                <span className="kills">{playerInfo.kills}</span>/<span className="deaths">{playerInfo.deaths}</span>/<span className="assists">{playerInfo.assists}</span>
+                                                <div className="KDA-calculated" style={{ color: getKDAColor(playerInfo) }}>
+                                                    <span className="KDA-title">KDA </span>{((playerInfo.kills + playerInfo.assists) / Math.max(1, playerInfo.deaths)).toFixed(1)}
+                                                </div>
                                             </div>
 
                                             <div className="player-summoner-spells">
                                                 <div>
-                                                <img 
-                                                    className="match-spell-icon" 
-                                                    src={getSummonerSpellIconUrl(playerInfo.summoner1Id)} 
-                                                    alt={playerInfo.summoner1Id} 
-                                                />
+                                                    <img
+                                                        className="match-spell-icon"
+                                                        src={getSummonerSpellIconUrl(playerInfo.summoner1Id)}
+                                                        alt={playerInfo.summoner1Id}
+                                                    />
                                                 </div>
                                                 <div>
-                                                <img 
-                                                    className="match-spell-icon" 
-                                                    src={getSummonerSpellIconUrl(playerInfo.summoner2Id)} 
-                                                    alt={playerInfo.summoner2Id} 
-                                                />
+                                                    <img
+                                                        className="match-spell-icon"
+                                                        src={getSummonerSpellIconUrl(playerInfo.summoner2Id)}
+                                                        alt={playerInfo.summoner2Id}
+                                                    />
                                                 </div>
                                             </div>
 
                                             <div className="player-runes">
                                                 {playerInfo.perks.styles.map((style, styleIndex) => (
                                                     <div key={styleIndex} className="rune-style">
-                                                    {style.selections.map((selection, selectionIndex) => {
-                                                        const perk = runesIcon.perks.find(p => p.id === selection.perk.toString());
-                                                        return perk ? (
-                                                        <img 
-                                                            key={selectionIndex}
-                                                            className="match-rune-icon"
-                                                            src={`/${perk.icon}`} // Assurez-vous que ce chemin est correct
-                                                            alt={perk.name}
-                                                        />
-                                                        ) : null;
-                                                    })}
+                                                        {style.selections.map((selection, selectionIndex) => {
+                                                            const perk = runesIcon.perks.find(p => p.id === selection.perk.toString());
+                                                            return perk ? (
+                                                                <img
+                                                                    key={selectionIndex}
+                                                                    className="match-rune-icon"
+                                                                    src={`/${perk.icon}`} // Assurez-vous que ce chemin est correct
+                                                                    alt={perk.name}
+                                                                />
+                                                            ) : null;
+                                                        })}
                                                     </div>
                                                 ))}
-                                            </div>                                         
+                                            </div>
                                             <div className="match-items-container">
                                                 <div>
-                                                {playerInfo.item0 ? <img className="match-item-icon" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${playerInfo.item0}.png`} alt={playerInfo.item0} /> : null}
-                                                {playerInfo.item1 ? <img className="match-item-icon" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${playerInfo.item1}.png`} alt={playerInfo.item1} /> : null}
+                                                    {playerInfo.item0 ? <img className="match-item-icon" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${playerInfo.item0}.png`} alt={playerInfo.item0} /> : null}
+                                                    {playerInfo.item1 ? <img className="match-item-icon" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${playerInfo.item1}.png`} alt={playerInfo.item1} /> : null}
                                                 </div>
                                                 <div>
-                                                {playerInfo.item2 ? <img className="match-item-icon" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${playerInfo.item2}.png`} alt={playerInfo.item2} /> : null}
-                                                {playerInfo.item3 ? <img className="match-item-icon" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${playerInfo.item3}.png`} alt={playerInfo.item3} /> : null}
+                                                    {playerInfo.item2 ? <img className="match-item-icon" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${playerInfo.item2}.png`} alt={playerInfo.item2} /> : null}
+                                                    {playerInfo.item3 ? <img className="match-item-icon" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${playerInfo.item3}.png`} alt={playerInfo.item3} /> : null}
                                                 </div>
                                                 <div>
-                                                {playerInfo.item4 ? <img className="match-item-icon" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${playerInfo.item4}.png`} alt={playerInfo.item4} /> : null}
-                                                {playerInfo.item5 ? <img className="match-item-icon" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${playerInfo.item5}.png`} alt={playerInfo.item5} /> : null}
+                                                    {playerInfo.item4 ? <img className="match-item-icon" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${playerInfo.item4}.png`} alt={playerInfo.item4} /> : null}
+                                                    {playerInfo.item5 ? <img className="match-item-icon" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${playerInfo.item5}.png`} alt={playerInfo.item5} /> : null}
                                                 </div>
                                                 {playerInfo.item6 ? <img className="match-item-icon" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${playerInfo.item6}.png`} alt={playerInfo.item6} /> : null}
                                             </div>
-                                        </div>
-                                          )}
-                                            
-                                            <div className="opposing-player-info">
-                                                <div className="VS">VS</div><img className="match-champ-icon" src={getChampionIconUrl(opposingLaneChampion)} alt={opposingLaneChampion}/>
+
+                                            <div className="player-stats-container">
+                                                <div className="player-farm">
+                                                    <span className="farm-value">{playerInfo.totalMinionsKilled + playerInfo.neutralMinionsKilled} CS</span>
+                                                    <div className="farm-per-minute">
+                                                        <span className="farm-value-per-minute">{((playerInfo.totalMinionsKilled + playerInfo.neutralMinionsKilled) / (match.info.gameDuration / 60)).toFixed(1)}</span>
+                                                        <span className="farm-title"> CS/min</span>
+                                                    </div>
+                                                </div>
+                                                <div className="player-kp" style={{ color: getKPColor(playerInfo, getTeamTotalKills(match, playerInfo.teamId)) }}>
+                                                    {(() => {
+                                                        const teamTotalKills = getTeamTotalKills(match, playerInfo.teamId);
+                                                        const kp = calculateKP(playerInfo, teamTotalKills);
+                                                        return `${kp}%`;
+                                                    })()} KP
+                                                </div>
                                             </div>
+                                           
+                                        </div>
+                                    )}
+
+                                    <div className="opposing-player-info">
+                                        <div className="VS">VS</div><img className="match-champ-icon" src={getChampionIconUrl(opposingLaneChampion)} alt={opposingLaneChampion} />
+                                    </div>
+
+                                    <div className="match-details-button"> 
+                                        <button className="detailed-match-button" onClick={toggleMenu}></button>
+                                        
+                                    
+                                        {isMenuOpen && (
+                                        <div className="dropdown-menu">
+                                            test
+                                        </div>
+                                    )}*
+                                    </div>
                                 </div>
+                                
+                                
                             );
                         })
                     ) : (

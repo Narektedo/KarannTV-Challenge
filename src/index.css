@@ -213,8 +213,8 @@ a[href$=".html"]:hover{
 }
 
 .icon-player{
-  width: 150px;
-  height: 150px;
+  width: 130px;
+  height: 130px;
   margin-left: auto;
   margin-right: auto;
   max-width: 1400px;
@@ -470,6 +470,7 @@ a[href$=".html"]:hover{
 .player-container {
 margin-top: 150px;
 max-width: fit-content;
+margin-left: 43px;
 }
 
 .container-icon-level {
@@ -484,12 +485,12 @@ max-width: fit-content;
 
 .container-name{
   max-width: fit-content;
-  font-size: 41px;
-  margin-left: 670px;
-  margin-top: -185px;
+  font-size: 29px;
+  margin-left: 590px;
+  margin-top: -178px;
   display: flex;
-  color : #b7bcda;
-  border: #51535f solid 2px;
+  color: #b7bcda;
+  border: #51535f8f outset 2px;
   border-radius: .60rem;
   padding-top: 3px;
   padding-bottom: 3px;
@@ -545,29 +546,31 @@ max-width: fit-content;
 .match-history-container {
   position: absolute;
   color: white;
-  margin-left: 805px;
-  margin-top: -546px;
+  margin-left: 675px;
+  margin-top: -673px;
   max-width: 1000px;
 }
 
 .match-item {
   padding: 10px;
   margin-bottom: 10px;
-  width: 800px;
-  min-height: 100px;
+  width: 1050px;
+  min-height: 95px;
   display: flex;
   align-items: center;
+  max-height: 100px;
 }
 
 .match-info {
-  margin-right: 20px;
-  margin-left: 10px;
+  margin-bottom: 57px;
+  color: grey;
+  margin-left: 0px;
 }
 
 .player-info-matchs {
   display: flex;
   align-items: center;
-  margin-right: 20px;
+  margin-left: 50px;
 }
 
 .player-info img {
@@ -582,23 +585,27 @@ max-width: fit-content;
 }
 
 .match-item.win {
-  border: 2px solid rgb(21, 21, 128);
+  border: 2px outset rgb(21, 21, 128);
   border-radius: .25rem;
+  background-color: rgba(36, 36, 70, 0.562);
 }
 
 .match-item.loss {
-  border: 2px solid rgb(105, 14, 14);
+  border: 2px outset rgb(105, 14, 14);
   border-radius: .25rem;
+  background-color: rgba(44, 16, 16, 0.705)
 }
 
 .match-champ-icon {
-  width: 50px;
-  height: 50px;
+  width: 60px;
+  height: 60px;
   border-radius: .50rem;
 }
 
 .VS {
-  margin-right: 2px;
+  margin-right: 25px;
+  font-size: 20px;
+  font-style: italic;
 }
 
 .KDA {
@@ -606,3 +613,40 @@ max-width: fit-content;
   font-size: 20px;
 }
 
+.KDA-calculated {
+  font-size: 20px;
+  margin-top: 12px;
+}
+
+.KDA-title{
+  color: grey;
+  font-size: 17px;
+}
+
+.player-role {
+  width: 40px;
+  height: 40px;
+  margin-top: 14px;
+  border: rgba(128, 128, 128, 0.233) groove 1px;
+  border-radius: .25rem;
+  background-color: black;
+}
+
+.player-role-container {
+  display: flex;
+  align-items: center;
+  margin-left: -64px;
+  margin-top: 41px;
+}
+
+.match-items-container{
+  margin-left: 300px;
+  margin-top: -20px;
+  display: flex;
+}
+
+.match-item-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: .50rem;
+}

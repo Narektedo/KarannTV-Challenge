@@ -19,10 +19,10 @@
         ]
     },
     {
-        "position": "MID",
+        "position": "MIDDLE",
         "position-icon": [
             {
-                "position-icon-link": "/role/MID.png"
+                "position-icon-link": "/role/MIDDLE.png"
             }
             
         ]
@@ -37,7 +37,7 @@
         ]
     },
     {
-        "position": "UTILITY",
+        "position": "SUPPORT",
         "position-icon": [
             {
                 "position-icon-link": "/role/UTILITY.png"

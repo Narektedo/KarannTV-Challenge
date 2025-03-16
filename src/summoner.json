@@ -1,0 +1,76 @@
+{
+    "data": {
+        "SummonerBarrier": {
+            "id": "SummonerBarrier",
+            "summonerId": "21"
+        },
+        "SummonerBoost": {
+            "id": "SummonerBoost",
+            "summonerId": "1"
+        },
+        "SummonerCherryFlash": {
+            "id": "SummonerCherryFlash",
+            "summonerId": "30"
+        },
+        "SummonerCherryHold": {
+            "id": "SummonerCherryHold",
+            "summonerId": "31"
+        },
+        "SummonerDot": {
+            "id": "SummonerDot",
+            "summonerId": "3"
+        },
+        "SummonerExhaust": {
+            "id": "SummonerExhaust",
+            "summonerId": "4"
+        },
+        "SummonerFlash": {
+            "id": "SummonerFlash",
+            "summonerId": "14"
+        },
+        "SummonerHaste": {
+            "id": "SummonerHaste",
+            "summonerId": "7"
+        },
+        "SummonerHeal": {
+            "id": "SummonerHeal",
+            "summonerId": "6"
+        },
+        "SummonerMana": {
+            "id": "SummonerMana",
+            "summonerId": "13"
+        },
+        "SummonerPoroRecall": {
+            "id": "SummonerPoroRecall",
+            "summonerId": "32"
+        },
+        "SummonerPoroThrow": {
+            "id": "SummonerPoroThrow",
+            "summonerId": "33"
+        },
+        "SummonerSmite": {
+            "id": "SummonerSmite",
+            "summonerId": "11"
+        },
+        "SummonerSnowURFSnowball_Mark": {
+            "id": "SummonerSnowURFSnowball_Mark",
+            "summonerId": "39"
+        },
+        "SummonerSnowball": {
+            "id": "SummonerSnowball",
+            "summonerId": "32"
+        },
+        "SummonerTeleport": {
+            "id": "SummonerTeleport",
+            "summonerId": "12"
+        },
+        "Summoner_UltBookPlaceholder": {
+            "id": "Summoner_UltBookPlaceholder",
+            "summonerId": "14"
+        },
+        "Summoner_UltBookSmitePlaceholder": {
+            "id": "Summoner_UltBookSmitePlaceholder",
+            "summonerId": "11"
+        }
+    }
+}

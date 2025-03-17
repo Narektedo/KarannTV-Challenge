@@ -215,6 +215,13 @@ function Profile() {
       };
 
       const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+      const toggleMatchDetails = (matchId) => {
+        setExpandedMatches(prevState => ({
+            ...prevState,
+            [matchId]: !prevState[matchId]
+        }));
+    };
       
 
     return (
@@ -318,6 +325,7 @@ function Profile() {
                             const playerInfo = getPlayerInfo(match, data?.data?.accountInfo?.puuid);
                             const win = didPlayerWin(match, data?.data?.accountInfo?.puuid);
                             const matchItemClass = `match-item ${win ? 'win' : 'loss'}`; // Classe conditionnelle
+                            const matchItemClassExtended = 'match-item-extended';
 
                             const opposingLaneChampion = getOpposingLaneChampion(match, playerInfo?.teamPosition);
                             const gameModeDisplay = match.info.gameMode === "CLASSIC" ? "Solo/Duo" : match.info.gameMode;
@@ -425,16 +433,31 @@ function Profile() {
                                         <div className="VS">VS</div><img className="match-champ-icon" src={getChampionIconUrl(opposingLaneChampion)} alt={opposingLaneChampion} />
                                     </div>
 
-                                    <div className="match-details-button"> 
-                                        <button className="detailed-match-button" onClick={toggleMenu}></button>
-                                        
+                                    <div className={matchItemClassExtended}>
+                                                {/* Bouton pour afficher/masquer les détails */}
+                                                <button className="expand-button" onClick={() => toggleMatchDetails(match.metadata.matchId)}>
+                                                    {expandedMatches[match.metadata.matchId] ? "▼" : "▶"}
+                                                </button>
+
+                                                <div className="XDTEST">
+                                                </div>
+                                            </div>
+
+                                                    {/* Affichage du menu déroulant si le match est ouvert */}
+                                                    
+                                                    {expandedMatches[match.metadata.matchId] && (
+                                                        
+                                                        <div className="match-details">
+
+                                                            
+                                                            <h3>Détails du match</h3>
+                                                            <p>Champion: {playerInfo.championName}</p>
+                                                            <p>CS: {playerInfo.totalMinionsKilled}</p>
+                                                            <p>Gold: {playerInfo.goldEarned}</p>
+                                                            {/* Tu pourras ajouter d'autres infos ici */}
+                                                        </div>
+                                                    )}
                                     
-                                        {isMenuOpen && (
-                                        <div className="dropdown-menu">
-                                            test
-                                        </div>
-                                    )}*
-                                    </div>
                                 </div>
                                 
                                 
@@ -443,6 +466,8 @@ function Profile() {
                     ) : (
                         <p>Aucun historique de parties trouvé.</p>
                     )}
+
+                                            
                 </div>
             </div>
     );

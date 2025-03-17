@@ -554,7 +554,7 @@ margin-left: 43px;
 .match-item {
   padding: 10px;
   margin-bottom: 10px;
-  width: 1050px;
+  width: 1080px;
   min-height: 95px;
   display: flex;
   align-items: center;
@@ -755,4 +755,18 @@ margin-left: 43px;
   background-color: #000000;
   box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
   z-index: 1;
+}
+
+.expand-button {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.match-details {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #222;
+  border-radius: 5px;
 }

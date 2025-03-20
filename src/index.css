@@ -459,15 +459,6 @@ a[href$=".html"]:hover{
   border :rgb(0, 0, 0) solid 2px;
 }
 
-.player-level-container{
-  max-width: fit-content;
-  text-align: center;
-  margin-left: auto;
-  margin-right: auto;
-  border: rgba(83, 79, 79, 0.61) solid 2px;
-  border-radius: .25rem;
-}
-
 .player-container {
 margin-top: 150px;
 max-width: fit-content;
@@ -591,15 +582,6 @@ margin-left: 43px;
   font-size: 17px;
 }
 
-.player-role {
-  width: 40px;
-  height: 40px;
-  margin-top: 14px;
-  border: rgba(128, 128, 128, 0.233) groove 1px;
-  border-radius: .25rem;
-  background-color: black;
-}
-
 .player-role-container {
   display: flex;
   align-items: center;
@@ -623,14 +605,6 @@ margin-left: 43px;
   padding-right: 6px;
 }
 
-.match-champion-level {
-  border: rgba(83, 79, 79, 0.61) solid 2px;
-  border-radius: .25rem;
-  padding-left: 6px;
-  padding-right: 6px;
-  position: absolute;
-  margin-left: 15px;
-}
 
 .player-stats-container {
   margin-left: 15px;

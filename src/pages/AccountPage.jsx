@@ -109,10 +109,10 @@ function Profile() {
 
      // Fonction pour déterminer la classe CSS de l'élément match-item
      const getMatchItemClass = (didPlayerWin, isDetailed) => {
-        let baseClass = 'match-item w-[1200px] flex items-center mb-2.5 p-2.5';
+        let baseClass = 'match-item w-[1200px] flex flex-col items-center mb-2.5 p-2.5';
 
         // Ajoute la classe pour la hauteur en fonction de l'état du bouton
-        baseClass += isDetailed ? ' min-h-[800px]' : ' min-h-[100px]';
+        baseClass += isDetailed ? 'min-h-fit' : 'min-h-[120px]';
 
         // Ajoute la classe pour la victoire ou la défaite
         let winLossClass = didPlayerWin
@@ -374,19 +374,25 @@ function Profile() {
                                     className={`${matchItemClass} overflow-visible`}
                                 >
 
+                                        
                                     
-                                    <div className="match-info mt-1 text-[grey] mb-[50px]">
-                                        <div className="game-mode flex">{gameModeDisplay}</div>
-                                        <div className="game-duration">{gameDurationFormatted}</div>
-                                    </div>
-                                    <span className="player-role-container"><img src={roleIcon} alt="role-icon" className="player-role" /></span>
+                                    
 
                                     {playerInfo && (
-                                        <div className="player-info-matchs">
+                                        <div className="player-info-matchs flex items-center ml-[90px]">
+
+                                           <img src={roleIcon} alt="role-icon" className="player-role rounded bg-[black] border-[rgba(128, 128, 128,0.233)] border-[(128, 128, 128,0.233)_groove_1px] w-10 h-10 absolute ml-[-190px] mt-11 p-0.5" />
+
+                                            <div className="match-info mt-1 text-[grey] mb-[50px] ml-[-190px]">
+                                                <div className="game-mode flex">{gameModeDisplay}</div>
+                                                <div className="game-duration">{gameDurationFormatted}</div>
+                                            </div>
                                             <div className="champ-icon-level-container">
+                                                <div class="w-fit ml-2.5">
                                                 <img className="match-champ-icon" src={getChampionIconUrl(playerInfo.championName)} alt={playerInfo.championName} />
-                                                <div className="match-champion-level">
+                                                <div className="match-champion-level text-1xl text-center mx-auto">
                                                     {championLevel}
+                                                </div>
                                                 </div>
                                             </div>
                                             <div className="KDA">
@@ -462,18 +468,18 @@ function Profile() {
                                                     })()} KP
                                                 </div>
                                             </div>
-                                           
+                                            <div className="opposing-player-info flex items-center ml-[200px]">
+                                                <div className="VS">VS</div><img className="match-champ-icon" src={getChampionIconUrl(opposingLaneChampion)} alt={opposingLaneChampion} />
+                                            </div>
                                         </div>
                                     )}
 
-                                    <div className="opposing-player-info flex items-center ml-[200px]">
-                                        <div className="VS">VS</div><img className="match-champ-icon" src={getChampionIconUrl(opposingLaneChampion)} alt={opposingLaneChampion} />
-                                    </div>
-
+                                    
+                                    
                                     <div key={match.info.gameId} className="match-item">
                                         {/* Button to toggle expansion */}
                                         <button
-                                            className="group flex flex-col self-stretch -my-12 items-center justify-center py-8 lg:py-0"
+                                            className="group absolute flex-col self-stretch -my-12 items-center justify-center py-8 lg:py-0 ml-134 mt-[-70px]"
                                             type="button"
                                             aria-controls={`test-${match.info.gameId}`}
                                             aria-expanded={isExpanded}
@@ -502,17 +508,32 @@ function Profile() {
                                             </svg>
                                         </button>
 
-                                        {/* Div that is toggled */}
+                                        
+                                    </div>
+                                    {/* Div that is toggled */}
                                         <div
                                         id={`test-${match.info.gameId}`}
                                         data-state={isExpanded ? 'open' : 'closed'}
                                         hidden={!isExpanded} // Hide or show based on state
-                                        className="mt-100"
+                                        className=""
                                         >
-                                        YES HELLO XD
+                                         <div class="flex mt-[200px]">
+                                            <ul>
+                                                {match.info.participants
+                                                .filter(p => p.teamId === 100)
+                                                .map((player) => (
+                                                    <li key={player.puuid}>
+                                                    {player.summonerName || player.riotIdGameName}
+                                                    </li>
+                                                ))}
+                                            </ul>
                                         </div>
-                                    </div>
+
+
+
+                                        </div>
                                 </div>
+                                
                             );
                         })
                     ) : (

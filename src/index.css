@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 @font-face {
   font-family: main_font;
   src: url(/font/main_font.OTF);
@@ -389,7 +391,6 @@ a[href$=".html"]:hover{
 .ladder-header {
   font-size: 40px;
   color: black;
-  ;
 }
 
 .player-name-ladder, .rank-ladder, .rank-tier, .player-account{
@@ -551,22 +552,6 @@ margin-left: 43px;
   max-width: 1000px;
 }
 
-.match-item {
-  padding: 10px;
-  margin-bottom: 10px;
-  width: 1080px;
-  min-height: 95px;
-  display: flex;
-  align-items: center;
-  max-height: 100px;
-}
-
-.match-info {
-  margin-bottom: 57px;
-  color: grey;
-  margin-left: 0px;
-}
-
 .player-info-matchs {
   display: flex;
   align-items: center;
@@ -575,25 +560,6 @@ margin-left: 43px;
 
 .player-info img {
   margin-right: 5px;
-}
-
-.opposing-player-info {
-  display: flex;
-  align-items: center;
-  margin-left: 200px;
-  margin-right: 15px;
-}
-
-.match-item.win {
-  border: 2px outset rgb(21, 21, 128);
-  border-radius: .25rem;
-  background-color: rgba(36, 36, 70, 0.562);
-}
-
-.match-item.loss {
-  border: 2px outset rgb(105, 14, 14);
-  border-radius: .25rem;
-  background-color: rgba(44, 16, 16, 0.705)
 }
 
 .match-champ-icon {
@@ -641,42 +607,6 @@ margin-left: 43px;
   margin-top: 41px;
 }
 
-.match-items-container{
-  margin-left: 10px;
-  display: flex;
-  border: #55575ce8 solid 2px;
-  border-radius: .25rem;
-  padding-top: 3px;
-  padding-bottom: 3px;
-  padding-left: 6px;
-  padding-right: 6px;
-  min-height: 68px;
-  max-width: 120px;
-  min-width: 120px;
-}
-
-.match-item-icon {
-  width: 30px;
-  height: 30px;
-  border-radius: .50rem;
-}
-
-.match-rune-icon {
-  width: 30px;
-  height: 30px;
-  border-radius: .25rem;
-}
-
-.player-runes {
-  align-items: center;
-  margin-left: 10px;
-  border: #55575ce8 solid 2px;
-  border-radius: .25rem;
-  padding-top: 3px;
-  padding-bottom: 3px;
-  padding-left: 6px;
-  padding-right: 6px;
-}
 
 .match-spell-icon {
   width: 30px;
@@ -757,16 +687,11 @@ margin-left: 43px;
   z-index: 1;
 }
 
-.expand-button {
-  background: none;
-  border: none;
-  font-size: 18px;
-  cursor: pointer;
-}
-
 .match-details {
   margin-top: 10px;
   padding: 10px;
   background-color: #222;
   border-radius: 5px;
 }
+
+

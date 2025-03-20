@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { Collapse } from 'react-bootstrap';
 import Header from '../components/Header';
 import rankIcons from '../rank.json';
 import Loader from '../components/Loading.jsx';
@@ -31,6 +32,8 @@ function Profile() {
     const [matchHistory, setMatchHistory] = useState(null);
     const [matchHistoryError, setMatchHistoryError] = useState(null);
     const [expandedMatches, setExpandedMatches] = useState({});
+    const [detailedMatches, setDetailedMatches] = useState(false); // State pour gérer l'état du bouton
+    const [isExpanded, setIsExpanded] = useState(false);
     
 
     useEffect(() => {
@@ -102,6 +105,21 @@ function Profile() {
             return false; // Ou une autre valeur par défaut si les infos du joueur ne sont pas trouvées
         }
         return playerInfo.win;
+    };
+
+     // Fonction pour déterminer la classe CSS de l'élément match-item
+     const getMatchItemClass = (didPlayerWin, isDetailed) => {
+        let baseClass = 'match-item w-[1200px] flex items-center mb-2.5 p-2.5';
+
+        // Ajoute la classe pour la hauteur en fonction de l'état du bouton
+        baseClass += isDetailed ? ' min-h-[800px]' : ' min-h-[100px]';
+
+        // Ajoute la classe pour la victoire ou la défaite
+        let winLossClass = didPlayerWin
+            ? ' win rounded bg-[rgba(36,36,70,0.562)] border-2 border-[rgb(21,21,128)]'
+            : ' loss rounded bg-[rgba(44,16,16,0.705)] border-2 border-[rgb(105,14,14)]';
+
+        return baseClass + winLossClass;
     };
 
     // Fonction pour obtenir le champion adverse
@@ -196,34 +214,48 @@ function Profile() {
         return ((playerInfo.kills + playerInfo.assists) / teamTotalKills * 100).toFixed(0);
     };
 
-    // Fonction pour obtenir les détails du match (menu déroulant)
+    //Fonction pour obtenir les détails du match (menu déroulant)
     function MatchDetails({ match, playerInfo }) {
         return (
-          <div className="match-details">
-            <h3>Détails du match</h3>
-            {/* Ajoutez ici les informations détaillées du match */}
-            <p>Champion: {playerInfo.championName}</p>
-            <p>CS: {playerInfo.totalMinionsKilled}</p>
-            <p>Gold: {playerInfo.goldEarned}</p>
-            {/* Ajoutez d'autres détails selon vos besoins */}
-          </div>
+            <div>
+                <p>Champion: {playerInfo.championName}</p>
+                <p>CS: {playerInfo.totalMinionsKilled}</p>
+                <p>Gold: {playerInfo.goldEarned}</p>
+                {/* Ajoutez d'autres détails selon vos besoins */}
+            </div>
         );
-      }
+    };
 
-      const toggleMenu = () => {
-        setIsMenuOpen(!isMenuOpen);
-      };
+    
 
-      const [isMenuOpen, setIsMenuOpen] = useState(false);
+    document.addEventListener('DOMContentLoaded', function() {
+        const button = document.querySelector('button[aria-controls="test1"]');
+        const content = document.getElementById('test1');
+    
+        button.addEventListener('click', function() {
+            const isExpanded = button.getAttribute('aria-expanded') === 'true';
+            
+            // Toggle aria-expanded
+            button.setAttribute('aria-expanded', !isExpanded);
+            
+            // Toggle visibility
+            content.hidden = isExpanded;
+            
+            // Update data-state
+            const newState = isExpanded ? 'closed' : 'open';
+            button.setAttribute('data-state', newState);
+            content.setAttribute('data-state', newState);
+        });
+    });
 
-      const toggleMatchDetails = (matchId) => {
-        setExpandedMatches(prevState => ({
+    // Toggle function to handle expansion for individual divs
+    const toggleExpand = (matchId) => {
+        setExpandedMatches((prevState) => ({
             ...prevState,
-            [matchId]: !prevState[matchId]
+            [matchId]: !prevState[matchId], // Toggle the specific match's expanded state
         }));
     };
-      
-
+    
     return (
         <div>
             <Header />
@@ -323,23 +355,28 @@ function Profile() {
                     ) : matchHistory.length > 0 ? (
                         matchHistory.map(match => {
                             const playerInfo = getPlayerInfo(match, data?.data?.accountInfo?.puuid);
-                            const win = didPlayerWin(match, data?.data?.accountInfo?.puuid);
-                            const matchItemClass = `match-item ${win ? 'win' : 'loss'}`; // Classe conditionnelle
-                            const matchItemClassExtended = 'match-item-extended';
-
+                            const didPlayerWin = playerInfo.win;
+                            const matchItemClass = getMatchItemClass(didPlayerWin, detailedMatches);
+                                const toggleDetailedMatches = () => {
+                                setDetailedMatches(!detailedMatches);
+                            };
                             const opposingLaneChampion = getOpposingLaneChampion(match, playerInfo?.teamPosition);
                             const gameModeDisplay = match.info.gameMode === "CLASSIC" ? "Solo/Duo" : match.info.gameMode;
                             const gameDurationFormatted = formatGameDuration(match.info.gameDuration); // Formater la durée
                             const championLevel = getChampionLevel(playerInfo);
+                            const isExpanded = expandedMatches[match.info.gameId] || false;
 
                             const roleIcon = getRoleIconUrl(playerInfo?.teamPosition); 
                             return (
+                            
                                 <div
                                     key={match.metadata.matchId}
-                                    className={matchItemClass}
+                                    className={`${matchItemClass} overflow-visible`}
                                 >
-                                    <div className="match-info">
-                                        <div className="game-mode">{gameModeDisplay}</div>
+
+                                    
+                                    <div className="match-info mt-1 text-[grey] mb-[50px]">
+                                        <div className="game-mode flex">{gameModeDisplay}</div>
                                         <div className="game-duration">{gameDurationFormatted}</div>
                                     </div>
                                     <span className="player-role-container"><img src={roleIcon} alt="role-icon" className="player-role" /></span>
@@ -376,15 +413,15 @@ function Profile() {
                                                 </div>
                                             </div>
 
-                                            <div className="player-runes">
+                                            <div className="player-runes fitems-center rounded ml-2.5 px-1.5 py-[3px] border-[#55575ce8] border-solid border-[2px] w-[160px] pr-1.5">
                                                 {playerInfo.perks.styles.map((style, styleIndex) => (
-                                                    <div key={styleIndex} className="rune-style">
+                                                    <div key={styleIndex} className="rune-style flex w-fit">
                                                         {style.selections.map((selection, selectionIndex) => {
                                                             const perk = runesIcon.perks.find(p => p.id === selection.perk.toString());
                                                             return perk ? (
                                                                 <img
                                                                     key={selectionIndex}
-                                                                    className="match-rune-icon"
+                                                                    className="match-rune-icon h-[30px] w-[30px]"
                                                                     src={`/${perk.icon}`} // Assurez-vous que ce chemin est correct
                                                                     alt={perk.name}
                                                                 />
@@ -393,23 +430,23 @@ function Profile() {
                                                     </div>
                                                 ))}
                                             </div>
-                                            <div className="match-items-container">
+                                            <div className="match-items-container w-[140px] flex border-[2px] rounded-sm border-[#505258] ml-[10px]">
                                                 <div>
-                                                    {playerInfo.item0 ? <img className="match-item-icon" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${playerInfo.item0}.png`} alt={playerInfo.item0} /> : null}
-                                                    {playerInfo.item1 ? <img className="match-item-icon" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${playerInfo.item1}.png`} alt={playerInfo.item1} /> : null}
+                                                    {playerInfo.item0 ? <img className="match-item-icon w-[30px] h-[30px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${playerInfo.item0}.png`} alt={playerInfo.item0} /> : null}
+                                                    {playerInfo.item1 ? <img className="match-item-icon w-[30px] h-[30px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${playerInfo.item1}.png`} alt={playerInfo.item1} /> : null}
                                                 </div>
                                                 <div>
-                                                    {playerInfo.item2 ? <img className="match-item-icon" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${playerInfo.item2}.png`} alt={playerInfo.item2} /> : null}
-                                                    {playerInfo.item3 ? <img className="match-item-icon" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${playerInfo.item3}.png`} alt={playerInfo.item3} /> : null}
+                                                    {playerInfo.item2 ? <img className="match-item-icon w-[30px] h-[30px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${playerInfo.item2}.png`} alt={playerInfo.item2} /> : null}
+                                                    {playerInfo.item3 ? <img className="match-item-icon w-[30px] h-[30px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${playerInfo.item3}.png`} alt={playerInfo.item3} /> : null}
                                                 </div>
                                                 <div>
-                                                    {playerInfo.item4 ? <img className="match-item-icon" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${playerInfo.item4}.png`} alt={playerInfo.item4} /> : null}
-                                                    {playerInfo.item5 ? <img className="match-item-icon" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${playerInfo.item5}.png`} alt={playerInfo.item5} /> : null}
+                                                    {playerInfo.item4 ? <img className="match-item-icon w-[30px] h-[30px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${playerInfo.item4}.png`} alt={playerInfo.item4} /> : null}
+                                                    {playerInfo.item5 ? <img className="match-item-icon w-[30px] h-[30px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${playerInfo.item5}.png`} alt={playerInfo.item5} /> : null}
                                                 </div>
-                                                {playerInfo.item6 ? <img className="match-item-icon" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${playerInfo.item6}.png`} alt={playerInfo.item6} /> : null}
+                                                {playerInfo.item6 ? <img className="match-item-icon w-[30px] h-[30px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${playerInfo.item6}.png`} alt={playerInfo.item6} /> : null}
                                             </div>
 
-                                            <div className="player-stats-container">
+                                            <div className="player-stats-container ml-[50px]">
                                                 <div className="player-farm">
                                                     <span className="farm-value">{playerInfo.totalMinionsKilled + playerInfo.neutralMinionsKilled} CS</span>
                                                     <div className="farm-per-minute">
@@ -429,45 +466,59 @@ function Profile() {
                                         </div>
                                     )}
 
-                                    <div className="opposing-player-info">
+                                    <div className="opposing-player-info flex items-center ml-[200px]">
                                         <div className="VS">VS</div><img className="match-champ-icon" src={getChampionIconUrl(opposingLaneChampion)} alt={opposingLaneChampion} />
                                     </div>
 
-                                    <div className={matchItemClassExtended}>
-                                                {/* Bouton pour afficher/masquer les détails */}
-                                                <button className="expand-button" onClick={() => toggleMatchDetails(match.metadata.matchId)}>
-                                                    {expandedMatches[match.metadata.matchId] ? "▼" : "▶"}
-                                                </button>
+                                    <div key={match.info.gameId} className="match-item">
+                                        {/* Button to toggle expansion */}
+                                        <button
+                                            className="group flex flex-col self-stretch -my-12 items-center justify-center py-8 lg:py-0"
+                                            type="button"
+                                            aria-controls={`test-${match.info.gameId}`}
+                                            aria-expanded={isExpanded}
+                                            data-state={isExpanded ? 'open' : 'closed'}
+                                            onClick={() => toggleExpand(match.info.gameId)}
+                                        >
+                                            <svg
+                                                fill="#ffffff"
+                                                height="40px"
+                                                width="40px"
+                                                version="1.1"
+                                                id="Layer_1"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                xmlnsXlink="http://www.w3.org/1999/xlink"
+                                                viewBox="0 0 330 330"
+                                                xmlSpace="preserve"
+                                            >
+                                                <g id="SVGRepo_bgCarrier" strokeWidth="0" />
+                                                <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round" />
+                                                <g id="SVGRepo_iconCarrier">
+                                                    <path
+                                                        id="XMLID_225_"
+                                                        d="M325.607,79.393c-5.857-5.857-15.355-5.858-21.213,0.001l-139.39,139.393L25.607,79.393 c-5.857-5.857-15.355-5.858-21.213,0.001c-5.858,5.858-5.858,15.355,0,21.213l150.004,150c2.813,2.813,6.628,4.393,10.606,4.393 s7.794-1.581,10.606-4.394l149.996-150C331.465,94.749,331.465,85.251,325.607,79.393z"
+                                                    />
+                                                </g>
+                                            </svg>
+                                        </button>
 
-                                                <div className="XDTEST">
-                                                </div>
-                                            </div>
-
-                                                    {/* Affichage du menu déroulant si le match est ouvert */}
-                                                    
-                                                    {expandedMatches[match.metadata.matchId] && (
-                                                        
-                                                        <div className="match-details">
-
-                                                            
-                                                            <h3>Détails du match</h3>
-                                                            <p>Champion: {playerInfo.championName}</p>
-                                                            <p>CS: {playerInfo.totalMinionsKilled}</p>
-                                                            <p>Gold: {playerInfo.goldEarned}</p>
-                                                            {/* Tu pourras ajouter d'autres infos ici */}
-                                                        </div>
-                                                    )}
-                                    
+                                        {/* Div that is toggled */}
+                                        <div
+                                        id={`test-${match.info.gameId}`}
+                                        data-state={isExpanded ? 'open' : 'closed'}
+                                        hidden={!isExpanded} // Hide or show based on state
+                                        className="mt-100"
+                                        >
+                                        YES HELLO XD
+                                        </div>
+                                    </div>
                                 </div>
-                                
-                                
                             );
                         })
                     ) : (
                         <p>Aucun historique de parties trouvé.</p>
                     )}
-
-                                            
+               
                 </div>
             </div>
     );

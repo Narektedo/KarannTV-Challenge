@@ -11,12 +11,16 @@
     "start": "vite"
   },
   "dependencies": {
+    "@tailwindcss/vite": "^4.0.14",
     "axios": "^1.8.3",
+    "bootstrap": "^5.3.3",
     "dotenv": "^16.4.7",
     "react": "^18.3.1",
+    "react-bootstrap": "^2.10.9",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.28.0",
-    "styled-components": "^6.1.15"
+    "styled-components": "^6.1.15",
+    "tailwindcss": "^4.0.14"
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",

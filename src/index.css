@@ -565,21 +565,10 @@ margin-left: 43px;
   font-style: italic;
 }
 
-.KDA {
-  margin-left: 10px;
-  font-size: 20px;
-  max-width: 90px;
-  min-width: 90px;
-}
 
-.KDA-calculated {
-  font-size: 20px;
-  margin-top: 12px;
-}
 
 .KDA-title{
   color: grey;
-  font-size: 17px;
 }
 
 .player-role-container {
@@ -597,21 +586,12 @@ margin-left: 43px;
 }
 
 .player-summoner-spells {
-  border: #55575ce8 solid 2px;
+  border: #2d2e31e8 solid 2px;
   border-radius: .25rem;
   padding-top: 3px;
   padding-bottom: 3px;
   padding-left: 6px;
   padding-right: 6px;
-}
-
-
-.player-stats-container {
-  margin-left: 15px;
-}
-
-.player-farm {
-  max-height: 25px;
 }
 
 .farm-value {
@@ -622,10 +602,6 @@ margin-left: 43px;
 .farm-value-per-minute {
   font-size: 17px;
   color: #999898;
-}
-
-.player-kp {
-  margin-top: 32px;
 }
 
 .farm-per-minute {

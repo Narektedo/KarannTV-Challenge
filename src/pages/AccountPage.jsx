@@ -109,7 +109,7 @@ function Profile() {
 
      // Fonction pour déterminer la classe CSS de l'élément match-item
      const getMatchItemClass = (didPlayerWin, isDetailed) => {
-        let baseClass = 'match-item w-[1200px] flex flex-col items-center mb-2.5 p-2.5';
+        let baseClass = 'match-item w-[1500px] flex flex-col items-center mb-2.5 p-2.5';
 
         // Ajoute la classe pour la hauteur en fonction de l'état du bouton
         baseClass += isDetailed ? 'min-h-fit' : 'min-h-[120px]';
@@ -131,6 +131,8 @@ function Profile() {
     
         return opposingPlayer ? opposingPlayer.championName : 'Unknown';
     };
+
+    //fonciton pour obtenir les champs de la team adverse
 
     // Fonvertir le rôle en icône
     const getRoleIconUrl = (bite) => {
@@ -366,7 +368,7 @@ function Profile() {
                             const championLevel = getChampionLevel(playerInfo);
                             const isExpanded = expandedMatches[match.info.gameId] || false;
 
-                            const roleIcon = getRoleIconUrl(playerInfo?.teamPosition); 
+                            const roleIcon = getRoleIconUrl(playerInfo?.teamPosition);
                             return (
                             
                                 <div
@@ -517,16 +519,223 @@ function Profile() {
                                         hidden={!isExpanded} // Hide or show based on state
                                         className=""
                                         >
-                                         <div class="flex mt-[200px]">
-                                            <ul>
+                                         <div class="flex">
+                                            <ul class="">
+                                            <div className="flex justify-center">
+                                            {match.info.participants
+                                            .filter(p => p.teamId === 100) //Filter the participants to only keep the team
+                                            .some(p => p.win) ? (
+                                                <span className="ml-auto mr-auto text-2xl text-blue-500 border-solid border-[2px] px-1.5 py-0.5 rounded bg-[#161618e8]">Victory</span>
+                                                ) : (
+                                                <span className="ml-auto mr-auto text-2xl text-red-800 border-solid border-[2px] px-1.5 py-0.5 rounded bg-[#161618e8]">Defeat</span>
+                                                )}
+                                            </div>
                                                 {match.info.participants
                                                 .filter(p => p.teamId === 100)
                                                 .map((player) => (
                                                     <li key={player.puuid}>
-                                                    {player.summonerName || player.riotIdGameName}
+                                                        <div class="flex mt-1 ml-1.5 mb-1">
+                                                            <div class="absolute border-solid border-[#2d2e31e8] border-[2px] bg-[#161618e8] mt-[42px] px-[1px] text-gray-400 rounded">
+                                                                {player.champLevel}
+                                                            </div>
+                                                            <div class="flex border-[#2d2e31e8] border-solid border-[2px] px-1.5 py-[3px] rounded bg-[#161618e8]">
+                                                                <div class="min-w-50 flex my-auto">
+                                                                    <img 
+                                                                        className="match-champ-icon-detailed h-[50px] w-[50px]" 
+                                                                        src={getChampionIconUrl(player.championName)} 
+                                                                        alt={player.championName} 
+                                                                    />
+                                                                    <div class="mt-[15px] text-[16px] ml-2">
+                                                                        {player.summonerName || player.riotIdGameName} 
+                                                                    </div>
+                                                                </div>
+                                                                <div className="KDA text-[18px] my-auto min-w-[80px] max-w-[80px]">
+                                                                    <span className="kills text-[18px]">{player.kills}</span>/<span className="deaths text-[18px]">{player.deaths}</span>/<span className="assists text-[18px]">{player.assists}</span>
+                                                                    <div className="KDA-calculated text-[18px]" style={{ color: getKDAColor(player) }}>
+                                                                        <span className="KDA-title text-[18px]">KDA </span>{((player.kills + player.assists) / Math.max(1, player.deaths)).toFixed(1)}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="flex">
+                                                                <div className="player-summoner-spells ml-1 bg-[#161618e8]">
+                                                                    <div>
+                                                                        <img
+                                                                            className="match-spell-icon"
+                                                                            src={getSummonerSpellIconUrl(player.summoner1Id)}
+                                                                            alt={player.summoner1Id}
+                                                                        />
+                                                                    </div>
+                                                                    <div>
+                                                                        <img
+                                                                            className="match-spell-icon"
+                                                                            src={getSummonerSpellIconUrl(player.summoner2Id)}
+                                                                            alt={player.summoner2Id}
+                                                                        />
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="player-runes fitems-center rounded ml-1 px-1.5 py-[3px] border-[#2d2e31e8] border-solid border-[2px] w-fit h-fit pr-1.5 bg-[#161618e8]">
+                                                                    {player.perks.styles.map((style, styleIndex) => (
+                                                                        <div key={styleIndex} className="rune-style flex w-fit">
+                                                                            {style.selections.map((selection, selectionIndex) => {
+                                                                                const perk = runesIcon.perks.find(p => p.id === selection.perk.toString());
+                                                                                return perk ? (
+                                                                                    <img
+                                                                                        key={selectionIndex}
+                                                                                        className="match-rune-icon h-[30px] w-[30px]"
+                                                                                        src={`/${perk.icon}`} // Assurez-vous que ce chemin est correct
+                                                                                        alt={perk.name}
+                                                                                    />
+                                                                                ) : null;
+                                                                            })}
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+
+                                                                <div className="match-items-container min-w-[136px] h-fit flex border-[2px] px-1.5 py-[3px] rounded-sm border-[#2d2e31e8] ml-1 bg-[#161618e8]">
+                                                                    <div>
+                                                                        {player.item0 ? <img className="match-item-icon w-[30px] h-[30px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${player.item0}.png`} alt={player.item0} /> : <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"/>}
+                                                                        {player.item1 ? <img className="match-item-icon w-[30px] h-[30px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${player.item1}.png`} alt={player.item1} /> : <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"/>}
+                                                                    </div>
+                                                                    <div>
+                                                                        {player.item2 ? <img className="match-item-icon w-[30px] h-[30px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${player.item2}.png`} alt={player.item2} /> : <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"/>}
+                                                                        {player.item3 ? <img className="match-item-icon w-[30px] h-[30px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${player.item3}.png`} alt={player.item3} /> : <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"/>}
+                                                                    </div>
+                                                                    <div>
+                                                                        {player.item4 ? <img className="match-item-icon w-[30px] h-[30px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${player.item4}.png`} alt={player.item4} /> : <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"/>}
+                                                                        {player.item5 ? <img className="match-item-icon w-[30px] h-[30px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${player.item5}.png`} alt={player.item5} /> : <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"/>}
+                                                                    </div>
+                                                                        {player.item6 ? <img className="match-item-icon w-[30px] h-[30px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${player.item6}.png`} alt={player.item6} /> : <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"/>}
+                                                                </div>
+                                                            </div>
+                                                            <div className="player-stats-container min-w-[75px] max-w-[75px] rounded-sm ml-1 px-1.5 py-[3px] bg-[#161618e8] border-[#2d2e31e8] border-[2px]">
+                                                                <div className="player-farm">
+                                                                    <span className="farm-value">{player.totalMinionsKilled + player.neutralMinionsKilled} CS</span>
+                                                                </div>
+                                                                <div className="player-kp" style={{ color: getKPColor(player, getTeamTotalKills(match, player.teamId)) }}>
+                                                                    {(() => {
+                                                                        const teamTotalKills = getTeamTotalKills(match, player.teamId);
+                                                                        const kp = calculateKP(player, teamTotalKills);
+                                                                        return `${kp}%`;
+                                                                    })()} KP
+                                                                </div>
+                                                            </div>
+                                                            <div class="roleIconTab">
+                                                            {player.teamPosition ? <img src={`/role/${player.teamPosition}.png`} alt="roleIconTab" class="w-[50px] h-[50px] mt-2.5"/> : null }
+                                                            </div>
+                                                        </div>
+                                                        
                                                     </li>
                                                 ))}
                                             </ul>
+
+                                            <ul class="">
+                                            <div className="flex justify-center">
+                                            {match.info.participants
+                                            .filter(p => p.teamId === 200) //Filter the participants to only keep the team
+                                            .some(p => p.win) ? (
+                                                <span className="ml-auto mr-auto text-2xl text-blue-500 border-solid border-[2px] px-1.5 py-0.5 rounded bg-[#161618e8]">Victory</span>
+                                                ) : (
+                                                <span className="ml-auto mr-auto text-2xl text-red-800 border-solid border-[2px] px-1.5 py-0.5 rounded bg-[#161618e8]">Defeat</span>
+                                                )}
+                                            </div>
+                                                {match.info.participants
+                                                .filter(p => p.teamId === 200)
+                                                .map((player) => (
+                                                    <li key={player.puuid}>
+                                                        <div class="flex mt-1 mb-1">
+                                                            <div class="absolute border-solid border-[#2d2e31e8] border-[2px] bg-[#161618e8] mt-[42px] px-[1px] text-gray-400 rounded">
+                                                                {player.champLevel}
+                                                            </div>
+                                                            <div class="flex border-[#2d2e31e8] border-solid border-[2px] px-1.5 py-[3px] rounded bg-[#161618e8]">
+                                                                <div class="min-w-50 flex my-auto">
+                                                                    <img 
+                                                                        className="match-champ-icon-detailed h-[50px] w-[50px]" 
+                                                                        src={getChampionIconUrl(player.championName)} 
+                                                                        alt={player.championName} 
+                                                                    />
+                                                                    <div class="mt-[15px] text-[16px] ml-2">
+                                                                        {player.summonerName || player.riotIdGameName} 
+                                                                    </div>
+                                                                </div>
+                                                                <div className="KDA text-[18px] my-auto min-w-[80px] max-w-[80px]">
+                                                                    <span className="kills text-[18px]">{player.kills}</span>/<span className="deaths text-[18px]">{player.deaths}</span>/<span className="assists text-[18px]">{player.assists}</span>
+                                                                    <div className="KDA-calculated text-[18px]" style={{ color: getKDAColor(player) }}>
+                                                                        <span className="KDA-title text-[18px]">KDA </span>{((player.kills + player.assists) / Math.max(1, player.deaths)).toFixed(1)}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="flex">
+                                                                <div className="player-summoner-spells ml-1 bg-[#161618e8]">
+                                                                    <div>
+                                                                        <img
+                                                                            className="match-spell-icon"
+                                                                            src={getSummonerSpellIconUrl(player.summoner1Id)}
+                                                                            alt={player.summoner1Id}
+                                                                        />
+                                                                    </div>
+                                                                    <div>
+                                                                        <img
+                                                                            className="match-spell-icon"
+                                                                            src={getSummonerSpellIconUrl(player.summoner2Id)}
+                                                                            alt={player.summoner2Id}
+                                                                        />
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="player-runes fitems-center rounded ml-1 px-1.5 py-[3px] border-[#2d2e31e8] border-solid border-[2px] w-fit h-fit pr-1.5 bg-[#161618e8]">
+                                                                    {player.perks.styles.map((style, styleIndex) => (
+                                                                        <div key={styleIndex} className="rune-style flex w-fit">
+                                                                            {style.selections.map((selection, selectionIndex) => {
+                                                                                const perk = runesIcon.perks.find(p => p.id === selection.perk.toString());
+                                                                                return perk ? (
+                                                                                    <img
+                                                                                        key={selectionIndex}
+                                                                                        className="match-rune-icon h-[30px] w-[30px]"
+                                                                                        src={`/${perk.icon}`} // Assurez-vous que ce chemin est correct
+                                                                                        alt={perk.name}
+                                                                                    />
+                                                                                ) : null;
+                                                                            })}
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+
+                                                                <div className="match-items-container min-w-[136px] h-fit flex border-[2px] px-1.5 py-[3px] rounded-sm border-[#2d2e31e8] ml-1 bg-[#161618e8]">
+                                                                    <div>
+                                                                        {player.item0 ? <img className="match-item-icon w-[30px] h-[30px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${player.item0}.png`} alt={player.item0} /> : <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"/>}
+                                                                        {player.item1 ? <img className="match-item-icon w-[30px] h-[30px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${player.item1}.png`} alt={player.item1} /> : <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"/>}
+                                                                    </div>
+                                                                    <div>
+                                                                        {player.item2 ? <img className="match-item-icon w-[30px] h-[30px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${player.item2}.png`} alt={player.item2} /> : <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"/>}
+                                                                        {player.item3 ? <img className="match-item-icon w-[30px] h-[30px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${player.item3}.png`} alt={player.item3} /> : <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"/>}
+                                                                    </div>
+                                                                    <div>
+                                                                        {player.item4 ? <img className="match-item-icon w-[30px] h-[30px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${player.item4}.png`} alt={player.item4} /> : <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"/>}
+                                                                        {player.item5 ? <img className="match-item-icon w-[30px] h-[30px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${player.item5}.png`} alt={player.item5} /> : <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"/>}
+                                                                    </div>
+                                                                        {player.item6 ? <img className="match-item-icon w-[30px] h-[30px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${player.item6}.png`} alt={player.item6} /> : <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"/>}
+                                                                </div>
+                                                            </div>
+                                                            <div className="player-stats-container min-w-[75px] max-w-[75px] rounded-sm ml-1 px-1.5 py-[3px] bg-[#161618e8] border-[#2d2e31e8] border-[2px]">
+                                                                <div className="player-farm">
+                                                                    <span className="farm-value">{player.totalMinionsKilled + player.neutralMinionsKilled} CS</span>
+                                                                </div>
+                                                                <div className="player-kp" style={{ color: getKPColor(player, getTeamTotalKills(match, player.teamId)) }}>
+                                                                    {(() => {
+                                                                        const teamTotalKills = getTeamTotalKills(match, player.teamId);
+                                                                        const kp = calculateKP(player, teamTotalKills);
+                                                                        return `${kp}%`;
+                                                                    })()} KP
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </li>
+                                                ))}
+                                            </ul>
+
                                         </div>
 
 

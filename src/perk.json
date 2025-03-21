@@ -111,6 +111,21 @@
             "icon": "perk-images/Styles/Domination/DeepWard/DeepWard.png"
         },
         {
+            "id": "8135",
+            "name": "TreasureHunter",
+            "icon": "perk-images/Styles/Domination/TreasureHunter/TreasureHunter.png"
+        },
+        {
+            "id": "8105",
+            "name": "RelentlessHunter",
+            "icon": "perk-images/Styles/Domination/RelentlessHunter/RelentlessHunter.png"
+        },
+        {
+            "id": "8106",
+            "name": "UltimateHunter",
+            "icon": "perk-images/Styles/Domination/UltimateHunter/UltimateHunter.png"
+        },
+        {
             "id": "8306",
             "name": "HextechFlashtraption",
             "icon": "perk-images/Styles/Inspiration/HextechFlashtraption/HextechFlashtraption.png"
@@ -243,7 +258,7 @@
         {
             "id": "8242",
             "name": "Unflinching",
-            "icon": "perk-images/Styles/Resolve/Unflinching/Unflinching.png"
+            "icon": "perk-images/Styles/Sorcery/Unflinching/Unflinching.png"
         },
         {
             "id": "8210",
@@ -253,7 +268,7 @@
         {
             "id": "8224",
             "name": "NullifyingOrb",
-            "icon": "perk-images/Styles/Sorcery/NullifyingOrb/NullifyingOrb.png"
+            "icon": "perk-images/Styles/Sorcery/NullifyingOrb/Axiom_Arcanist.png"
         },
         {
             "id": "8226",
@@ -263,7 +278,7 @@
         {
             "id": "8275",
             "name": "NimbusCloak",
-            "icon": "perk-images/Styles/Sorcery/NimbusCloak/NimbusCloak.png"
+            "icon": "perk-images/Styles/Sorcery/NimbusCloak/6361.png"
         },
         {
             "id": "8233",
@@ -273,7 +288,7 @@
         {
             "id": "8234",
             "name": "Celerity",
-            "icon": "perk-images/Styles/Sorcery/Celerity/Celerity.png"
+            "icon": "perk-images/Styles/Sorcery/Celerity/CelerityTemp.png"
         },
         {
             "id": "8237",

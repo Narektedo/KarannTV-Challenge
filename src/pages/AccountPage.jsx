@@ -8,6 +8,7 @@ import roleIcons from '../role.json';
 import summonerIcon from '../summoner.json';
 import runesIcon from '../perk.json';
 import Arrow from '../components/Arrow.jsx';
+import { ProgressBar } from 'primereact/progressbar';
 
 // Fonction utilitaire pour récupérer le rang spécifique
 const getRankInfo = (rankData, queueType) => {
@@ -258,6 +259,31 @@ function Profile() {
         }));
     };
     
+    const formatDate = (timestamp) => {
+        const date = new Date(timestamp);
+        return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' });
+    };
+
+    const GameCreationComponent = ({ matchInfo }) => {
+    if (!matchInfo || !matchInfo.info || !matchInfo.info.gameCreation) {
+        return <div className="gameCreation">Date not available</div>;
+    }};
+
+    const getTimeDifference = (timestamp) => {
+        const now = new Date();
+        const creationDate = new Date(timestamp);
+        const diffInMilliseconds = now - creationDate;
+        const diffInDays = Math.floor(diffInMilliseconds / (1000 * 60 * 60 * 24));
+        
+        if (diffInDays === 0) {
+          return "Today";
+        } else if (diffInDays === 1) {
+          return "Yesterday";
+        } else {
+          return `${diffInDays} days ago`;
+        }
+    };
+
     return (
         <div>
             <Header />
@@ -364,11 +390,14 @@ function Profile() {
                             };
                             const opposingLaneChampion = getOpposingLaneChampion(match, playerInfo?.teamPosition);
                             const gameModeDisplay = match.info.gameMode === "CLASSIC" ? "Solo/Duo" : match.info.gameMode;
-                            const gameDurationFormatted = formatGameDuration(match.info.gameDuration); // Formater la durée
+                            const gameDurationFormatted = formatGameDuration(match.info.gameDuration);
                             const championLevel = getChampionLevel(playerInfo);
                             const isExpanded = expandedMatches[match.info.gameId] || false;
-
+                            const showTooltip = () => {
+                                {gameDurationFormatted}
+                              };
                             const roleIcon = getRoleIconUrl(playerInfo?.teamPosition);
+                            const timeDifference = getTimeDifference(match.info.gameCreation);
                             return (
                             
                                 <div
@@ -381,30 +410,35 @@ function Profile() {
                                     
 
                                     {playerInfo && (
-                                        <div className="player-info-matchs flex items-center ml-[90px]">
-
-                                           <img src={roleIcon} alt="role-icon" className="player-role rounded bg-[black] border-[rgba(128, 128, 128,0.233)] border-[(128, 128, 128,0.233)_groove_1px] w-10 h-10 absolute ml-[-190px] mt-11 p-0.5" />
-
-                                            <div className="match-info mt-1 text-[grey] mb-[50px] ml-[-190px]">
+                                        <div className="player-info-matchs flex">
+                                            <div className="match-info mt-1 text-[grey] mb-[10px] ml-[-190px]">
                                                 <div className="game-mode flex">{gameModeDisplay}</div>
                                                 <div className="game-duration">{gameDurationFormatted}</div>
+                                                <span class="timeSince max-w-fit">{timeDifference}</span>
                                             </div>
-                                            <div className="champ-icon-level-container">
-                                                <div class="w-fit ml-2.5">
-                                                <img className="match-champ-icon" src={getChampionIconUrl(playerInfo.championName)} alt={playerInfo.championName} />
-                                                <div className="match-champion-level text-1xl text-center mx-auto">
-                                                    {championLevel}
-                                                </div>
-                                                </div>
+
+                                            <div>
+                                                <img src={roleIcon} alt="role-icon" className="player-role rounded bg-[black] border-[rgba(128, 128, 128,0.233)] border-[(128, 128, 128,0.233)_groove_1px] w-[40px] h-[40px]p-0.5 ml-5" />
                                             </div>
-                                            <div className="KDA">
-                                                <span className="kills">{playerInfo.kills}</span>/<span className="deaths">{playerInfo.deaths}</span>/<span className="assists">{playerInfo.assists}</span>
-                                                <div className="KDA-calculated" style={{ color: getKDAColor(playerInfo) }}>
-                                                    <span className="KDA-title">KDA </span>{((playerInfo.kills + playerInfo.assists) / Math.max(1, playerInfo.deaths)).toFixed(1)}
+
+                                            <div class="border-[2px] pr-0.5 py-[3px] rounded-sm border-[#2d2e31e8] ml-5 bg-[#161618e8] flex min-w-[155px]">
+                                                <div className="champ-icon-level-container">
+                                                    <div class="w-fit ml-2.5">
+                                                        <img className="match-champ-icon" src={getChampionIconUrl(playerInfo.championName)} alt={playerInfo.championName} />
+                                                        <div className="match-champion-level absolute text-1xl text-center mx-auto mt-[-23px] ml-[-12px] border-solid border-[#2d2e31e8] border-[2px] bg-[#161618e8] text-gray-400 rounded">
+                                                            {championLevel}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="KDA ml-1.5">
+                                                    <span className="kills">{playerInfo.kills}</span> / <span className="deaths">{playerInfo.deaths}</span> / <span className="assists">{playerInfo.assists}</span>
+                                                    <div className="KDA-calculated" style={{ color: getKDAColor(playerInfo) }}>
+                                                        <span className="KDA-title">KDA </span>{((playerInfo.kills + playerInfo.assists) / Math.max(1, playerInfo.deaths)).toFixed(1)}
+                                                    </div>
                                                 </div>
                                             </div>
 
-                                            <div className="player-summoner-spells">
+                                            <div className="player-summoner-spells border-[2px] px-1.5 py-[3px] rounded-sm border-[#2d2e31e8] bg-[#161618e8] ml-5">
                                                 <div>
                                                     <img
                                                         className="match-spell-icon"
@@ -421,7 +455,7 @@ function Profile() {
                                                 </div>
                                             </div>
 
-                                            <div className="player-runes fitems-center rounded ml-2.5 px-1.5 py-[3px] border-[#55575ce8] border-solid border-[2px] w-[160px] pr-1.5">
+                                            <div className="player-runes fitems-center border-[2px] px-1.5 py-[3px] rounded-sm border-[#2d2e31e8] ml-5 bg-[#161618e8]">
                                                 {playerInfo.perks.styles.map((style, styleIndex) => (
                                                     <div key={styleIndex} className="rune-style flex w-fit">
                                                         {style.selections.map((selection, selectionIndex) => {
@@ -438,7 +472,7 @@ function Profile() {
                                                     </div>
                                                 ))}
                                             </div>
-                                            <div className="match-items-container w-[140px] flex border-[2px] rounded-sm border-[#505258] ml-[10px]">
+                                            <div className="match-items-container w-[140px] flex border-[2px] px-1.5 py-[3px] rounded-sm border-[#2d2e31e8] ml-5 bg-[#161618e8]">
                                                 <div>
                                                     {playerInfo.item0 ? <img className="match-item-icon w-[30px] h-[30px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${playerInfo.item0}.png`} alt={playerInfo.item0} /> : null}
                                                     {playerInfo.item1 ? <img className="match-item-icon w-[30px] h-[30px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${playerInfo.item1}.png`} alt={playerInfo.item1} /> : null}
@@ -454,15 +488,12 @@ function Profile() {
                                                 {playerInfo.item6 ? <img className="match-item-icon w-[30px] h-[30px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${playerInfo.item6}.png`} alt={playerInfo.item6} /> : null}
                                             </div>
 
-                                            <div className="player-stats-container ml-[50px]">
+                                            <div className="player-stats-container justify-center ml-5 max-h-[70px] min-h-[70px] border-[2px] px-1.5 py-[3px] rounded-sm border-[#2d2e31e8] bg-[#161618e8]">
                                                 <div className="player-farm">
-                                                    <span className="farm-value">{playerInfo.totalMinionsKilled + playerInfo.neutralMinionsKilled} CS</span>
-                                                    <div className="farm-per-minute">
-                                                        <span className="farm-value-per-minute">{((playerInfo.totalMinionsKilled + playerInfo.neutralMinionsKilled) / (match.info.gameDuration / 60)).toFixed(1)}</span>
-                                                        <span className="farm-title"> CS/min</span>
-                                                    </div>
+                                                    <span className="farm-value text-[#999898] text-[17px]">{playerInfo.totalMinionsKilled + playerInfo.neutralMinionsKilled} CS</span><span class="text-[17px]"> / </span><span className="farm-value-per-minute italic text-[#999898] text-[17px]">{((playerInfo.totalMinionsKilled + playerInfo.neutralMinionsKilled) / (match.info.gameDuration / 60)).toFixed(1)}</span>
+                                                    <span className="farm-title italic text-[#999898]"> CS/min</span>
                                                 </div>
-                                                <div className="player-kp" style={{ color: getKPColor(playerInfo, getTeamTotalKills(match, playerInfo.teamId)) }}>
+                                                <div className="player-kp text-[17px]" style={{ color: getKPColor(playerInfo, getTeamTotalKills(match, playerInfo.teamId)) }}>
                                                     {(() => {
                                                         const teamTotalKills = getTeamTotalKills(match, playerInfo.teamId);
                                                         const kp = calculateKP(playerInfo, teamTotalKills);
@@ -470,7 +501,7 @@ function Profile() {
                                                     })()} KP
                                                 </div>
                                             </div>
-                                            <div className="opposing-player-info flex items-center ml-[200px]">
+                                            <div className="opposing-player-info flex items-center ml-[200px] border-[2px] px-1.5 py-[3px] rounded-sm border-[#2d2e31e8] bg-[#161618e8]">
                                                 <div className="VS">VS</div><img className="match-champ-icon" src={getChampionIconUrl(opposingLaneChampion)} alt={opposingLaneChampion} />
                                             </div>
                                         </div>
@@ -521,24 +552,24 @@ function Profile() {
                                         >
                                          <div class="flex">
                                             <ul class="">
-                                            <div className="flex justify-center">
+                                            <div className="flex">
                                             {match.info.participants
                                             .filter(p => p.teamId === 100) //Filter the participants to only keep the team
                                             .some(p => p.win) ? (
-                                                <span className="ml-auto mr-auto text-2xl text-blue-500 border-solid border-[2px] px-1.5 py-0.5 rounded bg-[#161618e8]">Victory</span>
+                                                <span className="text-2xl text-blue-500 border-solid border-[2px] px-1.5 py-0.5 rounded bg-[#161618e8]">Victory</span>
                                                 ) : (
-                                                <span className="ml-auto mr-auto text-2xl text-red-800 border-solid border-[2px] px-1.5 py-0.5 rounded bg-[#161618e8]">Defeat</span>
+                                                <span className="text-2xl text-red-800 border-solid border-[2px] px-1.5 py-0.5 rounded bg-[#161618e8]">Defeat</span>
                                                 )}
                                             </div>
                                                 {match.info.participants
                                                 .filter(p => p.teamId === 100)
                                                 .map((player) => (
                                                     <li key={player.puuid}>
-                                                        <div class="flex mt-1 ml-1.5 mb-1">
+                                                        <div class="flex mt-1 mb-4">
                                                             <div class="absolute border-solid border-[#2d2e31e8] border-[2px] bg-[#161618e8] mt-[42px] px-[1px] text-gray-400 rounded">
                                                                 {player.champLevel}
                                                             </div>
-                                                            <div class="flex border-[#2d2e31e8] border-solid border-[2px] px-1.5 py-[3px] rounded bg-[#161618e8]">
+                                                            <div class="flex max-w-[296px] border-[#2d2e31e8] border-solid border-[2px] px-1.5 py-[3px] rounded bg-[#161618e8]">
                                                                 <div class="min-w-50 flex my-auto">
                                                                     <img 
                                                                         className="match-champ-icon-detailed h-[50px] w-[50px]" 
@@ -550,7 +581,7 @@ function Profile() {
                                                                     </div>
                                                                 </div>
                                                                 <div className="KDA text-[18px] my-auto min-w-[80px] max-w-[80px]">
-                                                                    <span className="kills text-[18px]">{player.kills}</span>/<span className="deaths text-[18px]">{player.deaths}</span>/<span className="assists text-[18px]">{player.assists}</span>
+                                                                    <span className="kills text-[18px]">{player.kills}</span> / <span className="deaths text-[18px]">{player.deaths}</span> / <span className="assists text-[18px]">{player.assists}</span>
                                                                     <div className="KDA-calculated text-[18px]" style={{ color: getKDAColor(player) }}>
                                                                         <span className="KDA-title text-[18px]">KDA </span>{((player.kills + player.assists) / Math.max(1, player.deaths)).toFixed(1)}
                                                                     </div>
@@ -631,20 +662,20 @@ function Profile() {
                                             </ul>
 
                                             <ul class="">
-                                            <div className="flex justify-center">
+                                            <div className="flex">
                                             {match.info.participants
                                             .filter(p => p.teamId === 200) //Filter the participants to only keep the team
                                             .some(p => p.win) ? (
-                                                <span className="ml-auto mr-auto text-2xl text-blue-500 border-solid border-[2px] px-1.5 py-0.5 rounded bg-[#161618e8]">Victory</span>
+                                                <span className="text-2xl text-blue-500 border-solid border-[2px] px-1.5 py-0.5 rounded bg-[#161618e8]">Victory</span>
                                                 ) : (
-                                                <span className="ml-auto mr-auto text-2xl text-red-800 border-solid border-[2px] px-1.5 py-0.5 rounded bg-[#161618e8]">Defeat</span>
+                                                <span className="text-2xl text-red-800 border-solid border-[2px] px-1.5 py-0.5 rounded bg-[#161618e8]">Defeat</span>
                                                 )}
                                             </div>
                                                 {match.info.participants
                                                 .filter(p => p.teamId === 200)
                                                 .map((player) => (
                                                     <li key={player.puuid}>
-                                                        <div class="flex mt-1 mb-1">
+                                                        <div class="flex mt-1 mb-4">
                                                             <div class="absolute border-solid border-[#2d2e31e8] border-[2px] bg-[#161618e8] mt-[42px] px-[1px] text-gray-400 rounded">
                                                                 {player.champLevel}
                                                             </div>
@@ -660,7 +691,7 @@ function Profile() {
                                                                     </div>
                                                                 </div>
                                                                 <div className="KDA text-[18px] my-auto min-w-[80px] max-w-[80px]">
-                                                                    <span className="kills text-[18px]">{player.kills}</span>/<span className="deaths text-[18px]">{player.deaths}</span>/<span className="assists text-[18px]">{player.assists}</span>
+                                                                    <span className="kills text-[18px]">{player.kills}</span> / <span className="deaths text-[18px]">{player.deaths}</span> / <span className="assists text-[18px]">{player.assists}</span>
                                                                     <div className="KDA-calculated text-[18px]" style={{ color: getKDAColor(player) }}>
                                                                         <span className="KDA-title text-[18px]">KDA </span>{((player.kills + player.assists) / Math.max(1, player.deaths)).toFixed(1)}
                                                                     </div>
@@ -716,7 +747,10 @@ function Profile() {
                                                                         {player.item4 ? <img className="match-item-icon w-[30px] h-[30px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${player.item4}.png`} alt={player.item4} /> : <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"/>}
                                                                         {player.item5 ? <img className="match-item-icon w-[30px] h-[30px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${player.item5}.png`} alt={player.item5} /> : <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"/>}
                                                                     </div>
+                                                                    <div>
                                                                         {player.item6 ? <img className="match-item-icon w-[30px] h-[30px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${player.item6}.png`} alt={player.item6} /> : <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"/>}
+                                                                        
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                             <div className="player-stats-container min-w-[75px] max-w-[75px] rounded-sm ml-1 px-1.5 py-[3px] bg-[#161618e8] border-[#2d2e31e8] border-[2px]">

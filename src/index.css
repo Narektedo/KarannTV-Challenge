@@ -452,9 +452,7 @@ a[href$=".html"]:hover{
   padding-bottom: 3px;
   padding-left: 6px;
   padding-right: 6px;
-  --tw-bg-opacity: 1;
   background-color: rgba(0, 0, 0, 0.733);
-  max-width: 200px;
   border-radius: .25rem;
   border :rgb(0, 0, 0) solid 2px;
 }
@@ -546,7 +544,6 @@ margin-left: 43px;
 .player-info-matchs {
   display: flex;
   align-items: center;
-  margin-left: 50px;
 }
 
 .player-info img {
@@ -592,16 +589,6 @@ margin-left: 43px;
   padding-bottom: 3px;
   padding-left: 6px;
   padding-right: 6px;
-}
-
-.farm-value {
-  font-size: 17px;
-  color: #999898;
-}
-
-.farm-value-per-minute {
-  font-size: 17px;
-  color: #999898;
 }
 
 .farm-per-minute {

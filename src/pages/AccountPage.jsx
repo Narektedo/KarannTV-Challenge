@@ -35,7 +35,8 @@ function Profile() {
     const [expandedMatches, setExpandedMatches] = useState({});
     const [detailedMatches, setDetailedMatches] = useState(false); // State pour gérer l'état du bouton
     const [isExpanded, setIsExpanded] = useState(false);
-    
+    const [version, setVersion] = useState(null);
+    const [matchData, setMatchData] = useState(null); // Or the initial state from before
 
     useEffect(() => {
         const apiUrl = `https://walopvgapi-9c205847a91e.herokuapp.com/info/${gameName}/${tagLine}`;
@@ -284,6 +285,17 @@ function Profile() {
         }
     };
 
+    const fetchLatestVersion = async () => {
+        try {
+          const response = await axios.get('https://ddragon.leagueoflegends.com/api/versions.json');
+          const latestVersion = response.data[0]; // Extract the latest version
+          return latestVersion; // Return the latest version
+        } catch (error) {
+          console.error('Error fetching latest version:', error);
+          return null; // Or throw the error, or return a default value depending on your needs
+        }
+    };
+
     return (
         <div>
             <Header />
@@ -296,11 +308,13 @@ function Profile() {
                         <div className="container-icon-level-name-test">
                             <div className="container-icon-level">
                                     {data?.data?.summonerInfo?.profileIconId ? (
-                                        <img
-                                            className="icon-player"
-                                            src={`https://ddragon.leagueoflegends.com/cdn/15.4.1/img/profileicon/${data.data.summonerInfo.profileIconId}.png?${new Date().getTime()}`}
-                                            alt="Icône du joueur"
-                                        />
+                                        <div>
+                                            <img
+                                                className="icon-player"
+                                                src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/profileicon/${data.data.summonerInfo.profileIconId}.png?${new Date().getTime()}`}
+                                                alt="Icône du joueur"
+                                            />
+                                        </div>
                                     ) : (
                                         <Loader className="icon-player" />
                                     )}
@@ -410,8 +424,8 @@ function Profile() {
                                     
 
                                     {playerInfo && (
-                                        <div className="player-info-matchs flex">
-                                            <div className="match-info mt-1 text-[grey] mb-[10px] ml-[-190px]">
+                                        <div className="player-info-matchs flex min-w-[1400px] ml-[-60px]">
+                                            <div className="match-info mt-1 text-[grey] mb-[10px] min-w-[100px] max-w-[100px]">
                                                 <div className="game-mode flex">{gameModeDisplay}</div>
                                                 <div className="game-duration">{gameDurationFormatted}</div>
                                                 <span class="timeSince max-w-fit">{timeDifference}</span>
@@ -421,24 +435,24 @@ function Profile() {
                                                 <img src={roleIcon} alt="role-icon" className="player-role rounded bg-[black] border-[rgba(128, 128, 128,0.233)] border-[(128, 128, 128,0.233)_groove_1px] w-[40px] h-[40px]p-0.5 ml-5" />
                                             </div>
 
-                                            <div class="border-[2px] pr-0.5 py-[3px] rounded-sm border-[#2d2e31e8] ml-5 bg-[#161618e8] flex min-w-[155px]">
+                                            <div class="border-[2px] pr-0.5 py-[3px] rounded-sm border-[#2d2e31e8] ml-5 bg-[#161618e8] flex min-w-[185px] max-w-[185px]">
                                                 <div className="champ-icon-level-container">
                                                     <div class="w-fit ml-2.5">
                                                         <img className="match-champ-icon" src={getChampionIconUrl(playerInfo.championName)} alt={playerInfo.championName} />
-                                                        <div className="match-champion-level absolute text-1xl text-center mx-auto mt-[-23px] ml-[-12px] border-solid border-[#2d2e31e8] border-[2px] bg-[#161618e8] text-gray-400 rounded">
+                                                        <div className="match-champion-level absolute h-[28px] w-[28px] text-1xl text-center mx-auto mt-[-23px] ml-[-12px] border-solid border-[#2d2e31e8] border-[2px] bg-[#161618e8] text-gray-400 rounded">
                                                             {championLevel}
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div className="KDA ml-1.5">
-                                                    <span className="kills">{playerInfo.kills}</span> / <span className="deaths">{playerInfo.deaths}</span> / <span className="assists">{playerInfo.assists}</span>
-                                                    <div className="KDA-calculated" style={{ color: getKDAColor(playerInfo) }}>
-                                                        <span className="KDA-title">KDA </span>{((playerInfo.kills + playerInfo.assists) / Math.max(1, playerInfo.deaths)).toFixed(1)}
+                                                <div className="KDA ml-3.5 text-[18px]">
+                                                    <span className="kills text-[18px]">{playerInfo.kills}</span>  /  <span className="deaths text-[18px]">{playerInfo.deaths}</span>  /  <span className="assists text-[18px]">{playerInfo.assists}</span>
+                                                    <div className="KDA-calculated text-[18px]" style={{ color: getKDAColor(playerInfo) }}>
+                                                        <span className="KDA-title text-gray-600 text-[18px]">KDA </span>{((playerInfo.kills + playerInfo.assists) / Math.max(1, playerInfo.deaths)).toFixed(1)}
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            <div className="player-summoner-spells border-[2px] px-1.5 py-[3px] rounded-sm border-[#2d2e31e8] bg-[#161618e8] ml-5">
+                                            <div className="player-summoner-spells border-[2px] px-1.5 py-[3px] rounded-sm border-[#2d2e31e8] bg-[#161618e8] ml-15">
                                                 <div>
                                                     <img
                                                         className="match-spell-icon"
@@ -455,7 +469,7 @@ function Profile() {
                                                 </div>
                                             </div>
 
-                                            <div className="player-runes fitems-center border-[2px] px-1.5 py-[3px] rounded-sm border-[#2d2e31e8] ml-5 bg-[#161618e8]">
+                                            <div className="player-runes fitems-center border-[2px] px-1.5 py-[3px] rounded-sm border-[#2d2e31e8] ml-2 bg-[#161618e8]">
                                                 {playerInfo.perks.styles.map((style, styleIndex) => (
                                                     <div key={styleIndex} className="rune-style flex w-fit">
                                                         {style.selections.map((selection, selectionIndex) => {
@@ -472,7 +486,23 @@ function Profile() {
                                                     </div>
                                                 ))}
                                             </div>
-                                            <div className="match-items-container w-[140px] flex border-[2px] px-1.5 py-[3px] rounded-sm border-[#2d2e31e8] ml-5 bg-[#161618e8]">
+
+                                            <div className="stat-modifiers fitems-center border-[2px] px-1.5 py-[3px] rounded-sm border-[#2d2e31e8] ml-2 bg-[#161618e8]">
+                                                {Object.entries(playerInfo.perks.statPerks).map(([key, value]) => {
+                                                    const statPerkInfo = runesIcon.statPerks.find(s => s.id === String(value));
+                                                    return statPerkInfo ? (
+                                                        <img
+                                                            key={key}
+                                                            className="match-rune-icon h-[20px] w-[20px]"
+                                                            src={`/${statPerkInfo.icon}`}
+                                                            alt={statPerkInfo.name}
+                                                            title={statPerkInfo.name}
+                                                        />
+                                                    ) : null;
+                                                })}
+                                            </div>
+
+                                            <div className="match-items-container w-[140px] flex border-[2px] px-1.5 py-[3px] rounded-sm border-[#2d2e31e8] ml-2 bg-[#161618e8]">
                                                 <div>
                                                     {playerInfo.item0 ? <img className="match-item-icon w-[30px] h-[30px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${playerInfo.item0}.png`} alt={playerInfo.item0} /> : null}
                                                     {playerInfo.item1 ? <img className="match-item-icon w-[30px] h-[30px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${playerInfo.item1}.png`} alt={playerInfo.item1} /> : null}
@@ -488,7 +518,7 @@ function Profile() {
                                                 {playerInfo.item6 ? <img className="match-item-icon w-[30px] h-[30px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${playerInfo.item6}.png`} alt={playerInfo.item6} /> : null}
                                             </div>
 
-                                            <div className="player-stats-container justify-center ml-5 max-h-[70px] min-h-[70px] border-[2px] px-1.5 py-[3px] rounded-sm border-[#2d2e31e8] bg-[#161618e8]">
+                                            <div className="player-stats-container justify-center ml-15 max-h-[70px] min-h-[70px] border-[2px] px-1.5 py-[3px] rounded-sm border-[#2d2e31e8] bg-[#161618e8]">
                                                 <div className="player-farm">
                                                     <span className="farm-value text-[#999898] text-[17px]">{playerInfo.totalMinionsKilled + playerInfo.neutralMinionsKilled} CS</span><span class="text-[17px]"> / </span><span className="farm-value-per-minute italic text-[#999898] text-[17px]">{((playerInfo.totalMinionsKilled + playerInfo.neutralMinionsKilled) / (match.info.gameDuration / 60)).toFixed(1)}</span>
                                                     <span className="farm-title italic text-[#999898]"> CS/min</span>
@@ -501,6 +531,31 @@ function Profile() {
                                                     })()} KP
                                                 </div>
                                             </div>
+
+                                            <div className="combatStats">
+                                                {data?.data?.matchInfo?.map((match, matchIndex) => {
+                                                    console.log(`Match ${matchIndex}: Participants Length:`, match.info.participants.length); // Add this line
+                                                    return (
+                                                    <div key={`match-${matchIndex}`}>
+                                                        {match.info.participants.map((playerInfo, playerIndex) => {
+                                                        console.log("Player Info:", playerInfo);
+                                                        return (
+                                                            <div key={`player-${matchIndex}-${playerIndex}`}>
+                                                            <div className="damage-dealt">
+                                                                Damage Dealt: {playerInfo.totalDamageDealtToChampions !== undefined ? playerInfo.totalDamageDealtToChampions : "N/A"}
+                                                            </div>
+                                                            <div className="gold-earned">
+                                                                Gold Earned: {playerInfo.goldEarned !== undefined ? playerInfo.goldEarned : "N/A"}
+                                                            </div>
+                                                            </div>
+                                                        );
+                                                        })}
+                                                    </div>
+                                                    );
+                                                })}
+                                            </div>
+
+
                                             <div className="opposing-player-info flex items-center ml-[200px] border-[2px] px-1.5 py-[3px] rounded-sm border-[#2d2e31e8] bg-[#161618e8]">
                                                 <div className="VS">VS</div><img className="match-champ-icon" src={getChampionIconUrl(opposingLaneChampion)} alt={opposingLaneChampion} />
                                             </div>
@@ -512,7 +567,7 @@ function Profile() {
                                     <div key={match.info.gameId} className="match-item">
                                         {/* Button to toggle expansion */}
                                         <button
-                                            className="group absolute flex-col self-stretch -my-12 items-center justify-center py-8 lg:py-0 ml-134 mt-[-70px]"
+                                            className="group absolute flex-col self-stretch items-center justify-center ml-[670px] mt-[-78px] cursor-pointer px-1.5 py-[15px] rounded-sm hover:bg-[#ffffff1a]"
                                             type="button"
                                             aria-controls={`test-${match.info.gameId}`}
                                             aria-expanded={isExpanded}
@@ -540,8 +595,6 @@ function Profile() {
                                                 </g>
                                             </svg>
                                         </button>
-
-                                        
                                     </div>
                                     {/* Div that is toggled */}
                                         <div

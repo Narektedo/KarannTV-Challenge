@@ -28,7 +28,7 @@
         {
             "id": "8369",
             "name": "FirstStrike",
-            "icon": "perk-images/Styles/Inspiration/PrototypeOmnistone/PrototypeOmnistone.png"
+            "icon": "perk-images/Styles/Inspiration/FirstStrike/FirstStrike.png"
         },
         {
             "id": "8005",
@@ -138,12 +138,12 @@
         {
             "id": "8321",
             "name": "CashBack",
-            "icon": "perk-images/Styles/Inspiration/CashBack/CashBack.png"
+            "icon": "perk-images/Styles/Inspiration/CashBack/CashBack2.png"
         },
         {
             "id": "8313",
-            "name": "PerfectTiming",
-            "icon": "perk-images/Styles/Inspiration/PerfectTiming/PerfectTiming.png"
+            "name": "TripleTonic",
+            "icon": "perk-images/Styles/Inspiration/PerfectTiming/AlchemistCabinet.png"
         },
         {
             "id": "8352",
@@ -228,7 +228,7 @@
         {
             "id": "8401",
             "name": "ShieldBash",
-            "icon": "perk-images/Styles/Resolve/ShieldBash/ShieldBash.png"
+            "icon": "perk-images/Styles/Resolve/MirrorShell/MirrorShell.png"
         },
         {
             "id": "8429",
@@ -331,6 +331,43 @@
             "id": "8400",
             "name": "Resolve",
             "icon": "perk-images/Styles/Resolve/Resolve.png"
+        }
+    ],
+    "statPerks": [
+        {
+            "id": "5008",
+            "name": "Adaptive Force",
+            "icon": "perk-images/StatMods/StatModsAdaptiveForceIcon.png"
+        },
+        {
+            "id": "5005",
+            "name": "Attack Speed",
+            "icon": "perk-images/StatMods/StatModsAttackSpeedIcon.png"
+        },
+        {
+            "id": "5007",
+            "name": "Sorcery",
+            "icon": "perk-images/StatMods/StatModsCDRScalingIcon.png"
+        },
+        {
+            "id": "5010",
+            "name": "Move Speed",
+            "icon": "perk-images/StatMods/StatModsMovementSpeedIcon.png"
+        },
+        {
+            "id": "5001",
+            "name": "Health Scaling",
+            "icon": "perk-images/StatMods/StatModsHealthScalingIcon.png"
+        },
+        {
+            "id": "5011",
+            "name": "Health",
+            "icon": "perk-images/StatMods/StatModsHealthPlusIcon.png"
+        },
+        {
+            "id": "5013",
+            "name": "Tenacity and Slow Resist",
+            "icon": "perk-images/StatMods/StatModsTenacityIcon.png"
         }
     ]
 }

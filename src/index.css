@@ -214,16 +214,6 @@ a[href$=".html"]:hover{
   color: black;
 }
 
-.icon-player{
-  width: 130px;
-  height: 130px;
-  margin-left: auto;
-  margin-right: auto;
-  max-width: 1400px;
-  border-radius: 7%;
-  border: #b7bcda solid 3px;
-}
-
 .rank-icon {
   display: flex;
   flex-direction: column;
@@ -289,10 +279,6 @@ a[href$=".html"]:hover{
   border-collapse: collapse;
   margin-top: 20px;
   font-size: 20px; 
-}
-
-.profile-container{
-  max-width: fit-content;
 }
 
 .ladder-table th,
@@ -431,29 +417,6 @@ a[href$=".html"]:hover{
   margin-top: 20px;
 }
 
-.player-level{
-  font-size: 20px;
-  color: white;
-  text-align: center;
-  padding-top: 3px;
-  padding-bottom: 3px;
-  padding-left: 6px;
-  padding-right: 6px;
-  background-color: rgba(0, 0, 0, 0.733);
-  border-radius: .25rem;
-  border :rgb(0, 0, 0) solid 2px;
-}
-
-.player-container {
-margin-top: 150px;
-max-width: fit-content;
-margin-left: 43px;
-}
-
-.container-icon-level-name{
-  max-width: fit-content;
-}
-
 .tagLine {
   color : #9095ac;
   font-weight: bold;
@@ -467,20 +430,6 @@ margin-left: 43px;
   font-size: 19px;
   color: #b7bcda;
   text-align: center;
-}
-
-.rank-item-flex{
-  margin-top: 20px;
-  background-color: #1f2228e8;
-  padding-top: 3px;
-  padding-bottom: 3px;
-  padding-left: 6px;
-  padding-right: 6px;
-  border-radius: .25rem;
-  max-height: fit-content;
-  border: #b7bcda solid 3px;
-  margin-bottom: 100px;
-  width: 250px;
 }
 
 .player-info-matchs {

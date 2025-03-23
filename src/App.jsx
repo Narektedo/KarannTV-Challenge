@@ -8,6 +8,7 @@ import PageTest from "./pages/pagetest";
 import PageTestWollows from "./pages/pagetestwollows";
 import AccountPage from "./pages/AccountPage";
 import LadderPage from "./pages/LadderPage";
+import LiveGamePage from "./pages/LiveGamePage";
 
 export default function App() {
 	return (
@@ -19,6 +20,8 @@ export default function App() {
 		<Route path="/test2/:gameName/:tagLine" element={<PageTestWollows />} />
 		<Route path="/profiles/:gameName/:tagLine" element={<AccountPage />} />
 		<Route path="/ladder" element={<LadderPage />} />
+		<Route path="/live/:gameName/:tagLine" element={<LiveGamePage />} />
+
 			</Routes>
 		</BrowserRouter>
 	);

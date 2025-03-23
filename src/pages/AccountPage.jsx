@@ -9,6 +9,9 @@ import summonerIcon from '../summoner.json';
 import runesIcon from '../perk.json';
 import Arrow from '../components/Arrow.jsx';
 import { ProgressBar } from 'primereact/progressbar';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import axios from 'axios';
+
 
 // Fonction utilitaire pour récupérer le rang spécifique
 const getRankInfo = (rankData, queueType) => {
@@ -37,6 +40,58 @@ function Profile() {
     const [isExpanded, setIsExpanded] = useState(false);
     const [version, setVersion] = useState(null);
     const [matchData, setMatchData] = useState(null); // Or the initial state from before
+    const [isInGame, setIsInGame] = useState(false);
+    const [puuid, setPuuid] = useState(null);
+    const [loading, setLoading] = useState(true); // Added loading state
+    const navigate = useNavigate(); // Hook for navigation
+    const [gameInfo, setGameInfo] = useState(null);
+    const [teams, setTeams] = useState({ 100: [], 200: [] }); // Initialize team state
+
+    useEffect(() => {
+        const checkLiveGame = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                // 1. Fetch Player Info
+                const infoUrl = `https://walopvgapi-9c205847a91e.herokuapp.com/info/${gameName}/${tagLine}`;
+                const infoResponse = await axios.get(infoUrl);
+
+                if (!infoResponse.data.success) {
+                    throw new Error("Failed to fetch player info");
+                }
+                const fetchedPuuid = infoResponse.data.data.accountInfo.puuid;
+
+                // 2. Check Live Game Status
+                const spectatorUrl = `https://walopvgapi-9c205847a91e.herokuapp.com/spectator/${fetchedPuuid}`;
+                const spectatorResponse = await axios.get(spectatorUrl);
+
+                if (spectatorResponse.data.success && spectatorResponse.data.data.isInGame) {
+                    setIsInGame(true);
+                    setGameInfo(spectatorResponse.data.data.gameInfo);
+                    // Organize participants by team
+                    const participants = spectatorResponse.data.data.gameInfo.participants;
+                    const team100 = participants.filter(p => p.teamId === 100);
+                    const team200 = participants.filter(p => p.teamId === 200);
+                    setTeams({ 100: team100, 200: team200 });
+
+                } else {
+                    setIsInGame(false);
+                    setGameInfo(null);
+                    setTeams({ 100: [], 200: [] });
+                }
+            } catch (err) {
+                setError(err);
+                console.error("Error checking live game:", err);
+                setIsInGame(false);
+                setGameInfo(null);
+                setTeams({ 100: [], 200: [] });
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        checkLiveGame();
+    }, [gameName, tagLine]); // Run when gameName or tagLine changes
 
     useEffect(() => {
         const apiUrl = `https://walopvgapi-9c205847a91e.herokuapp.com/info/${gameName}/${tagLine}`;
@@ -50,6 +105,7 @@ function Profile() {
             })
             .then(responseData => {
                 setData(responseData);
+                setPuuid(responseData.data.accountInfo.puuid);
             })
             .catch(setError);
     }, [gameName, tagLine]);
@@ -75,6 +131,7 @@ function Profile() {
             })
             .catch(setMatchHistoryError);
     }, [gameName, tagLine]);
+
 
     const renderRankInfo = (rankInfo) => {
         if (rankInfo.tier === 'UNRANKED') {
@@ -259,6 +316,10 @@ function Profile() {
             [matchId]: !prevState[matchId], // Toggle the specific match's expanded state
         }));
     };
+
+    const toggleExpand2 = () => {
+        setIsExpanded(!isExpanded);
+    };
     
     const formatDate = (timestamp) => {
         const date = new Date(timestamp);
@@ -296,6 +357,15 @@ function Profile() {
         }
     };
 
+    const goToLiveGame = () => {
+        navigate(`/live/${gameName}/${tagLine}`);
+        
+    };
+
+    const buttonStyle = {
+        color: isInGame ? '#cccb54' : 'gray',
+    };
+
     return (
         <div>
             <Header />
@@ -330,12 +400,65 @@ function Profile() {
                         </div>
                     </div>
                 </div>
-                <div className="container-name">
-                                {data?.data?.accountInfo && (
-                            <div>
-                                <span className="gameName">{data.data.accountInfo.gameName}</span><span className="tagLine"> #{data.data.accountInfo.tagLine}</span>
-                            </div>
-                        )}
+                <div>
+                    <div className="container-name">
+                                    {data?.data?.accountInfo && (
+                                <div>
+                                    <span className="gameName">{data.data.accountInfo.gameName}</span><span className="tagLine"> #{data.data.accountInfo.tagLine}</span>
+                                </div>
+                            )}
+                    </div>
+
+                    <div>
+                        <div className="ml-[675px] mt-[140px] border-[2px] px-2.5 py-[3px] rounded-sm border-[#2d2e31e8] bg-[#161618e8] hover:bg-[#ffffff1a]">
+                            <button
+                                className="text-white text-2xl cursor-pointer"
+                                type="button"
+                                aria-controls="liveGameSearch"
+                                aria-expanded={isExpanded}
+                                data-state={isExpanded ? 'open' : 'closed'}
+                                style={buttonStyle}
+                                onClick={toggleExpand2}
+                                disabled={!isInGame} // Disable button if not in game
+                            >
+                                Live Game
+                            </button>
+                        </div>
+
+                        {isExpanded && isInGame && gameInfo && (
+                            
+                            <div
+                                className="mt-4 ml-[675px] bg-[#171617] text-white p-4 border rounded shadow-md absolute flex max-h-[150px] min-w-[1200px]"
+                                id="liveGameSearch"
+                                data-state={isExpanded ? 'open' : 'closed'}
+                            >
+                                <div>{gameInfo.gameMode}</div>
+                                    <div>
+                                        <ul>
+                                            {teams[100].map((participant) => (
+                                                <li key={participant.puuid} className="flex">
+                                                    {participant.riotId} - Champion: {participant.championId}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <ul>
+                                            {teams[200].map((participant) => (
+                                                <li key={participant.puuid} className="flex">
+                                                    {participant.riotId} - Champion: {participant.championId}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                </div>
+                            )}
+                            {isExpanded && !isInGame && (
+                                <div className="mt-4 ml-[675px] bg-white text-black p-4 border rounded shadow-md absolute">
+                                    <p>Player is not in game</p>
+                                </div>
+                            )}
+                    </div>
                 </div>
             </div>            
 

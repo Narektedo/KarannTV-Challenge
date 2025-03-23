@@ -271,12 +271,6 @@ a[href$=".html"]:hover{
   margin-bottom: 30px;
 }
 
-.player-info{
-  margin-left: 391px;
-  margin-right: auto;
-  max-width: 150px;
-  margin-top: 45px;
-}
 
 .ladder-container {
   display: flex;
@@ -437,12 +431,6 @@ a[href$=".html"]:hover{
   margin-top: 20px;
 }
 
-.rank-list {
-  max-width: fit-content;
-  margin-left: 370px;
-  margin-right: auto;
-}
-
 .player-level{
   font-size: 20px;
   color: white;
@@ -462,29 +450,8 @@ max-width: fit-content;
 margin-left: 43px;
 }
 
-.container-icon-level {
-  max-width: 150px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
 .container-icon-level-name{
   max-width: fit-content;
-}
-
-.container-name{
-  max-width: fit-content;
-  font-size: 29px;
-  margin-left: 590px;
-  margin-top: -178px;
-  display: flex;
-  color: #b7bcda;
-  border: #51535f8f outset 2px;
-  border-radius: .60rem;
-  padding-top: 3px;
-  padding-bottom: 3px;
-  padding-left: 6px;
-  padding-right: 6px;
 }
 
 .tagLine {
@@ -500,22 +467,6 @@ margin-left: 43px;
   font-size: 19px;
   color: #b7bcda;
   text-align: center;
-}
-
-.rank-item-solo {
-  color: white;
-  margin-top: 20px;
-  background-color: #1f2228e8;
-  padding-top: 3px;
-  padding-bottom: 3px;
-  padding-left: 6px;
-  padding-right: 6px;
-  border-radius: .25rem;
-  max-height: fit-content;
-  border: #b7bcda solid 3px;
-  margin-bottom: 20px;
-  width: 250px;
-
 }
 
 .rank-item-flex{
@@ -558,13 +509,6 @@ margin-left: 43px;
   align-items: center;
   margin-left: -64px;
   margin-top: 41px;
-}
-
-
-.match-spell-icon {
-  width: 30px;
-  height: 30px;
-  border-radius: .25rem;
 }
 
 .player-summoner-spells {

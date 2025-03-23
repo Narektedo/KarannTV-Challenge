@@ -441,7 +441,6 @@ a[href$=".html"]:hover{
   max-width: fit-content;
   margin-left: 370px;
   margin-right: auto;
-  margin-top: 200px;
 }
 
 .player-level{
@@ -531,14 +530,6 @@ margin-left: 43px;
   border: #b7bcda solid 3px;
   margin-bottom: 100px;
   width: 250px;
-}
-
-.match-history-container {
-  position: absolute;
-  color: white;
-  margin-left: 675px;
-  margin-top: -643px;
-  max-width: 1000px;
 }
 
 .player-info-matchs {

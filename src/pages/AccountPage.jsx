@@ -36,17 +36,23 @@ function Profile() {
     const [matchHistory, setMatchHistory] = useState(null);
     const [matchHistoryError, setMatchHistoryError] = useState(null);
     const [expandedMatches, setExpandedMatches] = useState({});
-    const [detailedMatches, setDetailedMatches] = useState(false); // State pour gérer l'état du bouton
+    const [detailedMatches, setDetailedMatches] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
     const [version, setVersion] = useState(null);
-    const [matchData, setMatchData] = useState(null); // Or the initial state from before
+    const [matchData, setMatchData] = useState(null); 
     const [isInGame, setIsInGame] = useState(false);
     const [puuid, setPuuid] = useState(null);
-    const [loading, setLoading] = useState(true); // Added loading state
-    const navigate = useNavigate(); // Hook for navigation
+    const [loading, setLoading] = useState(true); 
+    const navigate = useNavigate(); 
     const [gameInfo, setGameInfo] = useState(null);
-    const [teams, setTeams] = useState({ 100: [], 200: [] }); // Initialize team state
+    const [teams, setTeams] = useState({ 100: [], 200: [] });
+    const [championMap, setChampionMap] = useState({});
+    const [gameDuration, setGameDuration] = useState(gameInfo?.gameLength || 0);
+    const [summonerSpells, setSummonerSpells] = useState({});
+    const [runesMap, setRunesMap] = useState({});
+    const [runeStyles, setRuneStyles] = useState({});
 
+    //useEffect pour récup les infos sur l'API
     useEffect(() => {
         const checkLiveGame = async () => {
             setLoading(true);
@@ -93,6 +99,27 @@ function Profile() {
         checkLiveGame();
     }, [gameName, tagLine]); // Run when gameName or tagLine changes
 
+    // Chargement des données des sorts d'invocateur
+    useEffect(() => {
+        const loadSummonerSpells = async () => {
+        try {
+            const response = await fetch('https://ddragon.leagueoflegends.com/cdn/15.6.1/data/en_US/summoner.json');
+            const data = await response.json();
+            
+            const spellsMap = {};
+            Object.values(data.data).forEach(spell => {
+            spellsMap[spell.key] = spell.id;
+            });
+            
+            setSummonerSpells(spellsMap);
+        } catch (error) {
+            console.error('Erreur lors du chargement des sorts d\'invocateur:', error);
+        }
+        };
+        
+        loadSummonerSpells();
+    }, []);
+
     useEffect(() => {
         const apiUrl = `https://walopvgapi-9c205847a91e.herokuapp.com/info/${gameName}/${tagLine}`;
 
@@ -132,7 +159,92 @@ function Profile() {
             .catch(setMatchHistoryError);
     }, [gameName, tagLine]);
 
+    useEffect(() => {
+        // Fonction pour charger les données des champions
+        const loadChampionData = async () => {
+            try {
+                const response = await fetch('https://ddragon.leagueoflegends.com/cdn/15.6.1/data/en_US/champion.json');
+                const data = await response.json();
+                
+                // Création du mapping ID -> nom
+                const idToName = {};
+                Object.values(data.data).forEach(champion => {
+                    idToName[champion.key] = champion.id;
+                });
+                
+                setChampionMap(idToName);
+            } catch (error) {
+                console.error('Erreur lors du chargement des données de champion:', error);
+            }
+        };
+        
+        loadChampionData();
+    }, []);
 
+    useEffect(() => {
+        // Initialiser avec la durée actuelle
+        if (gameInfo) {
+          setGameDuration(gameInfo.gameLength);
+        }
+        
+        // Mettre à jour la durée toutes les secondes
+        const interval = setInterval(() => {
+          setGameDuration(prevDuration => prevDuration + 1);
+        }, 1000);
+        
+        // Nettoyer l'intervalle lorsque le composant est démonté
+        return () => clearInterval(interval);
+    }, [gameInfo]);
+
+    const getChampionNameById = (championId) => {
+        return championMap[championId] || "Unknown";
+    };
+
+    // Chargement des données des runes
+  useEffect(() => {
+    const loadRunesData = async () => {
+      try {
+        const response = await fetch('https://ddragon.leagueoflegends.com/cdn/15.6.1/data/en_US/runesReforged.json');
+        const runesData = await response.json();
+        
+        const runesIdMap = {};
+        const styleMap = {};
+        
+        // Mapper les runes principales et secondaires
+        runesData.forEach(runeCategory => {
+          // Ajouter la rune principale (style)
+          styleMap[runeCategory.id] = {
+            id: runeCategory.id,
+            key: runeCategory.key,
+            name: runeCategory.name,
+            icon: runeCategory.icon
+          };
+          
+          // Ajouter les slots de runes
+          runeCategory.slots.forEach(slot => {
+            slot.runes.forEach(rune => {
+              runesIdMap[rune.id] = {
+                id: rune.id,
+                key: rune.key,
+                name: rune.name,
+                icon: rune.icon,
+                styleId: runeCategory.id
+              };
+            });
+          });
+        });
+        
+        setRunesMap(runesIdMap);
+        setRuneStyles(styleMap);
+      } catch (error) {
+        console.error('Erreur lors du chargement des runes:', error);
+      }
+    };
+    
+    loadRunesData();
+  }, []);
+
+    //fonction pour obtenir le rank d'un joueur
     const renderRankInfo = (rankInfo) => {
         if (rankInfo.tier === 'UNRANKED') {
             return 'Unranked';
@@ -166,8 +278,8 @@ function Profile() {
         return playerInfo.win;
     };
 
-     // Fonction pour déterminer la classe CSS de l'élément match-item
-     const getMatchItemClass = (didPlayerWin, isDetailed) => {
+    // Fonction pour déterminer la classe CSS de l'élément match-item
+    const getMatchItemClass = (didPlayerWin, isDetailed) => {
         let baseClass = 'match-item w-[1500px] flex flex-col items-center mb-2.5 p-2.5';
 
         // Ajoute la classe pour la hauteur en fonction de l'état du bouton
@@ -190,8 +302,6 @@ function Profile() {
     
         return opposingPlayer ? opposingPlayer.championName : 'Unknown';
     };
-
-    //fonciton pour obtenir les champs de la team adverse
 
     // Fonvertir le rôle en icône
     const getRoleIconUrl = (bite) => {
@@ -218,15 +328,16 @@ function Profile() {
         return `${minutes}:${formattedSeconds}`;
     };
 
-    // Fonction pour obtenir la couleur
+    // Fonction pour obtenir les couleur pour le KDA et le KP
     const interpolateColor = (color1, color2, factor) => {
         const r = Math.round(color1[0] + factor * (color2[0] - color1[0]));
         const g = Math.round(color1[1] + factor * (color2[1] - color1[1]));
         const b = Math.round(color1[2] + factor * (color2[2] - color1[2]));
         return `rgb(${r}, ${g}, ${b})`;
-      };
+    };
       
-      const getKDAColor = (playerInfo) => {
+    //fonction pour la couleur du KDA
+    const getKDAColor = (playerInfo) => {
         const kda = (playerInfo.kills + playerInfo.assists) / Math.max(1, playerInfo.deaths);
         const colors = [
           [199, 104, 101],   // (KDA < 1)
@@ -240,9 +351,10 @@ function Profile() {
         if (kda <= 3) return interpolateColor(colors[1], colors[2], (kda - 1) / 2);
         if (kda <= 5) return interpolateColor(colors[2], colors[3], (kda - 3) / 2);
         return interpolateColor(colors[3], colors[4], Math.min((kda - 5) / 5, 1));
-      };
+    };
 
-      const getKPColor = (playerInfo, teamTotalKills) => {
+    //fonction pour la couleur du KP
+    const getKPColor = (playerInfo, teamTotalKills) => {
         const kp = (playerInfo.kills + playerInfo.assists) / teamTotalKills * 100;
         const colors = [
           [219, 88, 88],    // KP faible
@@ -264,12 +376,14 @@ function Profile() {
         return championLevel.champLevel;
     };
     
+    //calcul du nombre total de kill d'une team
     const getTeamTotalKills = (match, teamId) => {
         return match.info.participants
             .filter(p => p.teamId === teamId)
             .reduce((total, p) => total + p.kills, 0);
     };
 
+    //calcul du KP
     const calculateKP = (playerInfo, teamTotalKills) => {
         if (teamTotalKills === 0) return 0;
         return ((playerInfo.kills + playerInfo.assists) / teamTotalKills * 100).toFixed(0);
@@ -288,7 +402,7 @@ function Profile() {
     };
 
     
-
+    //j'ai aucune putain d'idée de ce que fait cette fonction et sah je veux pas y toucher elle est très bien la ou elle est
     document.addEventListener('DOMContentLoaded', function() {
         const button = document.querySelector('button[aria-controls="test1"]');
         const content = document.getElementById('test1');
@@ -317,20 +431,24 @@ function Profile() {
         }));
     };
 
+    // toggle le expanded2 pour le button du live search (si ça se trouve c'est completement inutile vu que y'a déja le expanded1)
     const toggleExpand2 = () => {
         setIsExpanded(!isExpanded);
     };
     
+    //fonction format pour la data
     const formatDate = (timestamp) => {
         const date = new Date(timestamp);
         return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' });
     };
 
+    //fonction pour get la date de création d'un game (irrelevant je crois car il y a le getTimeDifference mais je la laisse on sait jamais)
     const GameCreationComponent = ({ matchInfo }) => {
     if (!matchInfo || !matchInfo.info || !matchInfo.info.gameCreation) {
         return <div className="gameCreation">Date not available</div>;
     }};
 
+    //fonction pour savoir de quand date une game spécifique
     const getTimeDifference = (timestamp) => {
         const now = new Date();
         const creationDate = new Date(timestamp);
@@ -346,6 +464,7 @@ function Profile() {
         }
     };
 
+    // fonction pour fetch la derniere version de ddragon à utiliser
     const fetchLatestVersion = async () => {
         try {
           const response = await axios.get('https://ddragon.leagueoflegends.com/api/versions.json');
@@ -357,16 +476,45 @@ function Profile() {
         }
     };
 
-    const goToLiveGame = () => {
-        navigate(`/live/${gameName}/${tagLine}`);
-        
-    };
-
+    //fonction pour adapter le style du button live game search pour qu'il soit jaune/doré lorsque qu'un joueur est ingame
     const buttonStyle = {
         color: isInGame ? '#cccb54' : 'gray',
+        cursor: isInGame ? 'pointer' : '',
+        bg: isInGame ? '#ffffff1a' : '#161618e8',
     };
 
+    // Fonction pour formater la durée de la partie
+    const formatGameDurationLive = (seconds) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+    };
+
+    // Fonction pour obtenir les runes principales (les 4 premières runes)
+  const getPrimaryRunes = (perks) => {
+    if (!perks || !runeStyles[perks.perkStyle]) return [];
+    
+    // Les 4 premières runes appartiennent au style principal
+    return perks.perkIds.slice(0, 4).map(runeId => runesMap[runeId]);
+  };
+
+  // Fonction pour obtenir les runes secondaires (les 2 suivantes)
+  const getSecondaryRunes = (perks) => {
+    if (!perks || !runeStyles[perks.perkSubStyle]) return [];
+    
+    // Les runes 5 et 6 appartiennent au style secondaire
+    return perks.perkIds.slice(4, 6).map(runeId => runesMap[runeId]);
+  };
+
+  // Fonction pour obtenir le style de rune (principal ou secondaire)
+  const getRuneStyle = (perks, isSecondary = false) => {
+    if (!perks) return null;
+    
+    return runeStyles[isSecondary ? perks.perkSubStyle : perks.perkStyle];
+  };
+
     return (
+        
         <div>
             <Header />
             <div>
@@ -409,61 +557,233 @@ function Profile() {
                             )}
                     </div>
 
-                    <div>
-                        <div className="ml-[675px] mt-[140px] border-[2px] px-2.5 py-[3px] rounded-sm border-[#2d2e31e8] bg-[#161618e8] hover:bg-[#ffffff1a]">
+                    <div className={`container2 flex border-[2px] px-2.5 py-[3px] rounded-sm border-[#2d2e31e8] bg-[#161618e8] ml-[650px] mt-[140px] min-w-[1500px] max-w-[1500px] ${isExpanded ? 'min-h-[520px]' : 'min-h-[150px]'}`}>
+                        
+                        {/*Bouton pour ouvir le menu du live game search*/}
+                        <div className={`border-[2px] px-2.5 py-[3px] rounded-sm mt-2.5 border-[#2d2e31e8] w-fit h-fit ${isInGame} ? 'text-[#cccb54] animate-pulse' : 'text-gray' `}>
                             <button
-                                className="text-white text-2xl cursor-pointer"
+                                className="text-white text-2xl"
                                 type="button"
                                 aria-controls="liveGameSearch"
                                 aria-expanded={isExpanded}
                                 data-state={isExpanded ? 'open' : 'closed'}
                                 style={buttonStyle}
                                 onClick={toggleExpand2}
-                                disabled={!isInGame} // Disable button if not in game
+                                disabled={!isInGame}
                             >
                                 Live Game
                             </button>
                         </div>
 
+                        {/*Ce qui s'affichera si le joueur est ingame*/}
                         {isExpanded && isInGame && gameInfo && (
                             
                             <div
-                                className="mt-4 ml-[675px] bg-[#171617] text-white p-4 border rounded shadow-md absolute flex max-h-[150px] min-w-[1200px]"
+                                className="mt-25 bg-[#171617] text-white p-4 border rounded shadow-md absolute flex w-fit min-w-[1200px]"
                                 id="liveGameSearch"
                                 data-state={isExpanded ? 'open' : 'closed'}
                             >
-                                <div>{gameInfo.gameMode}</div>
-                                    <div>
-                                        <ul>
-                                            {teams[100].map((participant) => (
-                                                <li key={participant.puuid} className="flex">
-                                                    {participant.riotId} - Champion: {participant.championId}
-                                                </li>
-                                            ))}
-                                        </ul>
+                                    <div class="absolute">
+                                        {gameInfo.gameMode}
+                                        <span class="">
+                                            {   formatGameDurationLive(gameDuration)}
+                                        </span>
                                     </div>
-                                    <div>
-                                        <ul>
-                                            {teams[200].map((participant) => (
-                                                <li key={participant.puuid} className="flex">
-                                                    {participant.riotId} - Champion: {participant.championId}
-                                                </li>
-                                            ))}
-                                        </ul>
+
+                                    <div className="flex mt-8">
+                                        <div>
+                                            <ul>
+                                                {teams[100].map((participant) => (
+                                                    <li key={participant.puuid} className="flex items-center gap-3">
+                                                        <div class="flex items-center gap-3 border-[2px] px-1.5 py-[3px] rounded border-[#2d2e31e8] bg-[#161618e8] min-h-[70px]">
+                                                            {championMap[participant.championId] && (
+                                                                <img
+                                                                    className="h-[50px] w-[50px] rounded"
+                                                                    src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/champion/${championMap[participant.championId]}.png`}
+                                                                    alt={championMap[participant.championId]}
+                                                                />
+                                                            )}
+                                                            <div class="min-w-[200px] text-[16px] ">
+                                                                {participant.riotId}
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Summoner spells */}
+                                                        <div className="flex flex-col border-[2px] px-1.5 py-[3px] rounded border-[#2d2e31e8] bg-[#161618e8]">
+                                                            {summonerSpells[participant.spell1Id] && (
+                                                                <img
+                                                                    className="h-[30px] w-[30px] rounded"
+                                                                    src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/spell/${summonerSpells[participant.spell1Id]}.png`}
+                                                                    alt={summonerSpells[participant.spell1Id]}
+                                                                />
+                                                            )}
+                                                            {summonerSpells[participant.spell2Id] && (
+                                                                <img
+                                                                    className="h-[30px] w-[30px] rounded"
+                                                                    src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/spell/${summonerSpells[participant.spell2Id]}.png`}
+                                                                    alt={summonerSpells[participant.spell2Id]}
+                                                                />
+                                                            )}
+                                                        </div>
+
+                                                        {/* Runes (displayed below) */}
+                                                        <div className="flex flex-col border-[2px] px-1.5 py-[3px] rounded border-[#2d2e31e8] bg-[#161618e8]">
+                                                            {/* Primary Runes Row */}
+                                                            <div className="flex items-center">
+                                                                {/* Primary Runes */}
+                                                                {participant.perks && getPrimaryRunes(participant.perks).map((rune, index) => (
+                                                                <div 
+                                                                    key={`primary-${index}`} 
+                                                                    className={`h-[30px] w-[30px] rounded-full ${index === 0 ? '' : ''} mr-1 flex items-center justify-center`}
+                                                                    title={rune?.name}
+                                                                >
+                                                                    {rune && (
+                                                                    <img
+                                                                        className="h-[30px] w-[30px]"
+                                                                        src={`https://ddragon.leagueoflegends.com/cdn/img/${rune.icon}`}
+                                                                        alt={rune.name}
+                                                                    />
+                                                                    )}
+                                                                </div>
+                                                                ))}
+                                                            </div>
+                                                            
+                                                            {/* Secondary Runes Row */}
+                                                            <div className="flex items-center">
+                                                                {/* Secondary Runes */}
+                                                                {participant.perks && getSecondaryRunes(participant.perks).map((rune, index) => (
+                                                                <div 
+                                                                    key={`secondary-${index}`} 
+                                                                    className="h-[30px] w-[30px] mr-1 flex items-center justify-center"
+                                                                    title={rune?.name}
+                                                                >
+                                                                    {rune && (
+                                                                    <img
+                                                                        className="h-[30px] w-[30px]"
+                                                                        src={`https://ddragon.leagueoflegends.com/cdn/img/${rune.icon}`}
+                                                                        alt={rune.name}
+                                                                    />
+                                                                    )}
+                                                                </div>
+                                                                ))}
+                                                                
+                                                                {/* Stat Runes (just showing placeholders) */}
+                                                                {participant.perks && participant.perks.perkIds.slice(6).map((statRune, index) => (
+                                                                <div 
+                                                                    key={`stat-${index}`} 
+                                                                    className="h-[16px] w-[16px] mr-1"
+                                                                    title={`Stat Rune ${index + 1}`}
+                                                                />
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                        <div>
+                                            <ul>
+                                                {teams[200].map((participant) => (
+                                                    <li key={participant.puuid} className="flex items-center gap-3">
+                                                        <div class="flex items-center gap-3 border-[2px] px-1.5 py-[3px] rounded border-[#2d2e31e8] bg-[#161618e8] min-h-[70px]">
+                                                            {championMap[participant.championId] && (
+                                                                <img
+                                                                    className="h-[50px] w-[50px] rounded"
+                                                                    src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/champion/${championMap[participant.championId]}.png`}
+                                                                    alt={championMap[participant.championId]}
+                                                                />
+                                                            )}
+                                                            <div class="min-w-[200px] text-[16px] ">
+                                                                {participant.riotId}
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        {/* Summoner spells */}
+                                                        <div className="flex flex-col border-[2px] px-1.5 py-[3px] rounded border-[#2d2e31e8] bg-[#161618e8]">
+                                                            {summonerSpells[participant.spell1Id] && (
+                                                                <img
+                                                                    className="h-[30px] w-[30px] rounded"
+                                                                    src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/spell/${summonerSpells[participant.spell1Id]}.png`}
+                                                                    alt={summonerSpells[participant.spell1Id]}
+                                                                />
+                                                            )}
+                                                            {summonerSpells[participant.spell2Id] && (
+                                                                <img
+                                                                    className="h-[30px] w-[30px] rounded"
+                                                                    src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/spell/${summonerSpells[participant.spell2Id]}.png`}
+                                                                    alt={summonerSpells[participant.spell2Id]}
+                                                                />
+                                                            )}
+                                                        </div>
+
+                                                        {/* Runes (displayed below) */}
+                                                        <div className="flex flex-col border-[2px] px-1.5 py-[3px] rounded border-[#2d2e31e8] bg-[#161618e8]">
+                                                            {/* Primary Runes Row */}
+                                                            <div className="flex items-center">
+                                                                {/* Primary Runes */}
+                                                                {participant.perks && getPrimaryRunes(participant.perks).map((rune, index) => (
+                                                                <div 
+                                                                    key={`primary-${index}`} 
+                                                                    className={`h-[30px] w-[30px] rounded-full ${index === 0 ? '' : ''} mr-1 flex items-center justify-center`}
+                                                                    title={rune?.name}
+                                                                >
+                                                                    {rune && (
+                                                                    <img
+                                                                        className="h-[30px] w-[30px]"
+                                                                        src={`https://ddragon.leagueoflegends.com/cdn/img/${rune.icon}`}
+                                                                        alt={rune.name}
+                                                                    />
+                                                                    )}
+                                                                </div>
+                                                                ))}
+                                                            </div>
+                                                            
+                                                            {/* Secondary Runes Row */}
+                                                            <div className="flex items-center">
+                                                                {/* Secondary Runes */}
+                                                                {participant.perks && getSecondaryRunes(participant.perks).map((rune, index) => (
+                                                                <div 
+                                                                    key={`secondary-${index}`} 
+                                                                    className="h-[30px] w-[30px] mr-1 flex items-center justify-center"
+                                                                    title={rune?.name}
+                                                                >
+                                                                    {rune && (
+                                                                    <img
+                                                                        className="h-[30px] w-[30px]"
+                                                                        src={`https://ddragon.leagueoflegends.com/cdn/img/${rune.icon}`}
+                                                                        alt={rune.name}
+                                                                    />
+                                                                    )}
+                                                                </div>
+                                                                ))}
+                                                                
+                                                                {/* Stat Runes (just showing placeholders) */}
+                                                                {participant.perks && participant.perks.perkIds.slice(6).map((statRune, index) => (
+                                                                <div 
+                                                                    key={`stat-${index}`} 
+                                                                    className="h-[16px] w-[16px] mr-1"
+                                                                    title={`Stat Rune ${index + 1}`}
+                                                                />
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
                                     </div>
                                 </div>
                             )}
-                            {isExpanded && !isInGame && (
-                                <div className="mt-4 ml-[675px] bg-white text-black p-4 border rounded shadow-md absolute">
-                                    <p>Player is not in game</p>
-                                </div>
-                            )}
+                            {/*Résumé des champs les plus joué sur les 20 dernière games*/}
+                            <div class="text-white">
+                                TEST
+                            </div>
                     </div>
                 </div>
             </div>            
 
                 {data?.data?.rankInfo && (
-                    <div className="rank-list">
+                    <div className="rank-list mt-[20px] ">
                         {/* SoloQueue */}
                         {(() => {
                             const soloRank = getRankInfo(data.data.rankInfo, 'RANKED_SOLO_5x5');
@@ -513,7 +833,7 @@ function Profile() {
                 )}
             </div>
 
-                <div className="match-history-container">
+                <div className="match-history-container absolute text-[white] mt-[-680px] max-w-[1000px] ml-[650px]">
                     {matchHistoryError && <p style={{ color: "red" }}>{matchHistoryError.message}</p>}
                     {matchHistory === null ? (
                         <Loader />

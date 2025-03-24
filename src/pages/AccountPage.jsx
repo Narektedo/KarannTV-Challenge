@@ -51,53 +51,124 @@ function Profile() {
     const [summonerSpells, setSummonerSpells] = useState({});
     const [runesMap, setRunesMap] = useState({});
     const [runeStyles, setRuneStyles] = useState({});
+    const [canFetch, setCanFetch] = useState(true);
+    const [remainingCooldown, setRemainingCooldown] = useState(0);
+    const COOLDOWN_DURATION = 60 * 1000; // première valeur en ms donc x1000 pour avoir en sec
+    const STORAGE_KEY = 'apiLastFetchTime';
 
     //useEffect pour récup les infos sur l'API
     useEffect(() => {
-        const checkLiveGame = async () => {
-            setLoading(true);
-            setError(null);
-            try {
-                // 1. Fetch Player Info
-                const infoUrl = `https://walopvgapi-9c205847a91e.herokuapp.com/info/${gameName}/${tagLine}`;
-                const infoResponse = await axios.get(infoUrl);
-
-                if (!infoResponse.data.success) {
-                    throw new Error("Failed to fetch player info");
-                }
-                const fetchedPuuid = infoResponse.data.data.accountInfo.puuid;
-
-                // 2. Check Live Game Status
-                const spectatorUrl = `https://walopvgapi-9c205847a91e.herokuapp.com/spectator/${fetchedPuuid}`;
-                const spectatorResponse = await axios.get(spectatorUrl);
-
-                if (spectatorResponse.data.success && spectatorResponse.data.data.isInGame) {
-                    setIsInGame(true);
-                    setGameInfo(spectatorResponse.data.data.gameInfo);
-                    // Organize participants by team
-                    const participants = spectatorResponse.data.data.gameInfo.participants;
-                    const team100 = participants.filter(p => p.teamId === 100);
-                    const team200 = participants.filter(p => p.teamId === 200);
-                    setTeams({ 100: team100, 200: team200 });
-
+        // Vérification du délai lors du chargement du composant
+        const checkApiCooldown = () => {
+          const lastFetchTime = localStorage.getItem(STORAGE_KEY);
+          
+          if (lastFetchTime) {
+            const timeSinceLastFetch = Date.now() - parseInt(lastFetchTime);
+            
+            if (timeSinceLastFetch < COOLDOWN_DURATION) {
+              // Temps restant avant la prochaine requête
+              const remainingTime = COOLDOWN_DURATION - timeSinceLastFetch;
+              setCanFetch(false);
+              setRemainingCooldown(Math.ceil(remainingTime / 1000));
+    
+              // Mise en place du compte à rebours
+              const cooldownInterval = setInterval(() => {
+                const updatedRemainingTime = Math.ceil(
+                  (parseInt(localStorage.getItem(STORAGE_KEY) || '0') + COOLDOWN_DURATION - Date.now()) / 1000
+                );
+    
+                if (updatedRemainingTime <= 0) {
+                  clearInterval(cooldownInterval);
+                  setCanFetch(true);
+                  setRemainingCooldown(0);
                 } else {
-                    setIsInGame(false);
-                    setGameInfo(null);
-                    setTeams({ 100: [], 200: [] });
+                  setRemainingCooldown(updatedRemainingTime);
                 }
-            } catch (err) {
-                setError(err);
-                console.error("Error checking live game:", err);
-                setIsInGame(false);
-                setGameInfo(null);
-                setTeams({ 100: [], 200: [] });
-            } finally {
-                setLoading(false);
+              }, 1000);
+    
+              return () => clearInterval(cooldownInterval);
             }
+          }
+    
+          setCanFetch(true);
+          setRemainingCooldown(0);
         };
-
-        checkLiveGame();
-    }, [gameName, tagLine]); // Run when gameName or tagLine changes
+    
+        checkApiCooldown();
+      }, [gameName, tagLine]);
+    
+      useEffect(() => {
+        const fetchPlayerData = async () => {
+          // Vérification du délai avant de faire la requête
+          if (!canFetch) {
+            console.log('Requête API bloquée. Veuillez patienter.');
+            return;
+          }
+    
+          setLoading(true);
+          setError(null);
+    
+          try {
+            // Stockage du timestamp de la dernière requête
+            localStorage.setItem(STORAGE_KEY, Date.now().toString());
+            
+            // Reste de votre logique de requête API (identique à l'exemple précédent)
+            const infoUrl = `https://walopvgapi-9c205847a91e.herokuapp.com/info/${gameName}/${tagLine}`;
+            const infoResponse = await axios.get(infoUrl);
+            
+            if (!infoResponse.data.success) {
+              throw new Error("Failed to fetch player info");
+            }
+    
+            setData(infoResponse.data);
+            const fetchedPuuid = infoResponse.data.data.accountInfo.puuid;
+            setPuuid(fetchedPuuid);
+    
+            const spectatorUrl = `https://walopvgapi-9c205847a91e.herokuapp.com/spectator/${fetchedPuuid}`;
+            const spectatorResponse = await axios.get(spectatorUrl);
+            
+            if (spectatorResponse.data.success && spectatorResponse.data.data.isInGame) {
+              setIsInGame(true);
+              setGameInfo(spectatorResponse.data.data.gameInfo);
+              
+              const participants = spectatorResponse.data.data.gameInfo.participants;
+              const team100 = participants.filter(p => p.teamId === 100);
+              const team200 = participants.filter(p => p.teamId === 200);
+              setTeams({ 100: team100, 200: team200 });
+            } else {
+              setIsInGame(false);
+              setGameInfo(null);
+              setTeams({ 100: [], 200: [] });
+            }
+    
+            const matchHistoryApiUrl = `https://walopvgapi-9c205847a91e.herokuapp.com/matchs/${gameName}/${tagLine}`;
+            const matchHistoryResponse = await axios.get(matchHistoryApiUrl);
+            
+            if (matchHistoryResponse.data.success && 
+                Array.isArray(matchHistoryResponse.data.data.matchInfo)) {
+              setMatchHistory(matchHistoryResponse.data.data.matchInfo);
+            } else {
+              console.error("L'API n'a pas renvoyé un tableau :", matchHistoryResponse.data);
+              setMatchHistoryError(new Error("L'API n'a pas renvoyé un tableau d'historique de parties."));
+              setMatchHistory(null);
+            }
+    
+          } catch (err) {
+            setError(err);
+            console.error("Error checking live game:", err);
+            setIsInGame(false);
+            setGameInfo(null);
+            setTeams({ 100: [], 200: [] });
+            setMatchHistoryError(err);
+          } finally {
+            setLoading(false);
+          }
+        };
+    
+        if (gameName && tagLine) {
+          fetchPlayerData();
+        }
+      }, [gameName, tagLine, canFetch]);
 
     // Chargement des données des sorts d'invocateur
     useEffect(() => {
@@ -119,45 +190,6 @@ function Profile() {
         
         loadSummonerSpells();
     }, []);
-
-    useEffect(() => {
-        const apiUrl = `https://walopvgapi-9c205847a91e.herokuapp.com/info/${gameName}/${tagLine}`;
-
-        fetch(apiUrl)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error("Erreur lors de la récupération des données du joueur !");
-                }
-                return response.json();
-            })
-            .then(responseData => {
-                setData(responseData);
-                setPuuid(responseData.data.accountInfo.puuid);
-            })
-            .catch(setError);
-    }, [gameName, tagLine]);
-
-    useEffect(() => {
-        const matchHistoryApiUrl = `https://walopvgapi-9c205847a91e.herokuapp.com/matchs/${gameName}/${tagLine}`;
-
-        fetch(matchHistoryApiUrl)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error("Erreur lors de la récupération de l'historique des parties !");
-                }
-                return response.json();
-            })
-            .then(matchHistoryData => {
-                if (matchHistoryData.success && Array.isArray(matchHistoryData.data.matchInfo)) {
-                    setMatchHistory(matchHistoryData.data.matchInfo); // Accéder à data.matchInfo
-                } else {
-                    console.error("L'API n'a pas renvoyé un tableau :", matchHistoryData);
-                    setMatchHistoryError(new Error("L'API n'a pas renvoyé un tableau d'historique de parties."));
-                    setMatchHistory(null);
-                }
-            })
-            .catch(setMatchHistoryError);
-    }, [gameName, tagLine]);
 
     useEffect(() => {
         // Fonction pour charger les données des champions
@@ -1095,24 +1127,24 @@ function Profile() {
                                                     .map((player) => (
                                                         <li key={player.puuid}>
                                                             <div class="flex mt-1 mb-4">
-                                                                <div class="absolute border-solid border-[#2d2e31e8] border-[2px] bg-[#161618] mt-9 px-[1px] text-gray-400 rounded">
+                                                                <div class="absolute border-solid border-[#2d2e31e8] border-[2px] bg-[#161618] mt-[42px] px-[1px] text-gray-400 rounded">
                                                                     {player.champLevel}
                                                                 </div>
-                                                                <div class="flex max-w-[296px] border-[#2d2e31e8] border-solid border-[2px] px-1.5 py-[3px] rounded bg-[#161618e8]">
+                                                                <div class="flex w-[320px] border-[#2d2e31e8] border-solid border-[2px] px-1.5 py-[3px] rounded bg-[#161618e8]">
                                                                     <div class="min-w-40 flex my-auto">
                                                                         <img 
-                                                                            className="match-champ-icon-detailed h-[45px] w-[45px]" 
+                                                                            className="match-champ-icon-detailed h-[50px] w-[50px]" 
                                                                             src={getChampionIconUrl(player.championName)} 
                                                                             alt={player.championName} 
                                                                         />
-                                                                        <div class="mt-[15px] text-[16px] ml-2">
+                                                                        <div class="mt-[15px] text-[18px] ml-2">
                                                                             {player.summonerName || player.riotIdGameName} 
                                                                         </div>
                                                                     </div>
-                                                                    <div className="KDA text-[18px] my-auto min-w-[80px] max-w-[80px]">
-                                                                        <span className="kills text-[17px]">{player.kills}</span> / <span className="deaths text-[17px]">{player.deaths}</span> / <span className="assists text-[17px]">{player.assists}</span>
-                                                                        <div className="KDA-calculated text-[17px]" style={{ color: getKDAColor(player) }}>
-                                                                            <span className="KDA-title text-[17px]">KDA </span>{((player.kills + player.assists) / Math.max(1, player.deaths)).toFixed(1)}
+                                                                    <div className="KDA text-[18px] ml-[20%] my-auto min-w-[80px] max-w-[80px]">
+                                                                        <span className="kills text-[18px]">{player.kills}</span> / <span className="deaths text-[18px]">{player.deaths}</span> / <span className="assists text-[18px]">{player.assists}</span>
+                                                                        <div className="KDA-calculated text-[18px]" style={{ color: getKDAColor(player) }}>
+                                                                            <span className="KDA-title text-[18px]">KDA </span>{((player.kills + player.assists) / Math.max(1, player.deaths)).toFixed(1)}
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -1121,21 +1153,21 @@ function Profile() {
                                                                     <div className="player-summoner-spells ml-1 bg-[#161618e8]">
                                                                         <div>
                                                                             <img
-                                                                                className="match-spell-icon w-[25px] h-[25px] rounded"
+                                                                                className="match-spell-icon w-[30px] h-[30px] rounded"
                                                                                 src={getSummonerSpellIconUrl(player.summoner1Id)}
                                                                                 alt={player.summoner1Id}
                                                                             />
                                                                         </div>
                                                                         <div>
                                                                             <img
-                                                                                className="match-spell-icon w-[25px] h-[25px] rounded"
+                                                                                className="match-spell-icon w-[30px] h-[30px] rounded"
                                                                                 src={getSummonerSpellIconUrl(player.summoner2Id)}
                                                                                 alt={player.summoner2Id}
                                                                             />
                                                                         </div>
                                                                     </div>
 
-                                                                    <div className="player-runes fitems-center rounded ml-1 px-1.5 py-[3px] border-[#2d2e31e8] border-solid border-[2px] w-fit h-[63px] pr-1.5 bg-[#161618e8]">
+                                                                    <div className="player-runes fitems-center rounded ml-1 px-1.5 py-[3px] border-[#2d2e31e8] border-solid border-[2px] w-fit h-[70px] pr-1.5 bg-[#161618e8]">
                                                                         {player.perks.styles.map((style, styleIndex) => (
                                                                             <div key={styleIndex} className="rune-style flex w-fit">
                                                                                 {style.selections.map((selection, selectionIndex) => {
@@ -1143,7 +1175,7 @@ function Profile() {
                                                                                     return perk ? (
                                                                                         <img
                                                                                             key={selectionIndex}
-                                                                                            className="match-rune-icon h-[25px] w-[25px]"
+                                                                                            className="match-rune-icon h-[30px] w-[30px]"
                                                                                             src={`/${perk.icon}`} // Assurez-vous que ce chemin est correct
                                                                                             alt={perk.name}
                                                                                         />
@@ -1153,20 +1185,20 @@ function Profile() {
                                                                         ))}
                                                                     </div>
 
-                                                                    <div className="match-items-container min-w-[120px] h-[63px] flex border-[2px] px-1.5 py-[3px] rounded-sm border-[#2d2e31e8] ml-1 bg-[#161618e8]">
+                                                                    <div className="match-items-container min-w-[120px] h-[70px] flex border-[2px] px-1.5 py-[3px] rounded-sm border-[#2d2e31e8] ml-1 bg-[#161618e8]">
                                                                         <div>
-                                                                            {player.item0 ? <img className="match-item-icon w-[25px] h-[25px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${player.item0}.png`} alt={player.item0} /> : <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"/>}
-                                                                            {player.item1 ? <img className="match-item-icon w-[25px] h-[25px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${player.item1}.png`} alt={player.item1} /> : <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"/>}
+                                                                            {player.item0 ? <img className="match-item-icon w-[30px] h-[30px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${player.item0}.png`} alt={player.item0} /> : <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"/>}
+                                                                            {player.item1 ? <img className="match-item-icon w-[30px] h-[30px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${player.item1}.png`} alt={player.item1} /> : <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"/>}
                                                                         </div>
                                                                         <div>
-                                                                            {player.item2 ? <img className="match-item-icon w-[25px] h-[25px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${player.item2}.png`} alt={player.item2} /> : <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"/>}
-                                                                            {player.item3 ? <img className="match-item-icon w-[25px] h-[25px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${player.item3}.png`} alt={player.item3} /> : <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"/>}
+                                                                            {player.item2 ? <img className="match-item-icon w-[30px] h-[30px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${player.item2}.png`} alt={player.item2} /> : <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"/>}
+                                                                            {player.item3 ? <img className="match-item-icon w-[30px] h-[30px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${player.item3}.png`} alt={player.item3} /> : <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"/>}
                                                                         </div>
                                                                         <div>
-                                                                            {player.item4 ? <img className="match-item-icon w-[25px] h-[25px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${player.item4}.png`} alt={player.item4} /> : <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"/>}
-                                                                            {player.item5 ? <img className="match-item-icon w-[25px] h-[25px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${player.item5}.png`} alt={player.item5} /> : <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"/>}
+                                                                            {player.item4 ? <img className="match-item-icon w-[30px] h-[30px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${player.item4}.png`} alt={player.item4} /> : <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"/>}
+                                                                            {player.item5 ? <img className="match-item-icon w-[30px] h-[30px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${player.item5}.png`} alt={player.item5} /> : <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"/>}
                                                                         </div>
-                                                                            {player.item6 ? <img className="match-item-icon w-[25px] h-[25px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${player.item6}.png`} alt={player.item6} /> : <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"/>}
+                                                                            {player.item6 ? <img className="match-item-icon w-[30px] h-[30px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${player.item6}.png`} alt={player.item6} /> : <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"/>}
                                                                     </div>
                                                                 </div>
                                                                 <div className="player-stats-container min-w-[75px] max-w-[75px] rounded-sm ml-1 px-1.5 py-[3px] bg-[#161618e8] border-[#2d2e31e8] border-[2px]">
@@ -1205,21 +1237,21 @@ function Profile() {
                                                     .map((player) => (
                                                         <li key={player.puuid}>
                                                             <div class="flex mt-1 mb-4">
-                                                                <div class="absolute border-solid border-[#2d2e31e8] border-[2px] bg-[#161618] mt-9 px-[1px] text-gray-400 rounded">
+                                                                <div class="absolute border-solid border-[#2d2e31e8] border-[2px] bg-[#161618] mt-[42px] px-[1px] text-gray-400 rounded">
                                                                     {player.champLevel}
                                                                 </div>
-                                                                <div class="flex border-[#2d2e31e8] border-solid border-[2px] px-1.5 py-[3px] rounded bg-[#161618e8]">
+                                                                <div class="flex w-[320px] border-[#2d2e31e8] border-solid border-[2px] px-1.5 py-[3px] rounded bg-[#161618e8]">
                                                                     <div class="min-w-50 flex my-auto">
                                                                         <img 
-                                                                            className="match-champ-icon-detailed h-[45px] w-[45px]" 
+                                                                            className="match-champ-icon-detailed h-[50px] w-[50px]" 
                                                                             src={getChampionIconUrl(player.championName)} 
                                                                             alt={player.championName} 
                                                                         />
-                                                                        <div class="my-auto text-[16px] ml-2">
+                                                                        <div class="my-auto text-[18px] ml-2">
                                                                             {player.summonerName || player.riotIdGameName} 
                                                                         </div>
                                                                     </div>
-                                                                    <div className="KDA text-[18px] my-auto min-w-[80px] max-w-[80px]">
+                                                                    <div className="KDA text-[18px] ml-[8%] my-auto min-w-[80px] max-w-[80px]">
                                                                         <span className="kills text-[18px]">{player.kills}</span> / <span className="deaths text-[18px]">{player.deaths}</span> / <span className="assists text-[18px]">{player.assists}</span>
                                                                         <div className="KDA-calculated text-[18px]" style={{ color: getKDAColor(player) }}>
                                                                             <span className="KDA-title text-[18px]">KDA </span>{((player.kills + player.assists) / Math.max(1, player.deaths)).toFixed(1)}
@@ -1231,21 +1263,21 @@ function Profile() {
                                                                     <div className="player-summoner-spells ml-1 bg-[#161618e8]">
                                                                         <div>
                                                                             <img
-                                                                                className="match-spell-icon w-[25px] h-[25px] rounded"
+                                                                                className="match-spell-icon w-[30px] h-[30px] rounded"
                                                                                 src={getSummonerSpellIconUrl(player.summoner1Id)}
                                                                                 alt={player.summoner1Id}
                                                                             />
                                                                         </div>
                                                                         <div>
                                                                             <img
-                                                                                className="match-spell-icon w-[25px] h-[25px] rounded"
+                                                                                className="match-spell-icon w-[30px] h-[30px] rounded"
                                                                                 src={getSummonerSpellIconUrl(player.summoner2Id)}
                                                                                 alt={player.summoner2Id}
                                                                             />
                                                                         </div>
                                                                     </div>
 
-                                                                    <div className="player-runes fitems-center rounded ml-1 px-1.5 py-[3px] border-[#2d2e31e8] border-solid border-[2px] w-fit h-[63px] pr-1.5 bg-[#161618e8]">
+                                                                    <div className="player-runes fitems-center rounded ml-1 px-1.5 py-[3px] border-[#2d2e31e8] border-solid border-[2px] w-fit h-[70px] pr-1.5 bg-[#161618e8]">
                                                                         {player.perks.styles.map((style, styleIndex) => (
                                                                             <div key={styleIndex} className="rune-style flex w-fit">
                                                                                 {style.selections.map((selection, selectionIndex) => {
@@ -1253,7 +1285,7 @@ function Profile() {
                                                                                     return perk ? (
                                                                                         <img
                                                                                             key={selectionIndex}
-                                                                                            className="match-rune-icon h-[25px] w-[25px]"
+                                                                                            className="match-rune-icon h-[30px] w-[30px]"
                                                                                             src={`/${perk.icon}`} // Assurez-vous que ce chemin est correct
                                                                                             alt={perk.name}
                                                                                         />
@@ -1263,21 +1295,21 @@ function Profile() {
                                                                         ))}
                                                                     </div>
 
-                                                                    <div className="match-items-container min-w-[120px] h-[63px] flex border-[2px] px-1.5 py-[3px] rounded-sm border-[#2d2e31e8] ml-1 bg-[#161618e8]">
+                                                                    <div className="match-items-container min-w-[120px] h-[70px] flex border-[2px] px-1.5 py-[3px] rounded-sm border-[#2d2e31e8] ml-1 bg-[#161618e8]">
                                                                         <div>
-                                                                            {player.item0 ? <img className="match-item-icon w-[25px] h-[25px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${player.item0}.png`} alt={player.item0} /> : <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"/>}
-                                                                            {player.item1 ? <img className="match-item-icon w-[25px] h-[25px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${player.item1}.png`} alt={player.item1} /> : <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"/>}
+                                                                            {player.item0 ? <img className="match-item-icon w-[30px] h-[30px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${player.item0}.png`} alt={player.item0} /> : <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"/>}
+                                                                            {player.item1 ? <img className="match-item-icon w-[30px] h-[30px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${player.item1}.png`} alt={player.item1} /> : <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"/>}
                                                                         </div>
                                                                         <div>
-                                                                            {player.item2 ? <img className="match-item-icon w-[25px] h-[25px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${player.item2}.png`} alt={player.item2} /> : <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"/>}
-                                                                            {player.item3 ? <img className="match-item-icon w-[25px] h-[25px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${player.item3}.png`} alt={player.item3} /> : <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"/>}
+                                                                            {player.item2 ? <img className="match-item-icon w-[30px] h-[30px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${player.item2}.png`} alt={player.item2} /> : <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"/>}
+                                                                            {player.item3 ? <img className="match-item-icon w-[30px] h-[30px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${player.item3}.png`} alt={player.item3} /> : <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"/>}
                                                                         </div>
                                                                         <div>
-                                                                            {player.item4 ? <img className="match-item-icon w-[25px] h-[25px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${player.item4}.png`} alt={player.item4} /> : <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"/>}
-                                                                            {player.item5 ? <img className="match-item-icon w-[25px] h-[25px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${player.item5}.png`} alt={player.item5} /> : <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"/>}
+                                                                            {player.item4 ? <img className="match-item-icon w-[30px] h-[30px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${player.item4}.png`} alt={player.item4} /> : <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"/>}
+                                                                            {player.item5 ? <img className="match-item-icon w-[30px] h-[30px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${player.item5}.png`} alt={player.item5} /> : <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"/>}
                                                                         </div>
                                                                         <div>
-                                                                            {player.item6 ? <img className="match-item-icon w-[25px] h-[25px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${player.item6}.png`} alt={player.item6} /> : <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"/>}
+                                                                            {player.item6 ? <img className="match-item-icon w-[30px] h-[30px] rounded-lg" src={`http://ddragon.leagueoflegends.com/cdn/15.5.1/img/item/${player.item6}.png`} alt={player.item6} /> : <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"/>}
                                                                             
                                                                         </div>
                                                                     </div>

@@ -55,6 +55,12 @@ function Profile() {
     const [remainingCooldown, setRemainingCooldown] = useState(0);
     const COOLDOWN_DURATION = 60 * 1000; // première valeur en ms donc x1000 pour avoir en sec
     const STORAGE_KEY = 'apiLastFetchTime';
+    const participant = matchInfo.participants[0]; // Accédez au participant souhaité
+    const spellIcons = getSummonerSpellIconUrl(participant.summonerSpells);
+
+    console.log(spellIcons.spell1); // URL de l'icône du premier spell
+    console.log(spellIcons.spell2); // URL de l'icône du deuxième spell
+
 
     //useEffect pour récup les infos sur l'API
     useEffect(() => {
@@ -95,80 +101,138 @@ function Profile() {
         };
     
         checkApiCooldown();
-      }, [gameName, tagLine]);
+    }, [gameName, tagLine]);
     
-      useEffect(() => {
+    useEffect(() => {
         const fetchPlayerData = async () => {
-          // Vérification du délai avant de faire la requête
-          if (!canFetch) {
-            console.log('Requête API bloquée. Veuillez patienter.');
-            return;
-          }
-    
-          setLoading(true);
-          setError(null);
-    
-          try {
-            // Stockage du timestamp de la dernière requête
-            localStorage.setItem(STORAGE_KEY, Date.now().toString());
-            
-            // Reste de votre logique de requête API (identique à l'exemple précédent)
-            const infoUrl = `https://walopvgapi-9c205847a91e.herokuapp.com/info/${gameName}/${tagLine}`;
-            const infoResponse = await axios.get(infoUrl);
-            
-            if (!infoResponse.data.success) {
-              throw new Error("Failed to fetch player info");
+            // Vérification du délai avant de faire la requête
+            if (!canFetch) {
+                console.log('Requête API bloquée. Veuillez patienter.');
+                return;
             }
     
-            setData(infoResponse.data);
-            const fetchedPuuid = infoResponse.data.data.accountInfo.puuid;
-            setPuuid(fetchedPuuid);
+            setLoading(true);
+            setError(null);
     
-            const spectatorUrl = `https://walopvgapi-9c205847a91e.herokuapp.com/spectator/${fetchedPuuid}`;
-            const spectatorResponse = await axios.get(spectatorUrl);
-            
-            if (spectatorResponse.data.success && spectatorResponse.data.data.isInGame) {
-              setIsInGame(true);
-              setGameInfo(spectatorResponse.data.data.gameInfo);
-              
-              const participants = spectatorResponse.data.data.gameInfo.participants;
-              const team100 = participants.filter(p => p.teamId === 100);
-              const team200 = participants.filter(p => p.teamId === 200);
-              setTeams({ 100: team100, 200: team200 });
-            } else {
-              setIsInGame(false);
-              setGameInfo(null);
-              setTeams({ 100: [], 200: [] });
+            try {
+                // Nettoyage et validation des paramètres
+                const cleanGameName = gameName.trim();
+                const cleanTagLine = tagLine.trim();
+    
+                // Vérification des paramètres
+                if (!cleanGameName || !cleanTagLine) {
+                    throw new Error("Nom de joueur ou tag line manquant");
+                }
+    
+                // Log des paramètres pour vérification
+                console.log('Paramètres de requête:', { 
+                    cleanGameName, 
+                    cleanTagLine 
+                });
+    
+                // Stockage du timestamp de la dernière requête
+                localStorage.setItem(STORAGE_KEY, Date.now().toString());
+               
+                // Configuration des options Axios
+                const axiosConfig = {
+                    timeout: 10000, // Délai de 10 secondes
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                };
+    
+                // Requête pour les informations du joueur
+                const infoUrl = `https://walopvgapi-9c205847a91e.herokuapp.com/player/${encodeURIComponent(cleanGameName)}/${encodeURIComponent(cleanTagLine)}`;
+                console.log('URL de requête Info:', infoUrl);
+    
+                const infoResponse = await axios.get(infoUrl, axiosConfig);
+               
+                if (!infoResponse.data.success) {
+                    throw new Error("Échec de la récupération des informations du joueur");
+                }
+    
+                setData(infoResponse.data);
+                const fetchedPuuid = infoResponse.data.data.puuid;
+                setPuuid(fetchedPuuid);
+    
+                // Requête pour le spectateur
+                const spectatorUrl = `https://walopvgapi-9c205847a91e.herokuapp.com/spectator/${fetchedPuuid}`;
+                console.log('URL de requête Spectateur:', spectatorUrl);
+    
+                const spectatorResponse = await axios.get(spectatorUrl, axiosConfig);
+               
+                if (spectatorResponse.data.success && spectatorResponse.data.data.isInGame) {
+                    setIsInGame(true);
+                    setGameInfo(spectatorResponse.data.data.gameInfo);
+                 
+                    const participants = spectatorResponse.data.data.gameInfo.participants;
+                    const team100 = participants.filter(p => p.teamId === 100);
+                    const team200 = participants.filter(p => p.teamId === 200);
+                    setTeams({ 100: team100, 200: team200 });
+                } else {
+                    setIsInGame(false);
+                    setGameInfo(null);
+                    setTeams({ 100: [], 200: [] });
+                }
+    
+                // Requête pour l'historique des matchs
+                const matchHistoryApiUrl = `https://walopvgapi-9c205847a91e.herokuapp.com/matchs/${encodeURIComponent(cleanGameName)}/${encodeURIComponent(cleanTagLine)}`;
+                console.log('URL de requête Historique des matchs:', matchHistoryApiUrl);
+    
+                const matchHistoryResponse = await axios.get(matchHistoryApiUrl, axiosConfig);
+               
+                if (matchHistoryResponse.data.success && 
+                    Array.isArray(matchHistoryResponse.data.data.matchInfo)) {
+                    setMatchHistory(matchHistoryResponse.data.data.matchInfo);
+                } else {
+                    console.error("L'API n'a pas renvoyé un tableau :", matchHistoryResponse.data);
+                    setMatchHistoryError(new Error("L'API n'a pas renvoyé un tableau d'historique de parties."));
+                    setMatchHistory(null);
+                }
+    
+            } catch (err) {
+                // Gestion d'erreur détaillée
+                console.error("Erreur détaillée :", {
+                    message: err.message,
+                    response: err.response?.data,
+                    status: err.response?.status,
+                    url: err.config?.url
+                });
+    
+                if (err.response) {
+                    // La requête a été faite et le serveur a répondu avec un code d'état
+                    switch(err.response.status) {
+                        case 404:
+                            setMatchHistoryError(new Error("Joueur ou ressource non trouvé"));
+                            break;
+                        case 500:
+                            setMatchHistoryError(new Error("Erreur interne du serveur"));
+                            break;
+                        default:
+                            setMatchHistoryError(new Error("Une erreur est survenue lors de la récupération des données"));
+                    }
+                } else if (err.request) {
+                    // La requête a été faite mais pas de réponse
+                    setMatchHistoryError(new Error("Aucune réponse reçue du serveur"));
+                } else {
+                    // Quelque chose s'est passé lors de la préparation de la requête
+                    setMatchHistoryError(new Error("Erreur de configuration de la requête"));
+                }
+    
+                setError(err);
+                console.error("Erreur lors de la vérification du jeu en direct:", err);
+                setIsInGame(false);
+                setGameInfo(null);
+                setTeams({ 100: [], 200: [] });
+            } finally {
+                setLoading(false);
             }
-    
-            const matchHistoryApiUrl = `https://walopvgapi-9c205847a91e.herokuapp.com/matchs/${gameName}/${tagLine}`;
-            const matchHistoryResponse = await axios.get(matchHistoryApiUrl);
-            
-            if (matchHistoryResponse.data.success && 
-                Array.isArray(matchHistoryResponse.data.data.matchInfo)) {
-              setMatchHistory(matchHistoryResponse.data.data.matchInfo);
-            } else {
-              console.error("L'API n'a pas renvoyé un tableau :", matchHistoryResponse.data);
-              setMatchHistoryError(new Error("L'API n'a pas renvoyé un tableau d'historique de parties."));
-              setMatchHistory(null);
-            }
-    
-          } catch (err) {
-            setError(err);
-            console.error("Error checking live game:", err);
-            setIsInGame(false);
-            setGameInfo(null);
-            setTeams({ 100: [], 200: [] });
-            setMatchHistoryError(err);
-          } finally {
-            setLoading(false);
-          }
         };
     
         if (gameName && tagLine) {
-          fetchPlayerData();
+            fetchPlayerData();
         }
-      }, [gameName, tagLine, canFetch]);
+    }, [gameName, tagLine, canFetch]);
 
     // Chargement des données des sorts d'invocateur
     useEffect(() => {
@@ -295,12 +359,21 @@ function Profile() {
     };
 
     // Fonction pour obtenir les informations du joueur actuel dans un match
-    const getPlayerInfo = (match, puuid) => {
-        const player = match.info.participants.find(p => p.puuid === puuid);
+    const getPlayerInfo = (matchData, puuid) => {
+        // Vérifier que matchData.data et matchData.data.matchInfo existent
+        if (!matchData || !matchData.data || !matchData.data.matchInfo) {
+            console.error('Structure de données incorrecte');
+            return null;
+        }
+    
+        // Rechercher dans le premier élément de matchInfo (supposant un seul match)
+        const match = matchData.data.matchInfo[0];
+        
+        const player = match.participants.find(p => p.puuid === puuid);
         return player || null;
     };
-
-     // Fonction pour déterminer si le joueur a gagné la partie
+    
+    // Fonction pour déterminer si le joueur a gagné la partie
     const didPlayerWin = (match, puuid) => {
         const playerInfo = getPlayerInfo(match, data?.data?.accountInfo?.puuid);
 
@@ -342,10 +415,30 @@ function Profile() {
     };
     
     // Summoner Icon
-    const getSummonerSpellIconUrl = (summonerId) => {
-        const spell = Object.values(summonerIcon.data).find(spell => spell.summonerId === summonerId.toString());
-        return spell ? `https://ddragon.leagueoflegends.com/cdn/15.5.1/img/spell/${spell.id}.png` : null;
+    const getSummonerSpellIconUrl = (spells) => {
+        const spellMapping = {
+            '1': 'SummonerBoost',      // Cleanse
+            '3': 'SummonerExhaust',    // Exhaust
+            '4': 'SummonerFlash',      // Flash
+            '6': 'SummonerHaste',      // Ghost
+            '7': 'SummonerHeal',       // Heal
+            '11': 'SummonerSmite',     // Smite
+            '12': 'SummonerTeleport',  // Teleport
+        };
+    
+        const getSpellIcon = (spellId) => {
+            const spellKey = spellMapping[spellId.toString()];
+            return spellKey 
+                ? `https://ddragon.leagueoflegends.com/cdn/15.5.1/img/spell/${spellKey}.png` 
+                : null;
+        };
+    
+        return {
+            spell1: getSpellIcon(spells.spell1),
+            spell2: getSpellIcon(spells.spell2)
+        };
     };
+    
 
     // Fonction pour obtenir l'icône du champion
     const getChampionIconUrl = (championName) => {
@@ -899,28 +992,35 @@ function Profile() {
                     
                 </div>
                     <div className="match-history-container absolute text-[white] left-1/2 transform -translate-x-1/2">
-                        {matchHistoryError && <p style={{ color: "red" }}>{matchHistoryError.message}</p>}
-                        {matchHistory === null ? (
-                            <Loader />
-                        ) : matchHistory.length > 0 ? (
-                            matchHistory.map(match => {
-                                const playerInfo = getPlayerInfo(match, data?.data?.accountInfo?.puuid);
-                                const didPlayerWin = playerInfo.win;
-                                const matchItemClass = getMatchItemClass(didPlayerWin, detailedMatches);
-                                    const toggleDetailedMatches = () => {
-                                    setDetailedMatches(!detailedMatches);
-                                };
-                                const opposingLaneChampion = getOpposingLaneChampion(match, playerInfo?.teamPosition);
-                                const gameModeDisplay = match.info.gameMode === "CLASSIC" ? "Solo/Duo" : match.info.gameMode;
-                                const gameDurationFormatted = formatGameDuration(match.info.gameDuration);
-                                const championLevel = getChampionLevel(playerInfo);
-                                const isExpanded = expandedMatches[match.info.gameId] || false;
-                                const showTooltip = () => {
-                                    {gameDurationFormatted}
-                                };
-                                const roleIcon = getRoleIconUrl(playerInfo?.teamPosition);
-                                const timeDifference = getTimeDifference(match.info.gameCreation);
-                                return (
+                    {matchHistoryError && <p style={{ color: "red" }}>{matchHistoryError.message}</p>}
+                    {matchHistory === null ? (
+                        <Loader />
+                    ) : matchHistory.length > 0 ? (
+                        matchHistory.map(match => {
+                            // Utiliser la nouvelle structure de match
+                            const playerInfo = match.participants.find(
+                                p => p.puuid === data?.data?.accountInfo?.puuid
+                            );
+                            
+                            // Vérification si playerInfo est null
+                            if (!playerInfo) {
+                                console.warn('Impossible de trouver les informations du joueur pour ce match');
+                                return null; // Ne pas rendre ce match
+                            }
+
+                            const didPlayerWin = playerInfo.win;
+                            const matchItemClass = getMatchItemClass(didPlayerWin, detailedMatches);
+                            const toggleDetailedMatches = () => {
+                                setDetailedMatches(!detailedMatches);
+                            };
+                            const gameModeDisplay = match.gameMode === "CLASSIC" ? "Solo/Duo" : match.gameMode;
+                            const gameDurationFormatted = formatGameDuration(match.gameDuration);
+                            const championLevel = playerInfo.championLevel;
+                            const isExpanded = expandedMatches[match.matchId] || false;
+                            const roleIcon = getRoleIconUrl(playerInfo.teamPosition);
+                            const timeDifference = getTimeDifference(match.gameCreation);
+                            
+                            return (
                                 
                                     <div
                                         key={match.metadata.matchId}

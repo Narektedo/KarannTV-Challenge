@@ -179,9 +179,6 @@ const SummonerSpellsPage = () => {
       // Réinitialiser les états de matchs développés
       setExpandedMatches({});
       
-      // Afficher un message de succès (optionnel)
-      alert("Données actualisées avec succès !");
-      
       setError(null);
     } catch (err) {
       console.error("Erreur lors de l'actualisation des données:", err);
@@ -1623,7 +1620,7 @@ const LiveGameSection = ({ spectatorData, isLoading, darkMode }) => {
           {/* Section 1: Informations du joueur */}
           <div className={`w-full mb-8 p-4 rounded-lg shadow-md ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
           {isRefreshing && (
-          <div className={`absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center rounded-lg z-10`}>
+          <div className={`fixed inset-0 bg-[#00000075] bg-opacity-10 flex items-center justify-center rounded-lg z-10`}>
             <div className="flex flex-col items-center bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
               <svg 
                 className="animate-spin h-8 w-8 mb-2 text-blue-500" 

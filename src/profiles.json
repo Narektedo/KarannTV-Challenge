@@ -24,8 +24,6 @@
                 "tagLine": "HEX"
             },
             {
-                "username": "PVG",
-                "link": "https://www.op.gg/summoners/euw/PVG-EUW",
                 "gameName": "PVG",
                 "tagLine": "EUW"
             }
@@ -37,20 +35,14 @@
         "image": "/images/giapingou.jpg",
         "nicknames" : [
             {
-                "username": "Gia",
-                "link": "https://www.op.gg/summoners/euw/gia-EUW",
                 "gameName": "Gia",
                 "tagLine": "15886"
             },
             {
-                "username": "Giasus",
-                "link": "https://www.op.gg/summoners/euw/giasus-EUW",
                 "gameName": "Giasus",
                 "tagLine": "EUW"
             },
             {
-                "username": "giacom",
-                "link": "https://www.op.gg/summoners/euw/giacom-EUW",
                 "gameName": "giacom",
                 "tagLine": "EUW"
             }
@@ -62,14 +54,10 @@
         "image" : "/images/karann_ak.jpg",
         "nicknames" : [
             {
-                "username": "K4RANN",
-                "link": "https://www.op.gg/summoners/euw/K4RANN-EUW",
                 "gameName": "K4rann",
                 "tagLine": "EUW"
             },
             {
-                "username": "PROPHETKARANN",
-                "link": "https://www.op.gg/summoners/euw/PROPHETKARANN-EUW",
                 "gameName": "PROPHETKARANN",
                 "tagLine": "EUW"
             }
@@ -81,8 +69,6 @@
         "image" : "/images/xemon.png",
         "nicknames" : [
             {
-                "username": "Xëmon",
-                "link": "https://www.op.gg/summoners/euw/X%C3%ABmon-gojo",
                 "gameName": "Xëmon",
                 "tagLine": "gojo"
             }
@@ -94,8 +80,6 @@
         "image" : "/images/zechnaze.png",
         "nicknames" : [
             {
-                "username": "KC Houdi",
-                "link": "https://www.op.gg/summoners/euw/KC%20Houdi-EUW",
                 "gameName": "KC Houdi",
                 "tagLine": "EUW"
             }
@@ -107,14 +91,10 @@
         "image" : "/images/kabyle.png",
         "nicknames" : [
             {
-                "username": "Pazid",
-                "link": "https://www.op.gg/summoners/euw/Pazid-EUW",
                 "gameName": "Pazid",
                 "tagLine": "EUW"
             },
             {
-                "username": "Kenpachi ZK",
-                "link": "https://www.op.gg/summoners/euw/Kenpachi%20ZK-EUW",
                 "gameName": "Kenpachi ZK",
                 "tagLine": "EUW"
             }
@@ -127,8 +107,6 @@
         "image" : "/images/lea.png",
         "nicknames" : [
             {
-                "username": "Leeeeea",
-                "link": "https://www.op.gg/summoners/euw/leeeeea-EUW",
                 "gameName": "Leeeeea",
                 "tagLine": "EUW"
             }
@@ -140,14 +118,10 @@
         "image" : "/images/latman.png",
         "nicknames" : [
             {
-                "username": "LathIbnFreeza",
-                "link": "https://www.op.gg/summoners/euw/LathIbnFreeza-Namek",
                 "gameName": "LathIbnFreeza",
                 "tagLine": "Namek"
             },
             {
-                "username": "Echec 24h sur 24",
-                "link": "https://www.op.gg/summoners/euw/Echec%2024h%20sur%2024-echec",
                 "gameName": "Echec 24h sur 24h",
                 "tagLine": "echec"
             }
@@ -159,8 +133,6 @@
         "image" : "/images/shika.png",
         "nicknames" : [
             {
-                "username": "Shika",
-                "link": "https://www.op.gg/summoners/euw/shika-EUW10",
                 "gameName": "Shika",
                 "tagLine": "EUW10"
             }
@@ -172,14 +144,10 @@
         "image" : "/images/adri.png",
         "nicknames" : [
             {
-                "username": "Adrianjz",
-                "link": "https://www.op.gg/summoners/euw/Adrianjz-EUW",
                 "gameName": "Adrianjz",
                 "tagLine": "EUW"
             },
             {
-                "username": "Adri0212",
-                "link": "https://www.op.gg/summoners/euw/adri0212-EUW",
                 "gameName": "Adri0212",
                 "tagLine": "EUW"
             }
@@ -191,8 +159,6 @@
         "image" : "/images/amine.png",
         "nicknames" : [
             {
-                "username": "amine",
-                "link": "https://www.op.gg/summoners/euw/amine-flex",
                 "gameName": "amine",
                 "tagLine": "flex"
             }

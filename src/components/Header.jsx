@@ -21,25 +21,7 @@ export default function Header() {
 
         {/* Navigation - Desktop */}
         <nav className="hidden md:flex items-center space-x-6">
-          {/* Lien vers la page d'accueil */}
-          <a 
-            href="/" 
-            className="text-gray-300 hover:text-white transition-colors font-medium"
-          >
-            Accueil
-          </a>
-          
-          {/* Liens vers les différents types de ladder */}
-          {Ladder.map((ladder, i) => (
-            <a 
-              key={i} 
-              href="/ladder" 
-              className="text-gray-300 hover:text-white transition-colors font-medium"
-            >
-              {ladder.ladder_type}
-            </a>
-          ))}
-          
+
           {/* Bouton avec effet spécial pour le ladder principal */}
           <a 
             href="/ladder" 

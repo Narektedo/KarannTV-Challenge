@@ -45,7 +45,7 @@ const LeagueLadder = () => {
       const response = await axios.get(`${API_BASE_URL}/spectator/${puuid}`);
       return response.data.success && response.data.data.isInGame;
     } catch (err) {
-      console.error(`Erreur lors de la vérification du statut de partie pour ${puuid}:`, err);
+      console.error(`Error live game search for : ${puuid}:`, err);
       return false;
     }
   };
@@ -124,7 +124,7 @@ const LeagueLadder = () => {
   const refreshLadderData = async () => {
     setIsRefreshing(true);
     setError(null);
-    setRefreshStatus("Rafraîchissement des données en cours...");
+    setRefreshStatus("Loading...");
     
     try {
       const response = await axios.post(`${API_BASE_URL}/refresh-ladder-data`);
@@ -191,11 +191,12 @@ const LeagueLadder = () => {
   
   // Rendu du composant
   return (
+    <>
+    <Header />
     <div className="w-full py-8 bg-gray-900 text-gray-100 min-h-screen">
-        <Header />
       {/* En-tête et contrôles (largeur limitée au centre) */}
-      <div className="max-w-3xl mx-auto px-4 mb-8">
-        <a className="text-3xl font-bold text-center items-center mb-6 text-blue-300">League of Legends Ladder</a>
+      <div className="max-w-1/2 mx-auto px-4 mb-8">
+        <a className="text-3xl flex font-bold text-center items-center mb-6 text-blue-300">Ladder League of Legends</a>
         
         {/* Onglets pour sélectionner le type de queue */}
         <div className="flex justify-center mb-6">
@@ -220,7 +221,7 @@ const LeagueLadder = () => {
           <div className="text-sm text-gray-400">
             {lastRefresh && (
               <span>
-                Dernière mise à jour: {lastRefresh.toLocaleString()}
+                Last Update: {lastRefresh.toLocaleString()}
               </span>
             )}
           </div>
@@ -230,7 +231,7 @@ const LeagueLadder = () => {
               onClick={refreshLadderData}
               disabled={isLoading || isRefreshing}
             >
-              {isRefreshing ? 'Rafraîchissement...' : 'Actualiser les données'}
+              {isRefreshing ? 'Loading...' : 'Refresh'}
             </button>
           </div>
         </div>
@@ -306,7 +307,7 @@ const LeagueLadder = () => {
                             #{player.tagLine || "???"}
                             {/* Indicateur texte en partie (conserve toujours la même hauteur) */}
                             <span className={`ml-2 text-xs font-semibold ${playersInGame[player.puuid] ? "text-green-400" : "text-transparent"}`}>
-                              En partie
+                              In-Game
                             </span>
                           </div>
                         </div>
@@ -338,8 +339,8 @@ const LeagueLadder = () => {
                       <div className="text-center">
                         <div className={`font-medium ${winrateColorClass}`}>{winrate}%</div>
                         <div className="text-sm text-gray-400">
-                          {player.wins}V {player.losses}D
-                          <span className="text-xs ml-1">({player.wins + player.losses} parties)</span>
+                          {player.wins}V - {player.losses}D
+                          <span className="text-xs ml-1">({player.wins + player.losses} Games)</span>
                         </div>
                       </div>
                     </td>
@@ -352,6 +353,7 @@ const LeagueLadder = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

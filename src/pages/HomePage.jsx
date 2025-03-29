@@ -17,10 +17,7 @@ export default function ProfilesPage() {
       <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         {/* En-tête de section */}
         <div className="text-center mb-12">
-          <a className="text-3xl font-bold text-blue-300 mb-4">Profils des Joueurs</a>
-          <p className="max-w-2xl mx-auto text-gray-400">
-            Profils des joueurs League Of Legends du server discord
-          </p>
+          <a className="text-3xl font-bold text-blue-300 mb-4">Liste des Profils</a>
           
           {/* Barre de recherche */}
           <div className="mt-6 max-w-md mx-auto">
@@ -76,13 +73,7 @@ export default function ProfilesPage() {
         {/* Message si aucun résultat */}
         {filteredProfiles.length === 0 && (
           <div className="text-center py-12">
-            <div className="text-gray-500 text-lg mb-4">Aucun joueur ne correspond à votre recherche</div>
-            <button 
-              onClick={() => setSearchTerm("")}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-300 bg-blue-900 hover:bg-blue-800"
-            >
-              Réinitialiser la recherche
-            </button>
+            <div className="text-gray-500 text-lg mb-4">Joueur non enregistré dans le ladder.</div>
           </div>
         )}
       </main>
@@ -91,7 +82,7 @@ export default function ProfilesPage() {
       <footer className="bg-gray-800 border-t border-gray-700 py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center text-gray-400 text-sm">
-            © 2025 Tracker KTV - Tous droits réservés XD ptdrrrrrrrrrrrr
+            © 2025 WPVG - Tous droits réservés XD ptdrrrrrrrrrrrr
           </div>
         </div>
       </footer>

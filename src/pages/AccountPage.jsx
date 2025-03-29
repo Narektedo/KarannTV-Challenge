@@ -264,7 +264,7 @@ const CircularWinrateChart = ({ wins, losses, size = 80, strokeWidth = 8, darkMo
   const winsPercentage = wins / totalGames;
   
   return (
-    <div className="flex flex-col items-center justify-center mt-3">
+    <div className="flex flex-col items-center justify-center mt-3 mr-5">
       <div className="relative" style={{ width: size, height: size }}>
         {/* Cercle pour les défaites (rouge) - cercle complet */}
         <svg className="w-full h-full" viewBox={`0 0 ${size} ${size}`}>
@@ -310,8 +310,8 @@ const CircularWinrateChart = ({ wins, losses, size = 80, strokeWidth = 8, darkMo
 const renderRankInfo = (queueType, rankData) => {
   if (!rankData) return (
     <div className={`flex flex-col items-center p-3 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
-      <div className="text-sm font-medium mb-1">{queueType}</div>
-      <div className="text-xs">Non classé</div>
+      <div className="text-[24px] font-medium mb-1">{queueType}</div>
+      <div className="text-[24px] ">Non classé</div>
     </div>
   );
   
@@ -595,36 +595,53 @@ const renderMatchSummary = (match, matchIndex) => {
           
           {/* KDA + CS */}
           <div className="w-50 flex flex-col">
-            <div className={`p-2 h-[84px] rounded-md ${darkMode ? 'bg-gray-800' : 'bg-gray-200'}`}>
-              <div className="flex items-center">
-                <span className={`px-1 py-0 rounded text-[17px] font-medium`}>
-                  {player.kills || 0}
-                </span>
-                <span className="mx-0.5 text-gray-500">/</span>
-                <span className={`px-1 py-0 rounded text-[17px] font-medium ${darkMode ? 'text-red-600' : 'text-red-700'}`}>
-                  {player.deaths || 0}
-                </span>
-                <span className="mx-0.5 text-gray-500">/</span>
-                <span className={`px-1 py-0 rounded text-[17px] font-medium`}>
-                  {player.assists || 0}
-                </span>
-                <span className="text-[17px] ml-4 font-medium">
-                  {kda} KDA
-                </span>
-              </div>
-              <div className="flex items-center mt-1">
-                <span className={`px-1 py-0 rounded text-[17px] font-medium ${darkMode ? 'text-yellow-400' : 'text-yellow-600'}`}>
-                  {totalCS} CS
-                </span>
-                <span className="text-[17px] ml-5">
-                  {csPerMin}/min
-                </span>
+            <div className={`p-2 h-fit rounded-md ${darkMode ? 'bg-gray-800' : 'bg-gray-200'}`}>
+              <div className="flex justify-between">
+                {/* Premier conteneur: K/D/A et CS */}
+                <div className="flex flex-col">
+                  {/* K/D/A */}
+                  <div className="flex items-center">
+                    <span className={`px-1 py-0 rounded text-lg font-medium`}>
+                      {player.kills || 0}
+                    </span>
+                    <span className="mx-0.5 text-gray-500">/</span>
+                    <span className={`px-1 py-0 rounded text-lg font-medium ${darkMode ? 'text-red-600' : 'text-red-700'}`}>
+                      {player.deaths || 0}
+                    </span>
+                    <span className="mx-0.5 text-gray-500">/</span>
+                    <span className={`px-1 py-0 rounded text-lg font-medium`}>
+                      {player.assists || 0}
+                    </span>
+                  </div>
+                  {/* CS */}
+                  <div className="flex items-center mt-1">
+                    <span className={`px-1 py-0 rounded text-lg font-medium ${darkMode ? 'text-yellow-400' : 'text-yellow-600'}`}>
+                      {totalCS} CS
+                    </span>
+                  </div>
+                </div>
+                
+                {/* Deuxième conteneur: KDA calculé et CS/min */}
+                <div className="flex flex-col">
+                  {/* KDA calculé */}
+                  <div className="flex items-center">
+                    <span className="text-lg font-medium">
+                      {kda} KDA
+                    </span>
+                  </div>
+                  {/* CS/min */}
+                  <div className="flex items-center mt-1">
+                    <span className="text-lg">
+                      {csPerMin}/min
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
           
          {/* Spells + Runes + Items */}
-          <div className="w-1/4 flex flex-col">
+          <div className="w-1/4 flex flex-col ml-15">
             <div className={`p-2 rounded-md ${darkMode ? 'bg-gray-800' : 'bg-gray-200'}`}>
               {/* Container principal en flexbox row */}
               <div className="flex justify-between">
@@ -717,12 +734,12 @@ const renderMatchSummary = (match, matchIndex) => {
             {opponent ? (
               <div className="flex items-center">
                 <div className="mr-2 text-right">
-                  <div className="font-medium">VS</div>
+                  <div className="font-medium text-[20px]">VS</div>
                 </div>
                 <div className="relative">
                   {opponent.championName && (
-                    <img 
-                      src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/champion/${opponent.championName}.png`} 
+                    <img
+                      src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/champion/${opponent.championName}.png`}
                       alt="Opponent Champion"
                       className="w-[60px] h-[60px] rounded"
                       onError={(e) => {
@@ -733,7 +750,7 @@ const renderMatchSummary = (match, matchIndex) => {
                 </div>
               </div>
             ) : (
-              <div className="text-sm italic">Pas d'adversaire direct</div>
+              <div className="text-sm italic">No Info</div>
             )}
           </div>
           
@@ -770,7 +787,7 @@ const renderMatchSummary = (match, matchIndex) => {
               {/* Équipe A (100) */}
               <div>
                 <h3 className={`font-semibold mb-2 flex items-center`}>
-                  <span className={match.winningTeam === 100 ? (darkMode ? 'text-blue-300' : 'text-blue-600') : (darkMode ? 'text-red-300' : 'text-red-600')}>
+                  <span className={match.winningTeam === 100 ? (darkMode ? 'text-gray-300' : 'text-gray-600') : (darkMode ? 'text-gray-300' : 'text-gray-600')}>
                     {match.winningTeam === 100 ? "Victoire" : "Défaite"}
                   </span>
                   {match.winningTeam === 100 && (
@@ -787,7 +804,7 @@ const renderMatchSummary = (match, matchIndex) => {
               {/* Équipe B (200) */}
               <div>
                 <h3 className={`font-semibold mb-2 flex items-center`}>
-                  <span className={match.winningTeam === 200 ? (darkMode ? 'text-blue-300' : 'text-blue-600') : (darkMode ? 'text-red-300' : 'text-red-600')}>
+                  <span className={match.winningTeam === 200 ? (darkMode ? 'text-gray-300' : 'text-gray-600') : (darkMode ? 'text-gray-300' : 'text-gray-600')}>
                     {match.winningTeam === 200 ? "Victoire" : "Défaite"}
                   </span>
                   {match.winningTeam === 200 && (
@@ -1812,7 +1829,7 @@ const LiveGameSection = ({ spectatorData, isLoading, darkMode }) => {
                               <GlobalStatsCircle wins={wins} losses={totalMatches - wins} />
                             </div>
                             
-                            <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-800/80' : 'bg-gray-100'}`}>
+                            <div className={`rounded-lg ${darkMode ? 'bg-gray-800/80' : 'bg-gray-100'}`}>
                               <a className="text-sm font-semibold mb-2">KDA moyen</a>
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center space-x-2 text-2xl">
@@ -1852,7 +1869,7 @@ const LiveGameSection = ({ spectatorData, isLoading, darkMode }) => {
 
           {/* Section 2: Titre de l'historique */}
           <h2 className={`text-2xl font-bold mb-4 ${darkMode ? 'text-gray-200' : 'text-gray-800'} border-b ${darkMode ? 'border-gray-700' : 'border-gray-300'} pb-2`}>
-            Historique des matchs
+            Last 30 games
           </h2>
 
           {/* Section 3: Liste des matchs */}

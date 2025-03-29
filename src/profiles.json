@@ -2,17 +2,13 @@
     {
         "name": "Narek",
         "link": "narek",
-        "image": "/images/sett_drip.webp",
+        "image": "/images/sett_drip.png",
         "nicknames" : [
             {
-                "username": "NAREKTED",
-                "link": "https://www.op.gg/summoners/euw/narekted-EUW",
                 "gameName": "NAREKTED",
                 "tagLine": "EUW"
             },
             {
-                "username": "AESPA KARINA",
-                "link": "https://www.op.gg/summoners/euw/topshocking-EUW",
                 "gameName": "AESPA KARINA",
                 "tagLine": "NRK"
             }
@@ -24,8 +20,6 @@
         "image": "/images/zoe_wollows.png",
         "nicknames" : [
             {
-                "username": "i8é",
-                "link": "https://www.op.gg/summoners/euw/i8%C3%A9-EUW",
                 "gameName": "i8é",
                 "tagLine": "HEX"
             },

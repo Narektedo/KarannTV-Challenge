@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import LoadingIndicator from './LoadingIndicator.jsx'; // Ajustez le chemin selon votre structure de projet
+import Header from '../components/Header';
+
 
 const SummonerSpellsPage = () => {
   const { gameName, tagLine } = useParams();
@@ -224,19 +226,24 @@ const SummonerSpellsPage = () => {
     };
   };
 
-const getWinrateColor = (winRate, darkMode = false) => {
-    // Pour un dégradé rouge -> blanc -> doré
-    if (winRate >= 70) return darkMode ? 'text-amber-300' : 'text-amber-500'; // Doré très élevé
-    if (winRate >= 65) return darkMode ? 'text-amber-300' : 'text-amber-500'; // Doré élevé
-    if (winRate >= 60) return darkMode ? 'text-yellow-300' : 'text-yellow-500'; // Jaune doré
-    if (winRate >= 55) return darkMode ? 'text-yellow-200' : 'text-yellow-400'; // Jaune
-    if (winRate >= 52) return darkMode ? 'text-gray-100' : 'text-gray-600'; // Presque blanc (légèrement positif)
-    if (winRate >= 48) return darkMode ? 'text-gray-300' : 'text-gray-500'; // Blanc/neutre (autour de 50%)
-    if (winRate >= 45) return darkMode ? 'text-orange-300' : 'text-orange-500'; // Orange (légèrement négatif)
-    if (winRate >= 40) return darkMode ? 'text-orange-400' : 'text-orange-600'; // Orange foncé
-    if (winRate >= 35) return darkMode ? 'text-red-400' : 'text-red-500'; // Rouge
-    return darkMode ? 'text-red-500' : 'text-red-600'; // Rouge foncé pour les winrates très faibles
-};
+  const getWinrateColor = (winRate, darkMode = true) => {
+    // Palette simplifiée :
+    // En dessous de 50% : rouge (de plus en plus intense)
+    // Aux alentours de 50% : blanc neutre
+    // Au-dessus de 50% : jaune/doré (de plus en plus intense)
+    
+    if (winRate >= 65) return darkMode ? 'text-yellow-300' : 'text-yellow-600'; // Doré très élevé
+    if (winRate >= 60) return darkMode ? 'text-yellow-400' : 'text-yellow-500'; // Doré élevé
+    if (winRate >= 55) return darkMode ? 'text-yellow-200' : 'text-yellow-400'; // Jaune doré
+    if (winRate > 51) return darkMode ? 'text-yellow-100' : 'text-yellow-300'; // Jaune clair
+    
+    if (winRate >= 49 && winRate <= 51) return darkMode ? 'text-gray-100' : 'text-gray-800'; // Neutre (blanc)
+    
+    if (winRate >= 45) return darkMode ? 'text-red-300' : 'text-red-500'; // Rouge clair
+    if (winRate >= 40) return darkMode ? 'text-red-400' : 'text-red-600'; // Rouge
+    if (winRate >= 35) return darkMode ? 'text-red-500' : 'text-red-700'; // Rouge foncé
+    return darkMode ? 'text-red-600' : 'text-red-800'; // Rouge très foncé pour les winrates très faibles
+  };
   
 
 // Fonction pour créer un graphique circulaire avec des arcs SVG
@@ -1537,6 +1544,7 @@ const LiveGameSection = ({ spectatorData, isLoading, darkMode }) => {
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'}`}>
+       <Header />
       <div className="container mx-auto px-2 py-4 max-w-full">
         {/* Toggle Dark Mode Button */}
         <button 

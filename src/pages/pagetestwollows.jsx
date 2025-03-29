@@ -42,90 +42,44 @@ const SummonerSpellsPage = () => {
   };
 
   useEffect(() => {
-    const savedMode = localStorage.getItem('darkMode');
-    if (savedMode) {
-      setDarkMode(savedMode === 'true');
-    } else {
-      const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      setDarkMode(prefersDarkMode);
-    }
-    
-    const fetchData = async () => {
-      try {
-        setIsLoading(true);
+  const savedMode = localStorage.getItem('darkMode');
+  if (savedMode) {
+    setDarkMode(savedMode === 'true');
+  } else {
+    const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    setDarkMode(prefersDarkMode);
+  }
+  
+  const fetchData = async () => {
+    try {
+      setIsLoading(true);
+      
+      // 1. Essayer d'abord de récupérer les données du joueur
+      const playerResponse = await fetch(`https://walopvgapi-9c205847a91e.herokuapp.com/player/${gameName}/${tagLine}`);
+      const responseData = await playerResponse.json();
+      
+      // Vérifier si la réponse contient des données valides ou est vide
+      const isPlayerDataEmpty = !responseData || 
+                               responseData.length === 0 || 
+                               (typeof responseData === 'object' && Object.keys(responseData).length === 0) ||
+                               responseData.error;
+      
+      if (isPlayerDataEmpty) {
+        // Si le joueur n'existe pas, utiliser la même fonction que le bouton refresh
+        console.log("Le joueur n'existe pas dans la base de données. Lancement du pré-chargement...");
+        await refreshPlayerData(true); // Passer true pour indiquer que c'est un chargement initial
+      } else {
+        // Si le joueur existe déjà, utiliser les données directement
+        console.log('API Response (joueur existant):', responseData);
+        setMatchData(responseData);
         
-        // 1. Essayer d'abord de récupérer les données du joueur
-        const playerResponse = await fetch(`https://walopvgapi-9c205847a91e.herokuapp.com/player/${gameName}/${tagLine}`);
-        const responseData = await playerResponse.json();
+        const processedPlayerData = processPlayerData(responseData);
+        setPlayerData(processedPlayerData);
         
-        // Vérifier si la réponse contient des données valides ou est vide
-        const isPlayerDataEmpty = !responseData || 
-                                 responseData.length === 0 || 
-                                 (typeof responseData === 'object' && Object.keys(responseData).length === 0) ||
-                                 responseData.error;
-        
-        let processedPlayerData = null;
-        
-        if (isPlayerDataEmpty) {
-          // Si le joueur n'existe pas dans la base de données, lancer le processus de pré-chargement
-          setIsPreloading(true);
-          
-          console.log("Le joueur n'existe pas dans la base de données. Lancement du pré-chargement...");
-          
-          // Premier endpoint pour récupérer les infos du joueur
-          const infoResponse = await fetch(`https://walopvgapi-9c205847a91e.herokuapp.com/info/${gameName}/${tagLine}`);
-          if (!infoResponse.ok) {
-            throw new Error("Erreur lors de l'enregistrement des infos du joueur");
-          }
-          
-          console.log("Infos du joueur enregistrées avec succès");
-          
-          // Deuxième endpoint pour récupérer les matchs
-          const matchsResponse = await fetch(`https://walopvgapi-9c205847a91e.herokuapp.com/matchs/${gameName}/${tagLine}`);
-          if (!matchsResponse.ok) {
-            throw new Error("Erreur lors de l'enregistrement des matchs du joueur");
-          }
-          
-          console.log("Matchs du joueur enregistrés avec succès");
-          
-          // Attendre un peu pour s'assurer que les données sont bien enregistrées dans la DB
-          await new Promise(resolve => setTimeout(resolve, 2000));
-          
-          // 3. Récupérer à nouveau les données complètes du joueur
-          const refreshedPlayerResponse = await fetch(`https://walopvgapi-9c205847a91e.herokuapp.com/player/${gameName}/${tagLine}`);
-          if (!refreshedPlayerResponse.ok) {
-            throw new Error("Erreur lors de la récupération des données du joueur après pré-chargement");
-          }
-          
-          const refreshedData = await refreshedPlayerResponse.json();
-          console.log('Données joueur après pré-chargement:', refreshedData);
-          
-          setMatchData(refreshedData);
-          
-          // Traiter les données récupérées
-          processedPlayerData = processPlayerData(refreshedData);
-          setPlayerData(processedPlayerData);
-          
-          // IMPORTANT: Récupérer les données de spectateur avec le PUUID extrait
-          const puuid = extractPuuid(refreshedData);
-          if (puuid) {
-            fetchSpectatorData(puuid);
-          }
-          
-          setIsPreloading(false);
-        } else {
-          // Si le joueur existe déjà, utiliser les données directement
-          console.log('API Response (joueur existant):', responseData);
-          setMatchData(responseData);
-          
-          processedPlayerData = processPlayerData(responseData);
-          setPlayerData(processedPlayerData);
-          
-          // IMPORTANT: Récupérer les données de spectateur avec le PUUID extrait
-          const puuid = extractPuuid(responseData);
-          if (puuid) {
-            fetchSpectatorData(puuid);
-          }
+        // Récupérer les données de spectateur avec le PUUID extrait
+        const puuid = extractPuuid(responseData);
+        if (puuid) {
+          fetchSpectatorData(puuid);
         }
         
         // Dans tous les cas, récupérer les données de runes
@@ -137,21 +91,21 @@ const SummonerSpellsPage = () => {
         setRunesData(runesData);
         
         setError(null);
-      } catch (err) {
-        console.error("Erreur lors du chargement des données:", err);
-        setError(err.message);
-        setPlayerData(null);
-        setMatchData(null);
-        setRunesData(null);
-        setSpectatorData(null);
-        setIsPreloading(false);
-      } finally {
-        setIsLoading(false);
       }
-    };
-  
-    fetchData();
-  }, [gameName, tagLine]);
+    } catch (err) {
+      console.error("Erreur lors du chargement des données:", err);
+      setError(err.message);
+      setPlayerData(null);
+      setMatchData(null);
+      setRunesData(null);
+      setSpectatorData(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  fetchData();
+}, [gameName, tagLine]);
 
   const extractPuuid = (data) => {
     // Vérifie d'abord si le PUUID est directement au niveau racine
@@ -306,7 +260,7 @@ const CircularWinrateChart = ({ wins, losses, size = 80, strokeWidth = 8, darkMo
   const winsPercentage = wins / totalGames;
   
   return (
-    <div className="flex flex-col items-center justify-center">
+    <div className="flex flex-col items-center justify-center mt-3">
       <div className="relative" style={{ width: size, height: size }}>
         {/* Cercle pour les défaites (rouge) - cercle complet */}
         <svg className="w-full h-full" viewBox={`0 0 ${size} ${size}`}>
@@ -340,7 +294,7 @@ const CircularWinrateChart = ({ wins, losses, size = 80, strokeWidth = 8, darkMo
       </div>
       
       {/* Légende */}
-      <div className="flex justify-between w-full mt-2 text-xs">
+      <div className="flex justify-between w-full mt-2 text-[15px]">
         <span className={darkMode ? "text-blue-400" : "text-blue-600"}>{wins}W</span>
         <span className={darkMode ? "text-red-400" : "text-red-600"}>{losses}L</span>
       </div>
@@ -625,14 +579,13 @@ const renderMatchSummary = (match, matchIndex) => {
                 />
               )}
               {player.championLevel && (
-                <div className={`absolute bottom-0 right-0 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${darkMode ? 'bg-gray-800 text-white' : 'bg-gray-200 text-gray-800'}`}>
+                <div className={`absolute bottom-0 right-0 w-5 h-5 rounded flex items-center justify-center text-xs ${darkMode ? 'bg-gray-800 text-white' : 'bg-gray-200 text-gray-800'}`}>
                   {player.championLevel}
                 </div>
               )}
             </div>
             <div>
-              <div className="font-medium">{player.championName || "Unknown"}</div>
-              <div className="text-xs">{player.teamPosition || "Unknown Role"}</div>
+              <img src={`../../role/${player.teamPosition}.png`} alt="RoleIcon" className='w-[40px] h-[40px]'/>
             </div>
           </div>
           
@@ -640,18 +593,18 @@ const renderMatchSummary = (match, matchIndex) => {
           <div className="w-50 flex flex-col">
             <div className={`p-2 h-[84px] rounded-md ${darkMode ? 'bg-gray-800' : 'bg-gray-200'}`}>
               <div className="flex items-center">
-                <span className={`px-1 py-0 rounded text-[17px] font-medium ${darkMode ? 'text-green-400' : 'text-green-600'}`}>
+                <span className={`px-1 py-0 rounded text-[17px] font-medium`}>
                   {player.kills || 0}
                 </span>
                 <span className="mx-0.5 text-gray-500">/</span>
-                <span className={`px-1 py-0 rounded text-[17px] font-medium ${darkMode ? 'text-red-400' : 'text-red-700'}`}>
+                <span className={`px-1 py-0 rounded text-[17px] font-medium ${darkMode ? 'text-red-600' : 'text-red-700'}`}>
                   {player.deaths || 0}
                 </span>
                 <span className="mx-0.5 text-gray-500">/</span>
-                <span className={`px-1 py-0 rounded text-[17px] font-medium ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
+                <span className={`px-1 py-0 rounded text-[17px] font-medium`}>
                   {player.assists || 0}
                 </span>
-                <span className="text-[17px] ml-1 font-medium">
+                <span className="text-[17px] ml-4 font-medium">
                   {kda} KDA
                 </span>
               </div>
@@ -659,7 +612,7 @@ const renderMatchSummary = (match, matchIndex) => {
                 <span className={`px-1 py-0 rounded text-[17px] font-medium ${darkMode ? 'text-yellow-400' : 'text-yellow-600'}`}>
                   {totalCS} CS
                 </span>
-                <span className="text-[17px] ml-1">
+                <span className="text-[17px] ml-5">
                   {csPerMin}/min
                 </span>
               </div>
@@ -761,7 +714,6 @@ const renderMatchSummary = (match, matchIndex) => {
               <div className="flex items-center">
                 <div className="mr-2 text-right">
                   <div className="font-medium">VS</div>
-                  <div className="text-xs">{opponent.teamPosition || "Unknown Role"}</div>
                 </div>
                 <div className="relative">
                   {opponent.championName && (
@@ -1135,7 +1087,7 @@ const LiveGameSection = ({ spectatorData, isLoading, darkMode }) => {
             {/* Afficher la durée en temps réel */}
             <span className="font-mono">{formatGameDuration(currentGameDuration)}</span>
             <span className="mx-2">•</span>
-            <span>Started Since{timeSinceStart} min</span>
+            <span>Started Since {timeSinceStart} min</span>
           </div>
           {gameInfo.observers && gameInfo.observers.encryptionKey && (
             <div>
@@ -1159,8 +1111,8 @@ const LiveGameSection = ({ spectatorData, isLoading, darkMode }) => {
       <div className="p-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Équipe bleue */}
-          <div className={`p-3 rounded-lg ${darkMode ? 'bg-blue-900/30' : 'bg-blue-100'}`}>
-            <h3 className="font-bold text-lg mb-2 text-center">Équipe Bleue</h3>
+          <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-900/30' : 'bg-gray-100'}`}>
+            <h3 className="font-bold text-lg mb-2 text-center">Blue Side</h3>
             <div className="space-y-2">
               {blueTeam.map((player, idx) => (
                 <div 
@@ -1262,8 +1214,8 @@ const LiveGameSection = ({ spectatorData, isLoading, darkMode }) => {
           </div>
           
           {/* Équipe rouge */}
-          <div className={`p-3 rounded-lg ${darkMode ? 'bg-red-900/30' : 'bg-red-100'}`}>
-            <h3 className="font-bold text-lg mb-2 text-center">Équipe Rouge</h3>
+          <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-900/30' : 'bg-gray-100'}`}>
+            <h3 className="font-bold text-lg mb-2 text-center">Red Side</h3>
             <div className="space-y-2">
               {redTeam.map((player, idx) => (
                 <div 
@@ -1839,16 +1791,16 @@ const LiveGameSection = ({ spectatorData, isLoading, darkMode }) => {
                             <div className="flex justify-between items-center">
                               <div>
                                 <a className="text-sm font-semibold mb-1">Matchs récents</a>
-                                <div className="flex items-center">
-                                  <span className={`px-2 py-0.5 rounded text-sm font-medium ${darkMode ? ' text-blue-300' : ' text-blue-600'}`}>
+                                <div className="flex items-center text-[15px] ">
+                                  <span className={`px-2 py-0.5 rounded text-sm font-medium text-[15px] ${darkMode ? ' text-blue-300' : ' text-blue-600'}`}>
                                     {wins}W
                                   </span>
                                   <span className="mx-1">/</span>
-                                  <span className={`px-2 py-0.5 rounded text-sm font-medium ${darkMode ? ' text-red-300' : ' text-red-600'}`}>
+                                  <span className={`px-2 py-0.5 rounded text-sm font-medium text-[15px] ${darkMode ? ' text-red-300' : ' text-red-600'}`}>
                                     {totalMatches - wins}L
                                   </span>
                                   <span className="ml-2 text-sm">
-                                    (sur {totalMatches} parties)
+                                    (Last {totalMatches} games)
                                   </span>
                                 </div>
                               </div>
@@ -1858,20 +1810,20 @@ const LiveGameSection = ({ spectatorData, isLoading, darkMode }) => {
                             <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-800/80' : 'bg-gray-100'}`}>
                               <a className="text-sm font-semibold mb-2">KDA moyen</a>
                               <div className="flex items-center justify-between">
-                                <div className="flex items-center space-x-2">
-                                  <span className={`px-2 py-1 rounded font-medium ${darkMode ? ' text-green-300' : ' text-green-600'}`}>
+                                <div className="flex items-center space-x-2 text-2xl">
+                                  <span className={`px-2 py-1 rounded font-medium`}>
                                     {(kills / totalMatches).toFixed(1)}
                                   </span>
                                   <span className="text-gray-500">/</span>
-                                  <span className={`px-2 py-1 rounded font-medium ${darkMode ? ' text-red-300' : ' text-red-600'}`}>
+                                  <span className={`px-2 py-1 rounded font-medium ${darkMode ? ' text-red-900' : ' text-red-600'}`}>
                                     {(deaths / totalMatches).toFixed(1)}
                                   </span>
                                   <span className="text-gray-500">/</span>
-                                  <span className={`px-2 py-1 rounded font-medium ${darkMode ? 'text-blue-300' : 'text-blue-600'}`}>
+                                  <span className={`px-2 py-1 rounded font-medium`}>
                                     {(assists / totalMatches).toFixed(1)}
                                   </span>
                                 </div>
-                                <div className="text-right font-medium">
+                                <div className="text-right font-medium text-1xl">
                                   {kda} KDA
                                 </div>
                               </div>

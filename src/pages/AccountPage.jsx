@@ -154,7 +154,7 @@ const SummonerSpellsPage = () => {
       console.log("Matchs du joueur actualisés avec succès");
       
       // 3. Attente pour s'assurer que les données sont bien enregistrées dans la DB
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       // 4. Récupération des données actualisées du joueur
       const refreshedPlayerResponse = await fetch(`https://walopvgapi-9c205847a91e.herokuapp.com/player/${gameName}/${tagLine}`);

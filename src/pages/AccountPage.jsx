@@ -1289,20 +1289,11 @@ const LiveGameSection = ({ spectatorData, isLoading, darkMode, gameName }) => {
                           <div className="flex items-center gap-2">
                             {/* Style principal et Keystone */}
                             <div className="flex items-center gap-1">
-                              <div className={`rounded-full p-0.5 ${darkMode ? 'bg-blue-900/40' : 'bg-blue-200'}`}>
-                                <img
-                                  src={getRuneStyleImageUrl(player.perks.perkStyle)}
-                                  alt={`Style ${getRuneStyleName(player.perks.perkStyle)}`}
-                                  className="w-6 h-6 rounded-full"
-                                  title={`Style principal: ${getRuneStyleName(player.perks.perkStyle)}`}
-                                  onError={(e) => { e.target.style.display = 'none'; }}
-                                />
-                              </div>
                               <div className={`rounded-full ${darkMode ? 'bg-yellow-900/30' : 'bg-yellow-100'} p-0.5`}>
                                 <img
                                   src={getRuneImageUrl(player.perks.perkIds[0])}
                                   alt={`Keystone ${player.perks.perkIds[0]}`}
-                                  className="w-8 h-8 rounded-full"
+                                  className="w-[30px] h-[30px] rounded-full"
                                   title={`Keystone ${player.perks.perkIds[0]}`}
                                   onError={(e) => { 
                                     console.error(`Erreur de chargement de la rune ${player.perks.perkIds[0]}`);
@@ -1322,7 +1313,7 @@ const LiveGameSection = ({ spectatorData, isLoading, darkMode, gameName }) => {
                                   key={`primary-${index}`}
                                   src={getRuneImageUrl(runeId)}
                                   alt={`Rune ${runeId}`}
-                                  className="w-5 h-5 rounded-full"
+                                  className="w-[30px] h-[30px] rounded-full"
                                   title={`Rune primaire ${runeId}`}
                                   onError={(e) => { e.target.style.display = 'none'; }}
                                 />
@@ -1337,7 +1328,7 @@ const LiveGameSection = ({ spectatorData, isLoading, darkMode, gameName }) => {
                               <img
                                 src={getRuneStyleImageUrl(player.perks.perkSubStyle)}
                                 alt={`SubStyle ${getRuneStyleName(player.perks.perkSubStyle)}`}
-                                className="w-4 h-4 rounded-full opacity-80"
+                                className="w-[30px] h-[30px] rounded-full opacity-80"
                                 title={`Style secondaire: ${getRuneStyleName(player.perks.perkSubStyle)}`}
                                 onError={(e) => { e.target.style.display = 'none'; }}
                               />
@@ -1347,7 +1338,7 @@ const LiveGameSection = ({ spectatorData, isLoading, darkMode, gameName }) => {
                                   key={`secondary-${index}`}
                                   src={getRuneImageUrl(runeId)}
                                   alt={`Rune ${runeId}`}
-                                  className="w-5 h-5 rounded-full"
+                                  className="w-[30px] h-[30px] rounded-full"
                                   title={`Rune secondaire ${runeId}`}
                                   onError={(e) => { e.target.style.display = 'none'; }}
                                 />
@@ -1447,25 +1438,16 @@ const LiveGameSection = ({ spectatorData, isLoading, darkMode, gameName }) => {
                           <div className="flex items-center gap-2">
                             {/* Style principal et Keystone */}
                             <div className="flex items-center gap-1">
-                              <div className={`rounded-full p-0.5 ${darkMode ? 'bg-blue-900/40' : 'bg-blue-200'}`}>
-                                <img
-                                  src={getRuneStyleImageUrl(player.perks.perkStyle)}
-                                  alt={`Style ${getRuneStyleName(player.perks.perkStyle)}`}
-                                  className="w-6 h-6 rounded-full"
-                                  title={`Style principal: ${getRuneStyleName(player.perks.perkStyle)}`}
-                                  onError={(e) => { e.target.style.display = 'none'; }}
-                                />
-                              </div>
                               <div className={`rounded-full ${darkMode ? 'bg-yellow-900/30' : 'bg-yellow-100'} p-0.5`}>
                                 <img
                                   src={getRuneImageUrl(player.perks.perkIds[0])}
                                   alt={`Keystone ${player.perks.perkIds[0]}`}
-                                  className="w-8 h-8 rounded-full"
+                                  className="w-[30px] h-[30px] rounded-full"
                                   title={`Keystone ${player.perks.perkIds[0]}`}
                                   onError={(e) => { 
                                     console.error(`Erreur de chargement de la rune ${player.perks.perkIds[0]}`);
                                     e.target.style.display = 'none'; 
-                                  }}
+                                  }} 
                                 />
                               </div>
                             </div>
@@ -1480,7 +1462,7 @@ const LiveGameSection = ({ spectatorData, isLoading, darkMode, gameName }) => {
                                   key={`primary-${index}`}
                                   src={getRuneImageUrl(runeId)}
                                   alt={`Rune ${runeId}`}
-                                  className="w-5 h-5 rounded-full"
+                                  className="w-[30px] h-[30px] rounded-full"
                                   title={`Rune primaire ${runeId}`}
                                   onError={(e) => { e.target.style.display = 'none'; }}
                                 />
@@ -1505,7 +1487,7 @@ const LiveGameSection = ({ spectatorData, isLoading, darkMode, gameName }) => {
                                   key={`secondary-${index}`}
                                   src={getRuneImageUrl(runeId)}
                                   alt={`Rune ${runeId}`}
-                                  className="w-5 h-5 rounded-full"
+                                  className="w-[30px] h-[30px] rounded-full"
                                   title={`Rune secondaire ${runeId}`}
                                   onError={(e) => { e.target.style.display = 'none'; }}
                                 />

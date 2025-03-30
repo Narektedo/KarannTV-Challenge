@@ -3,7 +3,6 @@ import { useParams } from 'react-router-dom';
 import LoadingIndicator from './LoadingIndicator.jsx'; // Ajustez le chemin selon votre structure de projet
 import Header from '../components/Header';
 
-
 const SummonerSpellsPage = () => {
   const { gameName, tagLine } = useParams();
   const [matchData, setMatchData] = useState(null);
@@ -826,8 +825,7 @@ const renderMatchSummary = (match, matchIndex) => {
 
 // Composant LiveGameSection complet avec toutes les modifications
 const LiveGameSection = ({ spectatorData, isLoading, darkMode, gameName }) => {
-  console.log("Données spectateur reçues dans LiveGameSection:", spectatorData);
-  
+
   // État pour stocker la durée actuelle de la partie en secondes
   const [currentGameDuration, setCurrentGameDuration] = useState(0);
   
@@ -1001,11 +999,11 @@ const LiveGameSection = ({ spectatorData, isLoading, darkMode, gameName }) => {
     9111: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/Triumph.png",
     8009: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/PresenceOfMind/PresenceOfMind.png",
     9104: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/LegendAlacrity/LegendAlacrity.png",
-    9103: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/LegendTenacity/LegendTenacity.png",
-    9105: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/LegendBloodline/LegendBloodline.png",
+    9103: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/LegendBloodline/LegendBloodline.png",
+    9105: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/LegendHaste/LegendHaste.png",
     8014: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/CoupDeGrace/CoupDeGrace.png",
     8017: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/CutDown/CutDown.png",
-    8299: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/LastStand/LastStand.png",
+    8299: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/LastStand/LastStand.png",
     
     // Domination (8100)
     8112: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/Electrocute/Electrocute.png",
@@ -1015,14 +1013,14 @@ const LiveGameSection = ({ spectatorData, isLoading, darkMode, gameName }) => {
     8126: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/CheapShot/CheapShot.png",
     8139: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/TasteOfBlood/GreenTerror_TasteOfBlood.png",
     8143: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/SuddenImpact/SuddenImpact.png",
-    8136: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/ZombieWard/ZombieWard.png",
-    8120: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/GhostPoro/GhostPoro.png",
+    8137: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/SixthSense/SixthSense.png",
+    8140: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/GrislyMementos/GrislyMementos.png",
     8138: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/EyeballCollection/EyeballCollection.png",
     8135: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/RavenousHunter/RavenousHunter.png",
     8134: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/IngeniousHunter/IngeniousHunter.png",
     8105: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/RelentlessHunter/RelentlessHunter.png",
     8106: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/UltimateHunter/UltimateHunter.png",
-    8141: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/TreasureHunter/TreasureHunter.png",
+    8141: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/DeepWard/DeepWard.png",
     
     // Sorcery (8200)
     8214: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/SummonAery/SummonAery.png",
@@ -1033,10 +1031,11 @@ const LiveGameSection = ({ spectatorData, isLoading, darkMode, gameName }) => {
     8243: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/TheUltimateHat/TheUltimateHat.png",
     8210: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/Transcendence/Transcendence.png",
     8233: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/AbsoluteFocus/AbsoluteFocus.png",
-    8236: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/CelerityTemp/CelerityTemp.png",
+    8236: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/GatheringStorm/GatheringStorm.png",
     8237: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/Scorch/Scorch.png",
     8232: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/Waterwalking/Waterwalking.png",
     8234: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/GatheringStorm/GatheringStorm.png",
+    8275: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/NimbusCloak/6361.png",
     
     // Resolve (8400)
     8437: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/GraspOfTheUndying/GraspOfTheUndying.png",
@@ -1050,7 +1049,7 @@ const LiveGameSection = ({ spectatorData, isLoading, darkMode, gameName }) => {
     8473: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/BonePlating/BonePlating.png",
     8451: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/Overgrowth/Overgrowth.png",
     8453: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/Revitalize/Revitalize.png",
-    8242: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/Unflinching/Unflinching.png",
+    8242: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/Unflinching/Unflinching.png",
     
     // Inspiration (8300)
     8351: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Inspiration/GlacialAugment/GlacialAugment.png",
@@ -1060,7 +1059,7 @@ const LiveGameSection = ({ spectatorData, isLoading, darkMode, gameName }) => {
     8304: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Inspiration/MagicalFootwear/MagicalFootwear.png",
     8313: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Inspiration/PerfectTiming/PerfectTiming.png",
     8321: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Inspiration/FuturesMarket/FuturesMarket.png",
-    8316: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Inspiration/MinionDematerializer/MinionDematerializer.png",
+    8316: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Inspiration/JackOfAllTrades/JackofAllTrades2.png",
     8345: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Inspiration/BiscuitDelivery/BiscuitDelivery.png",
     8347: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Inspiration/CosmicInsight/CosmicInsight.png",
     8352: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Inspiration/TimeWarpTonic/TimeWarpTonic.png",
@@ -1073,7 +1072,7 @@ const LiveGameSection = ({ spectatorData, isLoading, darkMode, gameName }) => {
     5005: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/StatMods/StatModsAttackSpeedIcon.png",
     5007: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/StatMods/StatModsCDRScalingIcon.png",
     5008: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/StatMods/StatModsAdaptiveForceIcon.png",
-    5011: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/StatMods/StatModsAdaptiveForceIcon.png"
+    5011: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/StatMods/StatModsHealthScalingIcon.png"
   };
   
   // Fonction pour obtenir l'URL de l'image d'une rune
@@ -1283,44 +1282,47 @@ const LiveGameSection = ({ spectatorData, isLoading, darkMode, gameName }) => {
                         />
                       </div>
                       
-                      {/* Runes - design amélioré et organisé par catégories */}
+                      {/* Runes - design amélioré avec icônes plus grandes et alignées sur une ligne */}
                       {player.perks && player.perks.perkIds && player.perks.perkIds.length > 0 && (
-                        <div className={`flex flex-col ${darkMode ? 'bg-gray-800/50' : 'bg-gray-200/70'} rounded p-1`}>
-                          {/* Ligne principale: arbre primaire et keystone */}
-                          <div className="flex items-center mb-1">
-                            <div className={`rounded-full p-0.5 mr-1 ${darkMode ? 'bg-blue-900/40' : 'bg-blue-200'}`}>
-                              <img
-                                src={getRuneStyleImageUrl(player.perks.perkStyle)}
-                                alt={`Style ${getRuneStyleName(player.perks.perkStyle)}`}
-                                className="w-5 h-5 rounded-full"
-                                title={`Style principal: ${getRuneStyleName(player.perks.perkStyle)}`}
-                                onError={(e) => { e.target.style.display = 'none'; }}
-                              />
+                        <div className={`${darkMode ? 'bg-gray-800/50' : 'bg-gray-200/70'} rounded p-2`}>
+                          {/* Toutes les runes sur une seule ligne */}
+                          <div className="flex items-center gap-2">
+                            {/* Style principal et Keystone */}
+                            <div className="flex items-center gap-1">
+                              <div className={`rounded-full p-0.5 ${darkMode ? 'bg-blue-900/40' : 'bg-blue-200'}`}>
+                                <img
+                                  src={getRuneStyleImageUrl(player.perks.perkStyle)}
+                                  alt={`Style ${getRuneStyleName(player.perks.perkStyle)}`}
+                                  className="w-6 h-6 rounded-full"
+                                  title={`Style principal: ${getRuneStyleName(player.perks.perkStyle)}`}
+                                  onError={(e) => { e.target.style.display = 'none'; }}
+                                />
+                              </div>
+                              <div className={`rounded-full ${darkMode ? 'bg-yellow-900/30' : 'bg-yellow-100'} p-0.5`}>
+                                <img
+                                  src={getRuneImageUrl(player.perks.perkIds[0])}
+                                  alt={`Keystone ${player.perks.perkIds[0]}`}
+                                  className="w-8 h-8 rounded-full"
+                                  title={`Keystone ${player.perks.perkIds[0]}`}
+                                  onError={(e) => { 
+                                    console.error(`Erreur de chargement de la rune ${player.perks.perkIds[0]}`);
+                                    e.target.style.display = 'none'; 
+                                  }}
+                                />
+                              </div>
                             </div>
-                            <div className={`rounded-full ${darkMode ? 'bg-yellow-900/30' : 'bg-yellow-100'} p-0.5`}>
-                              <img
-                                src={getRuneImageUrl(player.perks.perkIds[0])}
-                                alt={`Keystone ${player.perks.perkIds[0]}`}
-                                className="w-6 h-6 rounded-full"
-                                title={`Keystone ${player.perks.perkIds[0]}`}
-                                onError={(e) => { 
-                                  console.error(`Erreur de chargement de la rune ${player.perks.perkIds[0]}`);
-                                  e.target.style.display = 'none'; 
-                                }}
-                              />
-                            </div>
-                          </div>
-                          
-                          {/* Ligne des runes - organisée par type avec séparateurs visuels */}
-                          <div className="flex flex-wrap gap-1 items-center">
+                            
+                            {/* Séparateur visuel */}
+                            <div className={`h-8 w-px ${darkMode ? 'bg-gray-600' : 'bg-gray-400'}`}></div>
+                            
                             {/* Runes primaires (1-3) */}
-                            <div className="flex gap-0.5">
+                            <div className={`flex gap-1 items-center ${darkMode ? 'bg-blue-900/20' : 'bg-blue-100/50'} rounded-sm px-1 py-0.5`}>
                               {player.perks.perkIds.slice(1, 4).map((runeId, index) => (
                                 <img
                                   key={`primary-${index}`}
                                   src={getRuneImageUrl(runeId)}
                                   alt={`Rune ${runeId}`}
-                                  className="w-4 h-4 rounded-full"
+                                  className="w-5 h-5 rounded-full"
                                   title={`Rune primaire ${runeId}`}
                                   onError={(e) => { e.target.style.display = 'none'; }}
                                 />
@@ -1328,14 +1330,14 @@ const LiveGameSection = ({ spectatorData, isLoading, darkMode, gameName }) => {
                             </div>
                             
                             {/* Séparateur visuel */}
-                            <div className={`h-4 w-px ${darkMode ? 'bg-gray-600' : 'bg-gray-400'}`}></div>
+                            <div className={`h-8 w-px ${darkMode ? 'bg-gray-600' : 'bg-gray-400'}`}></div>
                             
                             {/* Runes secondaires (4-5) avec indicateur visuel */}
-                            <div className={`flex gap-0.5 items-center ${darkMode ? 'bg-purple-900/20' : 'bg-purple-100/50'} rounded-sm px-0.5`}>
+                            <div className={`flex gap-1 items-center ${darkMode ? 'bg-purple-900/20' : 'bg-purple-100/50'} rounded-sm px-1 py-0.5`}>
                               <img
                                 src={getRuneStyleImageUrl(player.perks.perkSubStyle)}
                                 alt={`SubStyle ${getRuneStyleName(player.perks.perkSubStyle)}`}
-                                className="w-3 h-3 rounded-full opacity-80"
+                                className="w-4 h-4 rounded-full opacity-80"
                                 title={`Style secondaire: ${getRuneStyleName(player.perks.perkSubStyle)}`}
                                 onError={(e) => { e.target.style.display = 'none'; }}
                               />
@@ -1345,7 +1347,7 @@ const LiveGameSection = ({ spectatorData, isLoading, darkMode, gameName }) => {
                                   key={`secondary-${index}`}
                                   src={getRuneImageUrl(runeId)}
                                   alt={`Rune ${runeId}`}
-                                  className="w-4 h-4 rounded-full"
+                                  className="w-5 h-5 rounded-full"
                                   title={`Rune secondaire ${runeId}`}
                                   onError={(e) => { e.target.style.display = 'none'; }}
                                 />
@@ -1353,16 +1355,16 @@ const LiveGameSection = ({ spectatorData, isLoading, darkMode, gameName }) => {
                             </div>
                             
                             {/* Séparateur visuel */}
-                            <div className={`h-4 w-px ${darkMode ? 'bg-gray-600' : 'bg-gray-400'}`}></div>
+                            <div className={`h-8 w-px ${darkMode ? 'bg-gray-600' : 'bg-gray-400'}`}></div>
                             
                             {/* Fragments de stats (6-8) */}
-                            <div className={`flex gap-0.5 ${darkMode ? 'bg-green-900/20' : 'bg-green-100/50'} rounded-sm px-0.5`}>
+                            <div className={`flex gap-1 items-center ${darkMode ? 'bg-green-900/20' : 'bg-green-100/50'} rounded-sm px-1 py-0.5`}>
                               {player.perks.perkIds.slice(6).map((runeId, index) => (
                                 <img
                                   key={`stat-${index}`}
                                   src={getRuneImageUrl(runeId)}
                                   alt={`Shard ${runeId}`}
-                                  className="w-3.5 h-3.5 rounded-full"
+                                  className="w-5 h-5 rounded-full"
                                   title={`Fragment de stat ${runeId}`}
                                   onError={(e) => { e.target.style.display = 'none'; }}
                                 />
@@ -1438,44 +1440,47 @@ const LiveGameSection = ({ spectatorData, isLoading, darkMode, gameName }) => {
                         />
                       </div>
                       
-                      {/* Runes - design amélioré et organisé par catégories */}
+                      {/* Runes - design amélioré avec icônes plus grandes et alignées sur une ligne */}
                       {player.perks && player.perks.perkIds && player.perks.perkIds.length > 0 && (
-                        <div className={`flex flex-col ${darkMode ? 'bg-gray-800/50' : 'bg-gray-200/70'} rounded p-1`}>
-                          {/* Ligne principale: arbre primaire et keystone */}
-                          <div className="flex items-center mb-1">
-                            <div className={`rounded-full p-0.5 mr-1 ${darkMode ? 'bg-blue-900/40' : 'bg-blue-200'}`}>
-                              <img
-                                src={getRuneStyleImageUrl(player.perks.perkStyle)}
-                                alt={`Style ${getRuneStyleName(player.perks.perkStyle)}`}
-                                className="w-5 h-5 rounded-full"
-                                title={`Style principal: ${getRuneStyleName(player.perks.perkStyle)}`}
-                                onError={(e) => { e.target.style.display = 'none'; }}
-                              />
+                        <div className={`${darkMode ? 'bg-gray-800/50' : 'bg-gray-200/70'} rounded p-2`}>
+                          {/* Toutes les runes sur une seule ligne */}
+                          <div className="flex items-center gap-2">
+                            {/* Style principal et Keystone */}
+                            <div className="flex items-center gap-1">
+                              <div className={`rounded-full p-0.5 ${darkMode ? 'bg-blue-900/40' : 'bg-blue-200'}`}>
+                                <img
+                                  src={getRuneStyleImageUrl(player.perks.perkStyle)}
+                                  alt={`Style ${getRuneStyleName(player.perks.perkStyle)}`}
+                                  className="w-6 h-6 rounded-full"
+                                  title={`Style principal: ${getRuneStyleName(player.perks.perkStyle)}`}
+                                  onError={(e) => { e.target.style.display = 'none'; }}
+                                />
+                              </div>
+                              <div className={`rounded-full ${darkMode ? 'bg-yellow-900/30' : 'bg-yellow-100'} p-0.5`}>
+                                <img
+                                  src={getRuneImageUrl(player.perks.perkIds[0])}
+                                  alt={`Keystone ${player.perks.perkIds[0]}`}
+                                  className="w-8 h-8 rounded-full"
+                                  title={`Keystone ${player.perks.perkIds[0]}`}
+                                  onError={(e) => { 
+                                    console.error(`Erreur de chargement de la rune ${player.perks.perkIds[0]}`);
+                                    e.target.style.display = 'none'; 
+                                  }}
+                                />
+                              </div>
                             </div>
-                            <div className={`rounded-full ${darkMode ? 'bg-yellow-900/30' : 'bg-yellow-100'} p-0.5`}>
-                              <img
-                                src={getRuneImageUrl(player.perks.perkIds[0])}
-                                alt={`Keystone ${player.perks.perkIds[0]}`}
-                                className="w-6 h-6 rounded-full"
-                                title={`Keystone ${player.perks.perkIds[0]}`}
-                                onError={(e) => { 
-                                  console.error(`Erreur de chargement de la rune ${player.perks.perkIds[0]}`);
-                                  e.target.style.display = 'none'; 
-                                }}
-                              />
-                            </div>
-                          </div>
-                          
-                          {/* Ligne des runes - organisée par type avec séparateurs visuels */}
-                          <div className="flex flex-wrap gap-1 items-center">
+                            
+                            {/* Séparateur visuel */}
+                            <div className={`h-8 w-px ${darkMode ? 'bg-gray-600' : 'bg-gray-400'}`}></div>
+                            
                             {/* Runes primaires (1-3) */}
-                            <div className="flex gap-0.5">
+                            <div className={`flex gap-1 items-center ${darkMode ? 'bg-blue-900/20' : 'bg-blue-100/50'} rounded-sm px-1 py-0.5`}>
                               {player.perks.perkIds.slice(1, 4).map((runeId, index) => (
                                 <img
                                   key={`primary-${index}`}
                                   src={getRuneImageUrl(runeId)}
                                   alt={`Rune ${runeId}`}
-                                  className="w-4 h-4 rounded-full"
+                                  className="w-5 h-5 rounded-full"
                                   title={`Rune primaire ${runeId}`}
                                   onError={(e) => { e.target.style.display = 'none'; }}
                                 />
@@ -1483,14 +1488,14 @@ const LiveGameSection = ({ spectatorData, isLoading, darkMode, gameName }) => {
                             </div>
                             
                             {/* Séparateur visuel */}
-                            <div className={`h-4 w-px ${darkMode ? 'bg-gray-600' : 'bg-gray-400'}`}></div>
+                            <div className={`h-8 w-px ${darkMode ? 'bg-gray-600' : 'bg-gray-400'}`}></div>
                             
                             {/* Runes secondaires (4-5) avec indicateur visuel */}
-                            <div className={`flex gap-0.5 items-center ${darkMode ? 'bg-purple-900/20' : 'bg-purple-100/50'} rounded-sm px-0.5`}>
+                            <div className={`flex gap-1 items-center ${darkMode ? 'bg-purple-900/20' : 'bg-purple-100/50'} rounded-sm px-1 py-0.5`}>
                               <img
                                 src={getRuneStyleImageUrl(player.perks.perkSubStyle)}
                                 alt={`SubStyle ${getRuneStyleName(player.perks.perkSubStyle)}`}
-                                className="w-3 h-3 rounded-full opacity-80"
+                                className="w-4 h-4 rounded-full opacity-80"
                                 title={`Style secondaire: ${getRuneStyleName(player.perks.perkSubStyle)}`}
                                 onError={(e) => { e.target.style.display = 'none'; }}
                               />
@@ -1500,7 +1505,7 @@ const LiveGameSection = ({ spectatorData, isLoading, darkMode, gameName }) => {
                                   key={`secondary-${index}`}
                                   src={getRuneImageUrl(runeId)}
                                   alt={`Rune ${runeId}`}
-                                  className="w-4 h-4 rounded-full"
+                                  className="w-5 h-5 rounded-full"
                                   title={`Rune secondaire ${runeId}`}
                                   onError={(e) => { e.target.style.display = 'none'; }}
                                 />
@@ -1508,16 +1513,16 @@ const LiveGameSection = ({ spectatorData, isLoading, darkMode, gameName }) => {
                             </div>
                             
                             {/* Séparateur visuel */}
-                            <div className={`h-4 w-px ${darkMode ? 'bg-gray-600' : 'bg-gray-400'}`}></div>
+                            <div className={`h-8 w-px ${darkMode ? 'bg-gray-600' : 'bg-gray-400'}`}></div>
                             
                             {/* Fragments de stats (6-8) */}
-                            <div className={`flex gap-0.5 ${darkMode ? 'bg-green-900/20' : 'bg-green-100/50'} rounded-sm px-0.5`}>
+                            <div className={`flex gap-1 items-center ${darkMode ? 'bg-green-900/20' : 'bg-green-100/50'} rounded-sm px-1 py-0.5`}>
                               {player.perks.perkIds.slice(6).map((runeId, index) => (
                                 <img
                                   key={`stat-${index}`}
                                   src={getRuneImageUrl(runeId)}
                                   alt={`Shard ${runeId}`}
-                                  className="w-3.5 h-3.5 rounded-full"
+                                  className="w-5 h-5 rounded-full"
                                   title={`Fragment de stat ${runeId}`}
                                   onError={(e) => { e.target.style.display = 'none'; }}
                                 />

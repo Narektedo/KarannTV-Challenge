@@ -573,13 +573,15 @@ const renderMatchSummary = (match, matchIndex) => {
             <div className="relative mr-2">
               {player.championName && (
                 <img 
-                  src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/champion/${player.championName}.png`} 
-                  alt="Champion"
-                  className="w-[60px] h-[60px] rounded"
-                  onError={(e) => {
-                    e.target.style.display = 'none';
-                  }}
-                />
+                src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/champion/${
+                  player.championName === "FiddleSticks" ? "Fiddlesticks" : player.championName
+                }.png`} 
+                alt="Champion"
+                className="w-[60px] h-[60px] rounded"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                }}
+              />
               )}
               {player.championLevel && (
                 <div className={`absolute bottom-0 right-0 w-5 h-5 rounded flex items-center justify-center text-xs ${darkMode ? 'bg-gray-800 text-white' : 'bg-gray-200 text-gray-800'}`}>
@@ -737,14 +739,16 @@ const renderMatchSummary = (match, matchIndex) => {
                 </div>
                 <div className="relative">
                   {opponent.championName && (
-                    <img
-                      src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/champion/${opponent.championName}.png`}
-                      alt="Opponent Champion"
-                      className="w-[60px] h-[60px] rounded"
-                      onError={(e) => {
-                        e.target.style.display = 'none';
-                      }}
-                    />
+                    <img 
+                    src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/champion/${
+                      opponent.championName === "FiddleSticks" ? "Fiddlesticks" : opponent.championName
+                    }.png`} 
+                    alt="Champion"
+                    className="w-10 h-10 rounded mr-2 flex-shrink-0"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                    }}
+                  />
                   )}
                 </div>
               </div>
@@ -931,14 +935,21 @@ const LiveGameSection = ({ spectatorData, isLoading, darkMode, gameName }) => {
   const getChampionImageUrl = (championId) => {
     // Si nous avons un mapping pour cet ID
     if (championMap[championId]) {
-      return `https://ddragon.leagueoflegends.com/cdn/15.6.1/img/champion/${championMap[championId]}.png`;
+      let championName = championMap[championId];
+      
+      // Condition spéciale pour Fiddlesticks
+      if (championName === "FiddleSticks") {
+        championName = "Fiddlesticks"; // Sans le 's' à la fin
+      }
+      
+      return `https://ddragon.leagueoflegends.com/cdn/15.6.1/img/champion/${championName}.png`;
     }
     
     // Si aucun mapping n'est trouvé
     console.warn(`Champion ID ${championId} non trouvé dans le mapping`);
     return `https://ddragon.leagueoflegends.com/cdn/15.6.1/img/champion/MonkeyKing.png`; // Une image par défaut
   };
-  
+    
   // Fonction pour extraire les informations de runes à partir des données de perks
   const extractRuneInfo = (perks) => {
     if (!perks || !perks.perkIds || !perks.perkStyle || !perks.perkSubStyle) {
@@ -1621,16 +1632,18 @@ const renderPlayerCard = (participant, match, matchIndex, participantIndex) => {
       >
         {/* Champion + Pseudo */}
         <div className="w-1/4 flex items-center">
-          {participant.championName && (
-            <img 
-              src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/champion/${participant.championName}.png`} 
-              alt="Champion"
-              className="w-10 h-10 rounded mr-2 flex-shrink-0"
-              onError={(e) => {
-                e.target.style.display = 'none';
-              }}
-            />
-          )}
+        {participant.championName && (
+        <img 
+          src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/champion/${
+            participant.championName === "FiddleSticks" ? "Fiddlesticks" : participant.championName
+          }.png`} 
+          alt="Champion"
+          className="w-10 h-10 rounded mr-2 flex-shrink-0"
+          onError={(e) => {
+            e.target.style.display = 'none';
+          }}
+        />
+      )}
           <div className="flex flex-col overflow-hidden">
             <span className={`font-medium truncate w-full ${isCurrentPlayer ? 'font-bold' : ''}`}>
               {participant.gameName || `Joueur ${participantIndex + 1}`}

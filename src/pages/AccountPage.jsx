@@ -886,52 +886,67 @@ const renderMatchSummary = (match, matchIndex) => {
           ) : (
             // Affichage du graphique de dégâts avec sélection du type de statistique
             <div>
-              <div className="flex justify-center mb-4">
-                <div className={`inline-flex rounded-md shadow-sm`}>
-                  <button
-                    type="button"
-                    className={`px-4 py-2 text-sm font-medium ${
-                      (!activeTabs[matchIndex + '_damageType'] || activeTabs[matchIndex + '_damageType'] === 'champions') 
-                        ? (darkMode ? 'bg-blue-700 text-white' : 'bg-blue-500 text-white') 
-                        : (darkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-800')
-                    }`}
-                    onClick={() => setActiveTabs(prev => ({...prev, [matchIndex + '_damageType']: 'champions'}))}
-                  >
-                    Dégâts aux champions
-                  </button>
-                  <button
-                    type="button"
-                    className={`px-4 py-2 text-sm font-medium ${
-                      activeTabs[matchIndex + '_damageType'] === 'towers' 
-                        ? (darkMode ? 'bg-blue-700 text-white' : 'bg-blue-500 text-white') 
-                        : (darkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-800')
-                    }`}
-                    onClick={() => setActiveTabs(prev => ({...prev, [matchIndex + '_damageType']: 'towers'}))}
-                  >
-                    Dégâts aux tours
-                  </button>
-                  <button
-                    type="button"
-                    className={`px-4 py-2 text-sm font-medium ${
-                      activeTabs[matchIndex + '_damageType'] === 'taken' 
-                        ? (darkMode ? 'bg-blue-700 text-white' : 'bg-blue-500 text-white') 
-                        : (darkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-800')
-                    }`}
-                    onClick={() => setActiveTabs(prev => ({...prev, [matchIndex + '_damageType']: 'taken'}))}
-                  >
-                    Dégâts encaissés
-                  </button>
-                </div>
+            <div className="flex justify-center mb-4">
+              <div className={`inline-flex rounded-md shadow-sm`}>
+                <button
+                  type="button"
+                  className={`px-4 py-2 text-sm font-medium flex items-center justify-center rounded-l-lg ${
+                    (!activeTabs[matchIndex + '_damageType'] || activeTabs[matchIndex + '_damageType'] === 'champions') 
+                      ? (darkMode ? 'bg-blue-700 text-white' : 'bg-blue-500 text-white') 
+                      : (darkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-800')
+                  }`}
+                  onClick={() => setActiveTabs(prev => ({...prev, [matchIndex + '_damageType']: 'champions'}))}
+                  title="Dégâts aux champions"
+                >
+                  <img 
+                    src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-postgame/global/default/scoreboard-sword-icon.svg" 
+                    alt="Dégâts aux champions" 
+                    className="w-5 h-5"
+                  />
+                </button>
+                <button
+                  type="button"
+                  className={`px-4 py-2 text-sm font-medium flex items-center justify-center ${
+                    activeTabs[matchIndex + '_damageType'] === 'towers' 
+                      ? (darkMode ? 'bg-blue-700 text-white' : 'bg-blue-500 text-white') 
+                      : (darkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-800')
+                  }`}
+                  onClick={() => setActiveTabs(prev => ({...prev, [matchIndex + '_damageType']: 'towers'}))}
+                  title="Dégâts aux tours"
+                >
+                  <img 
+                    src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-postgame/global/default/scoreboard-separator-bullet.svg" 
+                    alt="Dégâts aux structures" 
+                    className="w-5 h-5"
+                  />
+                </button>
+                <button
+                  type="button"
+                  className={`px-4 py-2 text-sm font-medium flex items-center justify-center rounded-r-lg ${
+                    activeTabs[matchIndex + '_damageType'] === 'taken' 
+                      ? (darkMode ? 'bg-blue-700 text-white' : 'bg-blue-500 text-white') 
+                      : (darkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-800')
+                  }`}
+                  onClick={() => setActiveTabs(prev => ({...prev, [matchIndex + '_damageType']: 'taken'}))}
+                  title="Dégâts encaissés"
+                >
+                  <img 
+                    src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-postgame/global/default/scoreboard-stat-switcher-shield.svg" 
+                    alt="Dégâts encaissés" 
+                    className="w-5 h-5"
+                  />
+                </button>
               </div>
-            
-              {/* Rendu du graphique de dégâts en utilisant le composant */}
-              <DamageGraph 
-                match={match} 
-                matchIndex={matchIndex} 
-                darkMode={darkMode} 
-                activeTabs={activeTabs} 
-              />
             </div>
+          
+            {/* Rendu du graphique de dégâts en utilisant le composant */}
+            <DamageGraph 
+              match={match} 
+              matchIndex={matchIndex} 
+              darkMode={darkMode} 
+              activeTabs={activeTabs} 
+            />
+          </div>
           )}
         </div>
       )}
@@ -1524,6 +1539,18 @@ const DamageGraph = ({ match, matchIndex, darkMode, activeTabs }) => {
     return "";
   };
   
+  // Fonction pour calculer la largeur des barres avec une réduction pour les valeurs élevées
+  const calculateBarWidth = (percentage) => {
+    // Si la valeur est proche du maximum, réduire la largeur pour faire de la place pour l'affichage
+    if (percentage > 90) {
+      return percentage * 0.95; // Réduction de 5%
+    } else if (percentage > 70) {
+      return percentage * 0.9; // Réduction de 10% pour les barres assez grandes
+    } else {
+      return Math.max(percentage, 2); // Garder une largeur minimale pour les petites valeurs
+    }
+  };
+  
   // Trouver la valeur maximale pour établir l'échelle
   const maxDamage = Math.max(...match.participants.map(p => getDamageValue(p)));
   
@@ -1567,18 +1594,6 @@ const DamageGraph = ({ match, matchIndex, darkMode, activeTabs }) => {
       true: 0
     };
   };
-
-  // Fonction pour calculer la largeur des barres avec une réduction pour les valeurs élevées
-  const calculateBarWidth = (percentage) => {
-    // Si la valeur est proche du maximum, réduire la largeur pour faire de la place pour l'affichage
-    if (percentage > 90) {
-      return percentage * 0.95; // Réduction de 15% pour les barres proches du maximum
-    } else if (percentage > 70) {
-      return percentage * 0.9; // Réduction de 10% pour les barres assez grandes
-    } else {
-      return Math.max(percentage, 2); // Garder une largeur minimale pour les petites valeurs
-    }
-  };
   
   return (
     <div 
@@ -1614,7 +1629,7 @@ const DamageGraph = ({ match, matchIndex, darkMode, activeTabs }) => {
           <div className="space-y-3">
             {match.participants
               .filter(p => p.teamId === 100)
-              .sort((a, b) => getDamageValue(b) - getDamageValue(a)) // Trier par valeur décroissante
+              // Ne plus trier par valeur pour garder l'ordre original
               .map((participant, idx) => {
                 const damageValue = getDamageValue(participant);
                 const percentage = maxDamage > 0 ? (damageValue / maxDamage) * 100 : 0;
@@ -1625,9 +1640,6 @@ const DamageGraph = ({ match, matchIndex, darkMode, activeTabs }) => {
                 const physicalPercentage = totalDamage > 0 ? (damageDetails.physical / totalDamage) * 100 : 0;
                 const magicPercentage = totalDamage > 0 ? (damageDetails.magic / totalDamage) * 100 : 0;
                 const truePercentage = totalDamage > 0 ? (damageDetails.true / totalDamage) * 100 : 0;
-                
-                // Calculer la largeur de la barre avec ajustement
-                const barWidth = calculateBarWidth(percentage);
                 
                 return (
                   <div key={idx} className="flex items-center">
@@ -1648,7 +1660,7 @@ const DamageGraph = ({ match, matchIndex, darkMode, activeTabs }) => {
                       {/* Background bar - gris par défaut */}
                       <div 
                         className={`h-full rounded ${darkMode ? 'bg-gray-600' : 'bg-gray-400'} relative`} 
-                        style={{ width: `${barWidth}%` }}
+                        style={{ width: `${calculateBarWidth(percentage)}%` }}
                       >
                         {/* Afficher le chiffre à la fin de la barre uniquement lorsqu'on survole le graphique */}
                         {isHovering && (
@@ -1713,7 +1725,7 @@ const DamageGraph = ({ match, matchIndex, darkMode, activeTabs }) => {
           <div className="space-y-3">
             {match.participants
               .filter(p => p.teamId === 200)
-              .sort((a, b) => getDamageValue(b) - getDamageValue(a)) // Trier par valeur décroissante
+              // Ne plus trier par valeur pour garder l'ordre original
               .map((participant, idx) => {
                 const damageValue = getDamageValue(participant);
                 const percentage = maxDamage > 0 ? (damageValue / maxDamage) * 100 : 0;
@@ -1724,9 +1736,6 @@ const DamageGraph = ({ match, matchIndex, darkMode, activeTabs }) => {
                 const physicalPercentage = totalDamage > 0 ? (damageDetails.physical / totalDamage) * 100 : 0;
                 const magicPercentage = totalDamage > 0 ? (damageDetails.magic / totalDamage) * 100 : 0;
                 const truePercentage = totalDamage > 0 ? (damageDetails.true / totalDamage) * 100 : 0;
-                
-                // Calculer la largeur de la barre avec ajustement
-                const barWidth = calculateBarWidth(percentage);
                 
                 return (
                   <div key={idx} className="flex items-center">
@@ -1747,7 +1756,7 @@ const DamageGraph = ({ match, matchIndex, darkMode, activeTabs }) => {
                       {/* Background bar - gris par défaut */}
                       <div 
                         className={`h-full rounded ${darkMode ? 'bg-gray-600' : 'bg-gray-400'} relative`} 
-                        style={{ width: `${barWidth}%` }}
+                        style={{ width: `${calculateBarWidth(percentage)}%` }}
                       >
                         {/* Afficher le chiffre à la fin de la barre uniquement lorsqu'on survole le graphique */}
                         {isHovering && (

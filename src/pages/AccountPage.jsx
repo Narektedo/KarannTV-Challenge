@@ -16,6 +16,7 @@ const SummonerSpellsPage = () => {
   const [spectatorData, setSpectatorData] = useState(null);
   const [isLoadingSpectator, setIsLoadingSpectator] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [activeTabs, setActiveTabs] = useState({});
 
   
 
@@ -381,11 +382,29 @@ const toggleDarkMode = () => {
     localStorage.setItem('darkMode', newMode.toString());
 };
 
+// Modification de la fonction toggleMatchDetails pour réinitialiser l'onglet actif
 const toggleMatchDetails = (matchIndex) => {
-    setExpandedMatches(prev => ({
+  // Si on ferme un match, on réinitialise l'onglet actif pour ce match
+  if (expandedMatches[matchIndex]) {
+    setActiveTabs(prev => {
+      const newTabs = {...prev};
+      delete newTabs[matchIndex]; // Supprimer l'entrée pour ce match
+      return newTabs;
+    });
+  } 
+  // Si on ouvre un match, on initialise l'onglet actif à 'stats'
+  else {
+    setActiveTabs(prev => ({
       ...prev,
-      [matchIndex]: !prev[matchIndex]
+      [matchIndex]: 'stats'
     }));
+  }
+  
+  // Changer l'état d'expansion du match
+  setExpandedMatches(prev => ({
+    ...prev,
+    [matchIndex]: !prev[matchIndex]
+  }));
 };
 
 // Fonction pour trouver une rune par son ID
@@ -432,6 +451,14 @@ const findOpponentChampion = (match, currentPlayerID) => {
     );
     
     return opponent;
+};
+
+// Fonction pour changer d'onglet
+const changeTab = (matchIndex, tabName) => {
+  setActiveTabs(prev => ({
+    ...prev,
+    [matchIndex]: tabName
+  }));
 };
 
 // Fonction pour rendre la ligne de résumé d'un match pour le joueur consulté
@@ -557,6 +584,9 @@ const renderMatchSummary = (match, matchIndex) => {
                 case 'URF':
                 case 'ARURF':
                   return 'URF';
+                case 1700:
+                case 'ARENA':
+                  return 'Arena';
                 default:
                   return match.gameMode || 'Autre';
               }
@@ -589,8 +619,10 @@ const renderMatchSummary = (match, matchIndex) => {
                 </div>
               )}
             </div>
+
+            {/* Icone du role */}
             <div>
-              <img src={`../../role/${player.teamPosition}.png`} alt="RoleIcon" className='w-[40px] h-[40px]'/>
+              <img src={`../../role/${player.teamPosition}.png`} alt="RoleIcon" className='w-[40px] h-[40px] bg-black/50 rounded-sm ml-3'/>
             </div>
           </div>
           
@@ -744,7 +776,7 @@ const renderMatchSummary = (match, matchIndex) => {
                       opponent.championName === "FiddleSticks" ? "Fiddlesticks" : opponent.championName
                     }.png`} 
                     alt="Champion"
-                    className="w-10 h-10 rounded mr-2 flex-shrink-0"
+                    className="w-[60px] h-[60px] rounded mr-2 flex-shrink-0"
                     onError={(e) => {
                       e.target.style.display = 'none';
                     }}
@@ -774,22 +806,52 @@ const renderMatchSummary = (match, matchIndex) => {
         
         {/* Section détaillée (dépliable) */}
         {expandedMatches[matchIndex] && (
-          <div className={`p-4 border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-            {/* Titre avec le mode de jeu et ID du match */}
-            <div className="text-center mb-3">
-              <h2 className="text-lg font-bold">
-                Match {match.matchId.split('_')[1]} - {match.gameMode}
-              </h2>
-              <div className="text-sm mt-1">
-                Durée: {`${gameMinutes}:${String(match.gameDuration % 60).padStart(2, '0')}`} • {new Date(match.gameCreation).toLocaleDateString()}
-              </div>
+        <div className={`p-4 border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+          {/* Titre avec le mode de jeu et ID du match */}
+          <div className="text-center mb-3">
+            <h2 className="text-lg font-bold">
+              Match {match.matchId.split('_')[1]} - {match.gameMode}
+            </h2>
+            <div className="text-sm mt-1">
+              Durée: {`${gameMinutes}:${String(match.gameDuration % 60).padStart(2, '0')}`} • {new Date(match.gameCreation).toLocaleDateString()}
             </div>
-            
-            {/* Affichage des équipes */}
-            <div className="space-y-4">
+          </div>
+          
+          {/* Onglets de navigation */}
+          <div className="flex justify-center mb-4">
+            <div className={`inline-flex rounded-md shadow-sm`}>
+              <button
+                type="button"
+                className={`px-4 py-2 text-sm font-medium rounded-l-lg ${
+                  (!activeTabs[matchIndex] || activeTabs[matchIndex] === 'stats') 
+                    ? (darkMode ? 'bg-blue-700 text-white' : 'bg-blue-500 text-white') 
+                    : (darkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-800')
+                }`}
+                onClick={() => changeTab(matchIndex, 'stats')}
+              >
+                Statistiques & Objets
+              </button>
+              <button
+                type="button"
+                className={`px-4 py-2 text-sm font-medium rounded-r-lg ${
+                  activeTabs[matchIndex] === 'damage' 
+                    ? (darkMode ? 'bg-blue-700 text-white' : 'bg-blue-500 text-white') 
+                    : (darkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-800')
+                }`}
+                onClick={() => changeTab(matchIndex, 'damage')}
+              >
+                Dégâts & Structures
+              </button>
+            </div>
+          </div>
+          
+          {/* Affichage conditionnel basé sur l'onglet actif */}
+          {(!activeTabs[matchIndex] || activeTabs[matchIndex] === 'stats') ? (
+            // Affichage des statistiques actuelles (équipes) mais plus compact
+            <div className="space-y-2">
               {/* Équipe A (100) */}
               <div>
-                <h3 className={`font-semibold mb-2 flex items-center`}>
+                <h3 className={`font-semibold mb-1 flex items-center`}>
                   <span className={match.winningTeam === 100 ? (darkMode ? 'text-gray-300' : 'text-gray-600') : (darkMode ? 'text-gray-300' : 'text-gray-600')}>
                     {match.winningTeam === 100 ? "Victoire" : "Défaite"}
                   </span>
@@ -797,7 +859,7 @@ const renderMatchSummary = (match, matchIndex) => {
                     <span className="ml-2">👑</span>
                   )}
                 </h3>
-                <div className="space-y-1">
+                <div className="space-y-0.5">
                   {match.participants
                     .filter(p => p.teamId === 100)
                     .map((participant, participantIndex) => renderPlayerCard(participant, match, matchIndex, participantIndex))}
@@ -806,7 +868,7 @@ const renderMatchSummary = (match, matchIndex) => {
               
               {/* Équipe B (200) */}
               <div>
-                <h3 className={`font-semibold mb-2 flex items-center`}>
+                <h3 className={`font-semibold mb-1 flex items-center`}>
                   <span className={match.winningTeam === 200 ? (darkMode ? 'text-gray-300' : 'text-gray-600') : (darkMode ? 'text-gray-300' : 'text-gray-600')}>
                     {match.winningTeam === 200 ? "Victoire" : "Défaite"}
                   </span>
@@ -814,17 +876,929 @@ const renderMatchSummary = (match, matchIndex) => {
                     <span className="ml-2">👑</span>
                   )}
                 </h3>
-                <div className="space-y-1">
+                <div className="space-y-0.5">
                   {match.participants
                     .filter(p => p.teamId === 200)
                     .map((participant, participantIndex) => renderPlayerCard(participant, match, matchIndex, match.participants.filter(p => p.teamId === 100).length + participantIndex))}
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          ) : (
+            // Affichage du graphique de dégâts avec sélection du type de statistique
+            <div>
+              <div className="flex justify-center mb-4">
+                <div className={`inline-flex rounded-md shadow-sm`}>
+                  <button
+                    type="button"
+                    className={`px-4 py-2 text-sm font-medium ${
+                      (!activeTabs[matchIndex + '_damageType'] || activeTabs[matchIndex + '_damageType'] === 'champions') 
+                        ? (darkMode ? 'bg-blue-700 text-white' : 'bg-blue-500 text-white') 
+                        : (darkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-800')
+                    }`}
+                    onClick={() => setActiveTabs(prev => ({...prev, [matchIndex + '_damageType']: 'champions'}))}
+                  >
+                    Dégâts aux champions
+                  </button>
+                  <button
+                    type="button"
+                    className={`px-4 py-2 text-sm font-medium ${
+                      activeTabs[matchIndex + '_damageType'] === 'towers' 
+                        ? (darkMode ? 'bg-blue-700 text-white' : 'bg-blue-500 text-white') 
+                        : (darkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-800')
+                    }`}
+                    onClick={() => setActiveTabs(prev => ({...prev, [matchIndex + '_damageType']: 'towers'}))}
+                  >
+                    Dégâts aux tours
+                  </button>
+                  <button
+                    type="button"
+                    className={`px-4 py-2 text-sm font-medium ${
+                      activeTabs[matchIndex + '_damageType'] === 'taken' 
+                        ? (darkMode ? 'bg-blue-700 text-white' : 'bg-blue-500 text-white') 
+                        : (darkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-800')
+                    }`}
+                    onClick={() => setActiveTabs(prev => ({...prev, [matchIndex + '_damageType']: 'taken'}))}
+                  >
+                    Dégâts encaissés
+                  </button>
+                </div>
+              </div>
+            
+              {/* Rendu du graphique de dégâts en utilisant le composant */}
+              <DamageGraph 
+                match={match} 
+                matchIndex={matchIndex} 
+                darkMode={darkMode} 
+                activeTabs={activeTabs} 
+              />
+            </div>
+          )}
+        </div>
+      )}
       </div>
     );
+};
+
+// Fonction pour rendre la carte d'un joueur avec ses dégâts (dans la vue détaillée)
+const renderPlayerDamageCard = (participant, match, matchIndex, participantIndex) => {
+  // Vérifier si le joueur est le joueur consulté
+  const isCurrentPlayer = participant.gameName?.toLowerCase() === gameName.toLowerCase() && 
+                          participant.tagLine?.toLowerCase() === tagLine.toLowerCase();
+  const highlightClass = isCurrentPlayer ? (darkMode ? 'bg-yellow-900/20' : 'bg-yellow-100/50') : '';
+
+  // Calculer si le joueur a gagné
+  const hasWon = participant.win;
+  
+  // Utiliser une couleur de fond grise indépendamment de l'équipe gagnante
+  const resultColorClass = darkMode ? 'bg-gray-800/80' : 'bg-gray-200/80';
+  
+  // Garder la bordure colorée selon victoire/défaite
+  const resultBorderClass = hasWon 
+    ? (darkMode ? 'border-blue-700' : 'border-blue-500') 
+    : (darkMode ? 'border-red-800' : 'border-red-500');
+
+  // Extraire les données de dégâts
+  const damageDealt = participant.damageDealt || {
+    totalDamageDealtToChampions: 0,
+    magicDamageDealtToChampions: 0,
+    physicalDamageDealtToChampions: 0,
+    trueDamageDealtToChampions: 0
+  };
+  
+  const damageTaken = participant.damageTaken || {
+    totalDamageTaken: 0,
+    magicDamageTaken: 0,
+    physicalDamageTaken: 0,
+    trueDamageTaken: 0
+  };
+  
+  const damageToStructures = participant.damageToStructures || {
+    damageDealtToTurrets: 0,
+    damageDealtToBuildings: 0,
+    turretTakedowns: 0,
+    inhibitorTakedowns: 0
+  };
+
+  // Calculer les pourcentages pour les graphiques à barres
+  const getPercentage = (value, total) => total > 0 ? (value / total) * 100 : 0;
+  
+  // Trouver le total de dégâts le plus élevé dans l'équipe pour échelle relative
+  const teamId = participant.teamId;
+  const teamPlayers = match.participants.filter(p => p.teamId === teamId);
+  const maxTeamDamageDealt = Math.max(...teamPlayers.map(p => p.damageDealt?.totalDamageDealtToChampions || 0));
+  const maxTeamDamageTaken = Math.max(...teamPlayers.map(p => p.damageTaken?.totalDamageTaken || 0));
+  const maxTeamStructureDamage = Math.max(...teamPlayers.map(p => p.damageToStructures?.damageDealtToTurrets || 0));
+
+  // Fonction pour formater les grands nombres
+  const formatNumber = (num) => {
+    if (num >= 1000) {
+      return (num / 1000).toFixed(1) + 'k';
+    }
+    return num.toString();
+  };
+
+  return (
+    <div 
+      key={participantIndex} 
+      className={`flex flex-col p-4 mb-2 rounded-md ${resultColorClass} border-l-4 ${resultBorderClass} ${highlightClass}`}
+    >
+      {/* En-tête: Champion + Pseudo */}
+      <div className="flex items-center mb-3">
+        {participant.championName && (
+          <div className="relative mr-3 flex-shrink-0">
+            <img 
+              src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/champion/${
+                participant.championName === "FiddleSticks" ? "Fiddlesticks" : participant.championName
+              }.png`} 
+              alt="Champion"
+              className="w-12 h-12 rounded flex-shrink-0"
+              onError={(e) => {
+                e.target.style.display = 'none';
+              }}
+            />
+            {/* Indicateur de niveau du champion */}
+            <div className="absolute bottom-0 right-0 bg-black text-white text-xs font-bold rounded-sm w-5 h-5 flex items-center justify-center border border-gray-600">
+              {participant.championLevel || '?'}
+            </div>
+          </div>
+        )}
+        <div className="flex flex-col overflow-hidden">
+          <span className={`font-medium text-[17px] truncate w-full ${isCurrentPlayer ? 'font-bold' : ''}`}>
+            {participant.gameName || `Joueur ${participantIndex + 1}`}
+            {isCurrentPlayer && <span className="ml-1 text-xs">(Vous)</span>}
+          </span>
+          <span className="text-xs opacity-75 mt-1">#{participant.tagLine}</span>
+        </div>
+        
+        {/* KDA à droite */}
+        <div className="ml-auto">
+          <div className="flex items-center">
+            <span className={`font-medium`}>
+              {participant.kills || 0}
+            </span>
+            <span className="mx-0.5 text-gray-500">/</span>
+            <span className={`font-medium ${darkMode ? 'text-red-600' : 'text-red-700'}`}>
+              {participant.deaths || 0}
+            </span>
+            <span className="mx-0.5 text-gray-500">/</span>
+            <span className={`font-medium`}>
+              {participant.assists || 0}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Section des dégâts avec graphiques à barres */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Dégâts infligés aux champions */}
+        <div className={`p-3 rounded-md ${darkMode ? 'bg-gray-700/70' : 'bg-gray-300/70'}`}>
+          <h4 className="text-sm font-semibold mb-2">Dégâts infligés</h4>
+          <div className="flex justify-between items-center mb-1">
+            <span className="text-xs">Total</span>
+            <span className="text-sm font-medium">{formatNumber(damageDealt.totalDamageDealtToChampions)}</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 mb-3">
+            <div 
+              className="bg-blue-600 h-2.5 rounded-full" 
+              style={{ width: `${(damageDealt.totalDamageDealtToChampions / maxTeamDamageDealt) * 100}%` }}
+            ></div>
+          </div>
+
+          {/* Types de dégâts */}
+          <div className="flex flex-col space-y-1">
+            {/* Dégâts physiques */}
+            <div className="flex justify-between items-center">
+              <div className="flex items-center">
+                <div className="w-2 h-2 rounded-full bg-red-500 mr-1"></div>
+                <span className="text-xs">Physique</span>
+              </div>
+              <span className="text-xs">{formatNumber(damageDealt.physicalDamageDealtToChampions)}</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-1.5 dark:bg-gray-700">
+              <div 
+                className="bg-red-500 h-1.5 rounded-full" 
+                style={{ width: `${getPercentage(damageDealt.physicalDamageDealtToChampions, damageDealt.totalDamageDealtToChampions)}%` }}
+              ></div>
+            </div>
+
+            {/* Dégâts magiques */}
+            <div className="flex justify-between items-center">
+              <div className="flex items-center">
+                <div className="w-2 h-2 rounded-full bg-blue-500 mr-1"></div>
+                <span className="text-xs">Magique</span>
+              </div>
+              <span className="text-xs">{formatNumber(damageDealt.magicDamageDealtToChampions)}</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-1.5 dark:bg-gray-700">
+              <div 
+                className="bg-blue-500 h-1.5 rounded-full" 
+                style={{ width: `${getPercentage(damageDealt.magicDamageDealtToChampions, damageDealt.totalDamageDealtToChampions)}%` }}
+              ></div>
+            </div>
+
+            {/* Dégâts réels */}
+            <div className="flex justify-between items-center">
+              <div className="flex items-center">
+                <div className="w-2 h-2 rounded-full bg-white mr-1"></div>
+                <span className="text-xs">Réel</span>
+              </div>
+              <span className="text-xs">{formatNumber(damageDealt.trueDamageDealtToChampions)}</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-1.5 dark:bg-gray-700">
+              <div 
+                className="bg-white h-1.5 rounded-full" 
+                style={{ width: `${getPercentage(damageDealt.trueDamageDealtToChampions, damageDealt.totalDamageDealtToChampions)}%` }}
+              ></div>
+            </div>
+          </div>
+        </div>
+
+        {/* Dégâts reçus */}
+        <div className={`p-3 rounded-md ${darkMode ? 'bg-gray-700/70' : 'bg-gray-300/70'}`}>
+          <h4 className="text-sm font-semibold mb-2">Dégâts reçus</h4>
+          <div className="flex justify-between items-center mb-1">
+            <span className="text-xs">Total</span>
+            <span className="text-sm font-medium">{formatNumber(damageTaken.totalDamageTaken)}</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 mb-3">
+            <div 
+              className="bg-red-600 h-2.5 rounded-full" 
+              style={{ width: `${(damageTaken.totalDamageTaken / maxTeamDamageTaken) * 100}%` }}
+            ></div>
+          </div>
+
+          {/* Types de dégâts reçus */}
+          <div className="flex flex-col space-y-1">
+            {/* Dégâts physiques */}
+            <div className="flex justify-between items-center">
+              <div className="flex items-center">
+                <div className="w-2 h-2 rounded-full bg-red-500 mr-1"></div>
+                <span className="text-xs">Physique</span>
+              </div>
+              <span className="text-xs">{formatNumber(damageTaken.physicalDamageTaken)}</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-1.5 dark:bg-gray-700">
+              <div 
+                className="bg-red-500 h-1.5 rounded-full" 
+                style={{ width: `${getPercentage(damageTaken.physicalDamageTaken, damageTaken.totalDamageTaken)}%` }}
+              ></div>
+            </div>
+
+            {/* Dégâts magiques */}
+            <div className="flex justify-between items-center">
+              <div className="flex items-center">
+                <div className="w-2 h-2 rounded-full bg-blue-500 mr-1"></div>
+                <span className="text-xs">Magique</span>
+              </div>
+              <span className="text-xs">{formatNumber(damageTaken.magicDamageTaken)}</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-1.5 dark:bg-gray-700">
+              <div 
+                className="bg-blue-500 h-1.5 rounded-full" 
+                style={{ width: `${getPercentage(damageTaken.magicDamageTaken, damageTaken.totalDamageTaken)}%` }}
+              ></div>
+            </div>
+
+            {/* Dégâts réels */}
+            <div className="flex justify-between items-center">
+              <div className="flex items-center">
+                <div className="w-2 h-2 rounded-full bg-white mr-1"></div>
+                <span className="text-xs">Réel</span>
+              </div>
+              <span className="text-xs">{formatNumber(damageTaken.trueDamageTaken)}</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-1.5 dark:bg-gray-700">
+              <div 
+                className="bg-white h-1.5 rounded-full" 
+                style={{ width: `${getPercentage(damageTaken.trueDamageTaken, damageTaken.totalDamageTaken)}%` }}
+              ></div>
+            </div>
+          </div>
+        </div>
+
+        {/* Dégâts aux structures */}
+        <div className={`p-3 rounded-md ${darkMode ? 'bg-gray-700/70' : 'bg-gray-300/70'}`}>
+          <h4 className="text-sm font-semibold mb-2">Dégâts aux structures</h4>
+          <div className="flex justify-between items-center mb-1">
+            <span className="text-xs">Total</span>
+            <span className="text-sm font-medium">{formatNumber(damageToStructures.damageDealtToTurrets)}</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 mb-3">
+            <div 
+              className="bg-yellow-600 h-2.5 rounded-full" 
+              style={{ width: `${(damageToStructures.damageDealtToTurrets / maxTeamStructureDamage) * 100}%` }}
+            ></div>
+          </div>
+
+          {/* Statistiques des structures */}
+          <div className="grid grid-cols-2 gap-2 mt-4">
+            <div className={`p-2 rounded ${darkMode ? 'bg-gray-800' : 'bg-gray-200'} text-center`}>
+              <div className="text-xl font-bold">{damageToStructures.turretTakedowns}</div>
+              <div className="text-xs opacity-75">Tours détruites</div>
+            </div>
+            <div className={`p-2 rounded ${darkMode ? 'bg-gray-800' : 'bg-gray-200'} text-center`}>
+              <div className="text-xl font-bold">{damageToStructures.inhibitorTakedowns}</div>
+              <div className="text-xs opacity-75">Inhibs détruits</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Fonction pour rendre le graphique à barres des dégâts avec les modifications demandées
+const renderDamageGraph = (match, matchIndex) => {
+  // État pour suivre si la souris survole la zone du graphique
+  const [isHovering, setIsHovering] = useState(false);
+
+  // Déterminer quel type de statistique afficher
+  const damageType = activeTabs[matchIndex + '_damageType'] || 'champions';
+  
+  // Fonction pour obtenir la valeur de dégâts en fonction du type sélectionné
+  const getDamageValue = (participant) => {
+    if (damageType === 'champions') {
+      return participant.damageDealt?.totalDamageDealtToChampions || 0;
+    } else if (damageType === 'towers') {
+      return participant.damageToStructures?.damageDealtToTurrets || 0;
+    } else if (damageType === 'taken') {
+      return participant.damageTaken?.totalDamageTaken || 0;
+    }
+    return 0;
+  };
+  
+  // Obtenir le titre du graphique en fonction du type sélectionné
+  const getGraphTitle = () => {
+    if (damageType === 'champions') {
+      return "Dégâts infligés aux champions";
+    } else if (damageType === 'towers') {
+      return "Dégâts infligés aux structures";
+    } else if (damageType === 'taken') {
+      return "Dégâts encaissés";
+    }
+    return "";
+  };
+  
+  // Trouver la valeur maximale pour établir l'échelle
+  const maxDamage = Math.max(...match.participants.map(p => getDamageValue(p)));
+  
+  // Calculer les graduations
+  const graduations = [];
+  const numGraduations = 5;
+  for (let i = 1; i <= numGraduations; i++) {
+    graduations.push({
+      percentage: (i / numGraduations) * 100,
+      value: Math.round((i / numGraduations) * maxDamage)
+    });
+  }
+  
+  // Fonction pour formater les grands nombres
+  const formatNumber = (num) => {
+    if (num >= 1000) {
+      return (num / 1000).toFixed(1) + 'k';
+    }
+    return num.toString();
+  };
+  
+  // Fonction pour obtenir les détails de dégâts en fonction du type
+  const getDamageDetails = (participant) => {
+    if (damageType === 'champions') {
+      return {
+        physical: participant.damageDealt?.physicalDamageDealtToChampions || 0,
+        magic: participant.damageDealt?.magicDamageDealtToChampions || 0,
+        true: participant.damageDealt?.trueDamageDealtToChampions || 0
+      };
+    } else if (damageType === 'taken') {
+      return {
+        physical: participant.damageTaken?.physicalDamageTaken || 0,
+        magic: participant.damageTaken?.magicDamageTaken || 0,
+        true: participant.damageTaken?.trueDamageTaken || 0
+      };
+    }
+    // Pour les tours, on n'a pas de répartition des types de dégâts, donc on renvoie juste la valeur totale
+    return {
+      physical: 0,
+      magic: 0,
+      true: 0
+    };
+  };
+  
+  return (
+    <div 
+      className={`p-4 rounded-lg ${darkMode ? 'bg-gray-800/50' : 'bg-gray-100/80'}`}
+      onMouseEnter={() => setIsHovering(true)}
+      onMouseLeave={() => setIsHovering(false)}
+    >
+      <h3 className="text-lg font-semibold text-center mb-4">{getGraphTitle()}</h3>
+      
+      {/* Conteneur pour les graduations et les barres */}
+      <div className="relative">
+        {/* Graduations */}
+        <div className="absolute top-0 bottom-0 left-0 right-0 flex pointer-events-none">
+          {graduations.map((grad, idx) => (
+            <div 
+              key={idx} 
+              className="absolute h-full border-l border-dashed flex items-center justify-center"
+              style={{ left: `${grad.percentage}%`, borderColor: darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}
+            >
+              <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'} ml-1`}>
+                {formatNumber(grad.value)}
+              </span>
+            </div>
+          ))}
+        </div>
+        
+        {/* Équipe A (100) */}
+        <div className="mb-6 relative">
+          <div className={`font-semibold mb-2 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
+            Équipe bleue {match.winningTeam === 100 && "👑"}
+          </div>
+          
+          <div className="space-y-3">
+            {match.participants
+              .filter(p => p.teamId === 100)
+              .sort((a, b) => getDamageValue(b) - getDamageValue(a)) // Trier par valeur décroissante
+              .map((participant, idx) => {
+                const damageValue = getDamageValue(participant);
+                const percentage = maxDamage > 0 ? (damageValue / maxDamage) * 100 : 0;
+                const damageDetails = getDamageDetails(participant);
+                
+                // Calculer les pourcentages pour chaque type de dégât
+                const totalDamage = damageValue;
+                const physicalPercentage = totalDamage > 0 ? (damageDetails.physical / totalDamage) * 100 : 0;
+                const magicPercentage = totalDamage > 0 ? (damageDetails.magic / totalDamage) * 100 : 0;
+                const truePercentage = totalDamage > 0 ? (damageDetails.true / totalDamage) * 100 : 0;
+                
+                return (
+                  <div key={idx} className="flex items-center">
+                    {/* Champion icon sans niveau et pseudo */}
+                    <div className="w-10 h-10 mr-2 flex-shrink-0 relative">
+                      <img 
+                        src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/champion/${
+                          participant.championName === "FiddleSticks" ? "Fiddlesticks" : participant.championName
+                        }.png`} 
+                        alt={participant.championName || "Champion"}
+                        className="w-full h-full rounded"
+                        onError={(e) => { e.target.style.display = 'none'; }}
+                      />
+                    </div>
+                    
+                    {/* Bar container */}
+                    <div className="flex-grow relative h-7 group">
+                      {/* Background bar - gris par défaut */}
+                      <div 
+                        className={`h-full rounded ${darkMode ? 'bg-gray-600' : 'bg-gray-400'} relative`} 
+                        style={{ width: `${Math.max(percentage, 2)}%` }}
+                      >
+                        {/* Afficher le chiffre à la fin de la barre uniquement lorsqu'on survole le graphique */}
+                        {isHovering && (
+                          <div className="absolute right-[-45px] top-1/2 transform -translate-y-1/2 text-sm font-medium">
+                            {formatNumber(damageValue)}
+                          </div>
+                        )}
+                        
+                        {/* Pour les dégâts aux champions, afficher la répartition colorée */}
+                        {damageType !== 'towers' && (
+                          <div className="absolute top-0 left-0 h-full w-full opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="relative h-full w-full">
+                              {/* Physical damage (red) */}
+                              <div 
+                                className="h-full bg-red-500 absolute top-0 left-0 rounded-l flex items-center"
+                                style={{ width: `${physicalPercentage}%` }}
+                              >
+                                <span className="text-xs font-medium ml-1 text-white">{formatNumber(damageDetails.physical)}</span>
+                              </div>
+                              
+                              {/* Magic damage (blue) */}
+                              <div 
+                                className="h-full bg-blue-500 absolute top-0 left-0 rounded-l flex items-center"
+                                style={{ width: `${magicPercentage}%`, marginLeft: `${physicalPercentage}%` }}
+                              >
+                                <span className="text-xs font-medium ml-1 text-white">{formatNumber(damageDetails.magic)}</span>
+                              </div>
+                              
+                              {/* True damage (white) */}
+                              <div 
+                                className="h-full bg-white absolute top-0 left-0 rounded-l flex items-center"
+                                style={{ 
+                                  width: `${truePercentage}%`, 
+                                  marginLeft: `${physicalPercentage + magicPercentage}%` 
+                                }}
+                              >
+                                <span className="text-xs font-medium ml-1 text-gray-800">{formatNumber(damageDetails.true)}</span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        </div>
+        
+        {/* Équipe B (200) */}
+        <div className="relative">
+          <div className={`font-semibold mb-2 ${darkMode ? 'text-red-400' : 'text-red-600'}`}>
+            Équipe rouge {match.winningTeam === 200 && "👑"}
+          </div>
+          
+          <div className="space-y-3">
+            {match.participants
+              .filter(p => p.teamId === 200)
+              .sort((a, b) => getDamageValue(b) - getDamageValue(a)) // Trier par valeur décroissante
+              .map((participant, idx) => {
+                const damageValue = getDamageValue(participant);
+                const percentage = maxDamage > 0 ? (damageValue / maxDamage) * 100 : 0;
+                const damageDetails = getDamageDetails(participant);
+                
+                // Calculer les pourcentages pour chaque type de dégât
+                const totalDamage = damageValue;
+                const physicalPercentage = totalDamage > 0 ? (damageDetails.physical / totalDamage) * 100 : 0;
+                const magicPercentage = totalDamage > 0 ? (damageDetails.magic / totalDamage) * 100 : 0;
+                const truePercentage = totalDamage > 0 ? (damageDetails.true / totalDamage) * 100 : 0;
+                
+                return (
+                  <div key={idx} className="flex items-center">
+                    {/* Champion icon sans niveau et pseudo */}
+                    <div className="w-10 h-10 mr-2 flex-shrink-0 relative">
+                      <img 
+                        src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/champion/${
+                          participant.championName === "FiddleSticks" ? "Fiddlesticks" : participant.championName
+                        }.png`} 
+                        alt={participant.championName || "Champion"}
+                        className="w-full h-full rounded"
+                        onError={(e) => { e.target.style.display = 'none'; }}
+                      />
+                    </div>
+                    
+                    {/* Bar container */}
+                    <div className="flex-grow relative h-7 group">
+                      {/* Background bar - gris par défaut */}
+                      <div 
+                        className={`h-full rounded ${darkMode ? 'bg-gray-600' : 'bg-gray-400'} relative`} 
+                        style={{ width: `${Math.max(percentage, 2)}%` }}
+                      >
+                        {/* Afficher le chiffre à la fin de la barre uniquement lorsqu'on survole le graphique */}
+                        {isHovering && (
+                          <div className="absolute right-[-45px] top-1/2 transform -translate-y-1/2 text-sm font-medium">
+                            {formatNumber(damageValue)}
+                          </div>
+                        )}
+                        
+                        {/* Pour les dégâts aux champions, afficher la répartition colorée */}
+                        {damageType !== 'towers' && (
+                          <div className="absolute top-0 left-0 h-full w-full opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="relative h-full w-full">
+                              {/* Physical damage (red) */}
+                              <div 
+                                className="h-full bg-red-500 absolute top-0 left-0 rounded-l flex items-center"
+                                style={{ width: `${physicalPercentage}%` }}
+                              >
+                                <span className="text-xs font-medium ml-1 text-white">{formatNumber(damageDetails.physical)}</span>
+                              </div>
+                              
+                              {/* Magic damage (blue) */}
+                              <div 
+                                className="h-full bg-blue-500 absolute top-0 left-0 rounded-l flex items-center"
+                                style={{ width: `${magicPercentage}%`, marginLeft: `${physicalPercentage}%` }}
+                              >
+                                <span className="text-xs font-medium ml-1 text-white">{formatNumber(damageDetails.magic)}</span>
+                              </div>
+                              
+                              {/* True damage (white) */}
+                              <div 
+                                className="h-full bg-white absolute top-0 left-0 rounded-l flex items-center"
+                                style={{ 
+                                  width: `${truePercentage}%`, 
+                                  marginLeft: `${physicalPercentage + magicPercentage}%` 
+                                }}
+                              >
+                                <span className="text-xs font-medium ml-1 text-gray-800">{formatNumber(damageDetails.true)}</span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Créez un composant DamageGraph séparé
+const DamageGraph = ({ match, matchIndex, darkMode, activeTabs }) => {
+  // État pour suivre si la souris survole la zone du graphique
+  const [isHovering, setIsHovering] = useState(false);
+
+  // Déterminer quel type de statistique afficher
+  const damageType = activeTabs[matchIndex + '_damageType'] || 'champions';
+  
+  // Fonction pour obtenir la valeur de dégâts en fonction du type sélectionné
+  const getDamageValue = (participant) => {
+    if (damageType === 'champions') {
+      return participant.damageDealt?.totalDamageDealtToChampions || 0;
+    } else if (damageType === 'towers') {
+      return participant.damageToStructures?.damageDealtToTurrets || 0;
+    } else if (damageType === 'taken') {
+      return participant.damageTaken?.totalDamageTaken || 0;
+    }
+    return 0;
+  };
+  
+  // Obtenir le titre du graphique en fonction du type sélectionné
+  const getGraphTitle = () => {
+    if (damageType === 'champions') {
+      return "Dégâts infligés aux champions";
+    } else if (damageType === 'towers') {
+      return "Dégâts infligés aux structures";
+    } else if (damageType === 'taken') {
+      return "Dégâts encaissés";
+    }
+    return "";
+  };
+  
+  // Trouver la valeur maximale pour établir l'échelle
+  const maxDamage = Math.max(...match.participants.map(p => getDamageValue(p)));
+  
+  // Calculer les graduations
+  const graduations = [];
+  const numGraduations = 5;
+  for (let i = 1; i <= numGraduations; i++) {
+    graduations.push({
+      percentage: (i / numGraduations) * 100,
+      value: Math.round((i / numGraduations) * maxDamage)
+    });
+  }
+  
+  // Fonction pour formater les grands nombres
+  const formatNumber = (num) => {
+    if (num >= 1000) {
+      return (num / 1000).toFixed(1) + 'k';
+    }
+    return num.toString();
+  };
+  
+  // Fonction pour obtenir les détails de dégâts en fonction du type
+  const getDamageDetails = (participant) => {
+    if (damageType === 'champions') {
+      return {
+        physical: participant.damageDealt?.physicalDamageDealtToChampions || 0,
+        magic: participant.damageDealt?.magicDamageDealtToChampions || 0,
+        true: participant.damageDealt?.trueDamageDealtToChampions || 0
+      };
+    } else if (damageType === 'taken') {
+      return {
+        physical: participant.damageTaken?.physicalDamageTaken || 0,
+        magic: participant.damageTaken?.magicDamageTaken || 0,
+        true: participant.damageTaken?.trueDamageTaken || 0
+      };
+    }
+    // Pour les tours, on n'a pas de répartition des types de dégâts, donc on renvoie juste la valeur totale
+    return {
+      physical: 0,
+      magic: 0,
+      true: 0
+    };
+  };
+
+  // Fonction pour calculer la largeur des barres avec une réduction pour les valeurs élevées
+  const calculateBarWidth = (percentage) => {
+    // Si la valeur est proche du maximum, réduire la largeur pour faire de la place pour l'affichage
+    if (percentage > 90) {
+      return percentage * 0.95; // Réduction de 15% pour les barres proches du maximum
+    } else if (percentage > 70) {
+      return percentage * 0.9; // Réduction de 10% pour les barres assez grandes
+    } else {
+      return Math.max(percentage, 2); // Garder une largeur minimale pour les petites valeurs
+    }
+  };
+  
+  return (
+    <div 
+      className={`p-4 rounded-lg ${darkMode ? 'bg-gray-800/50' : 'bg-gray-100/80'}`}
+      onMouseEnter={() => setIsHovering(true)}
+      onMouseLeave={() => setIsHovering(false)}
+    >
+      <h3 className="text-lg font-semibold text-center mb-4">{getGraphTitle()}</h3>
+      
+      {/* Conteneur pour les graduations et les barres */}
+      <div className="relative">
+        {/* Graduations */}
+        <div className="absolute top-0 bottom-0 left-0 right-0 flex pointer-events-none">
+          {graduations.map((grad, idx) => (
+            <div 
+              key={idx} 
+              className="absolute h-full border-l border-dashed flex items-center justify-center"
+              style={{ left: `${grad.percentage}%`, borderColor: darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}
+            >
+              <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'} ml-1`}>
+                {formatNumber(grad.value)}
+              </span>
+            </div>
+          ))}
+        </div>
+        
+        {/* Équipe A (100) */}
+        <div className="mb-6 relative">
+          <div className={`font-semibold mb-2 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
+            Équipe bleue {match.winningTeam === 100 && "👑"}
+          </div>
+          
+          <div className="space-y-3">
+            {match.participants
+              .filter(p => p.teamId === 100)
+              .sort((a, b) => getDamageValue(b) - getDamageValue(a)) // Trier par valeur décroissante
+              .map((participant, idx) => {
+                const damageValue = getDamageValue(participant);
+                const percentage = maxDamage > 0 ? (damageValue / maxDamage) * 100 : 0;
+                const damageDetails = getDamageDetails(participant);
+                
+                // Calculer les pourcentages pour chaque type de dégât
+                const totalDamage = damageValue;
+                const physicalPercentage = totalDamage > 0 ? (damageDetails.physical / totalDamage) * 100 : 0;
+                const magicPercentage = totalDamage > 0 ? (damageDetails.magic / totalDamage) * 100 : 0;
+                const truePercentage = totalDamage > 0 ? (damageDetails.true / totalDamage) * 100 : 0;
+                
+                // Calculer la largeur de la barre avec ajustement
+                const barWidth = calculateBarWidth(percentage);
+                
+                return (
+                  <div key={idx} className="flex items-center">
+                    {/* Champion icon sans niveau et pseudo */}
+                    <div className="w-10 h-10 mr-2 flex-shrink-0 relative">
+                      <img 
+                        src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/champion/${
+                          participant.championName === "FiddleSticks" ? "Fiddlesticks" : participant.championName
+                        }.png`} 
+                        alt={participant.championName || "Champion"}
+                        className="w-full h-full rounded"
+                        onError={(e) => { e.target.style.display = 'none'; }}
+                      />
+                    </div>
+                    
+                    {/* Bar container */}
+                    <div className="flex-grow relative h-7 group">
+                      {/* Background bar - gris par défaut */}
+                      <div 
+                        className={`h-full rounded ${darkMode ? 'bg-gray-600' : 'bg-gray-400'} relative`} 
+                        style={{ width: `${barWidth}%` }}
+                      >
+                        {/* Afficher le chiffre à la fin de la barre uniquement lorsqu'on survole le graphique */}
+                        {isHovering && (
+                          <div className="absolute right-[-45px] top-1/2 transform -translate-y-1/2 text-sm font-medium">
+                            {formatNumber(damageValue)}
+                          </div>
+                        )}
+                        
+                        {/* Pour les dégâts aux champions, afficher la répartition colorée */}
+                        {damageType !== 'towers' && (
+                          <div className="absolute top-0 left-0 h-full w-full opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="relative h-full w-full">
+                              {/* Physical damage (red) */}
+                              <div 
+                                className="h-full bg-red-500 absolute top-0 left-0 rounded-l flex items-center"
+                                style={{ width: `${physicalPercentage}%` }}
+                              >
+                                {physicalPercentage > 10 && (
+                                  <span className="text-xs font-medium ml-1 text-white">{formatNumber(damageDetails.physical)}</span>
+                                )}
+                              </div>
+                              
+                              {/* Magic damage (blue) */}
+                              <div 
+                                className="h-full bg-blue-500 absolute top-0 left-0 rounded-l flex items-center"
+                                style={{ width: `${magicPercentage}%`, marginLeft: `${physicalPercentage}%` }}
+                              >
+                                {magicPercentage > 10 && (
+                                  <span className="text-xs font-medium ml-1 text-white">{formatNumber(damageDetails.magic)}</span>
+                                )}
+                              </div>
+                              
+                              {/* True damage (white) */}
+                              <div 
+                                className="h-full bg-white absolute top-0 left-0 rounded-l flex items-center"
+                                style={{ 
+                                  width: `${truePercentage}%`, 
+                                  marginLeft: `${physicalPercentage + magicPercentage}%` 
+                                }}
+                              >
+                                {truePercentage > 10 && (
+                                  <span className="text-xs font-medium ml-1 text-gray-800">{formatNumber(damageDetails.true)}</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        </div>
+        
+        {/* Équipe B (200) */}
+        <div className="relative">
+          <div className={`font-semibold mb-2 ${darkMode ? 'text-red-400' : 'text-red-600'}`}>
+            Équipe rouge {match.winningTeam === 200 && "👑"}
+          </div>
+          
+          <div className="space-y-3">
+            {match.participants
+              .filter(p => p.teamId === 200)
+              .sort((a, b) => getDamageValue(b) - getDamageValue(a)) // Trier par valeur décroissante
+              .map((participant, idx) => {
+                const damageValue = getDamageValue(participant);
+                const percentage = maxDamage > 0 ? (damageValue / maxDamage) * 100 : 0;
+                const damageDetails = getDamageDetails(participant);
+                
+                // Calculer les pourcentages pour chaque type de dégât
+                const totalDamage = damageValue;
+                const physicalPercentage = totalDamage > 0 ? (damageDetails.physical / totalDamage) * 100 : 0;
+                const magicPercentage = totalDamage > 0 ? (damageDetails.magic / totalDamage) * 100 : 0;
+                const truePercentage = totalDamage > 0 ? (damageDetails.true / totalDamage) * 100 : 0;
+                
+                // Calculer la largeur de la barre avec ajustement
+                const barWidth = calculateBarWidth(percentage);
+                
+                return (
+                  <div key={idx} className="flex items-center">
+                    {/* Champion icon sans niveau et pseudo */}
+                    <div className="w-10 h-10 mr-2 flex-shrink-0 relative">
+                      <img 
+                        src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/champion/${
+                          participant.championName === "FiddleSticks" ? "Fiddlesticks" : participant.championName
+                        }.png`} 
+                        alt={participant.championName || "Champion"}
+                        className="w-full h-full rounded"
+                        onError={(e) => { e.target.style.display = 'none'; }}
+                      />
+                    </div>
+                    
+                    {/* Bar container */}
+                    <div className="flex-grow relative h-7 group">
+                      {/* Background bar - gris par défaut */}
+                      <div 
+                        className={`h-full rounded ${darkMode ? 'bg-gray-600' : 'bg-gray-400'} relative`} 
+                        style={{ width: `${barWidth}%` }}
+                      >
+                        {/* Afficher le chiffre à la fin de la barre uniquement lorsqu'on survole le graphique */}
+                        {isHovering && (
+                          <div className="absolute right-[-45px] top-1/2 transform -translate-y-1/2 text-sm font-medium">
+                            {formatNumber(damageValue)}
+                          </div>
+                        )}
+                        
+                        {/* Pour les dégâts aux champions, afficher la répartition colorée */}
+                        {damageType !== 'towers' && (
+                          <div className="absolute top-0 left-0 h-full w-full opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="relative h-full w-full">
+                              {/* Physical damage (red) */}
+                              <div 
+                                className="h-full bg-red-500 absolute top-0 left-0 rounded-l flex items-center"
+                                style={{ width: `${physicalPercentage}%` }}
+                              >
+                                <span className="text-xs font-medium ml-1 text-white">{formatNumber(damageDetails.physical)}</span>
+                              </div>
+                              
+                              {/* Magic damage (blue) */}
+                              <div 
+                                className="h-full bg-blue-500 absolute top-0 left-0 rounded-l flex items-center"
+                                style={{ width: `${magicPercentage}%`, marginLeft: `${physicalPercentage}%` }}
+                              >
+                                <span className="text-xs font-medium ml-1 text-white">{formatNumber(damageDetails.magic)}</span>
+                              </div>
+                              
+                              {/* True damage (white) */}
+                              <div 
+                                className="h-full bg-white absolute top-0 left-0 rounded-l flex items-center"
+                                style={{ 
+                                  width: `${truePercentage}%`, 
+                                  marginLeft: `${physicalPercentage + magicPercentage}%` 
+                                }}
+                              >
+                                <span className="text-xs font-medium ml-1 text-gray-800">{formatNumber(damageDetails.true)}</span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 // Composant LiveGameSection complet avec toutes les modifications
@@ -1083,7 +2057,8 @@ const LiveGameSection = ({ spectatorData, isLoading, darkMode, gameName }) => {
     5005: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/StatMods/StatModsAttackSpeedIcon.png",
     5007: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/StatMods/StatModsCDRScalingIcon.png",
     5008: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/StatMods/StatModsAdaptiveForceIcon.png",
-    5011: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/StatMods/StatModsHealthScalingIcon.png"
+    5011: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/StatMods/StatModsHealthScalingIcon.png",
+    5010: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/StatMods/StatModsMovementSpeedIcon.png"
   };
   
   // Fonction pour obtenir l'URL de l'image d'une rune
@@ -1566,169 +2541,237 @@ const LiveGameSection = ({ spectatorData, isLoading, darkMode, gameName }) => {
 
 // Fonction pour rendre la carte d'un joueur (dans la vue détaillée)
 const renderPlayerCard = (participant, match, matchIndex, participantIndex) => {
-    // Vérification des summoner spells
-    const spell1 = participant.summonerSpells?.spell1 
-      ? summonerSpellsMap[participant.summonerSpells.spell1] 
-      : null;
-    const spell2 = participant.summonerSpells?.spell2 
-      ? summonerSpellsMap[participant.summonerSpells.spell2] 
-      : null;
-    
-    // Obtenir les infos des arbres de runes
-    const primaryTree = getRuneTreeInfo(participant.primaryRuneTree);
-    const secondaryTree = getRuneTreeInfo(participant.secondaryRuneTree);
-    
-    // Trouver la rune principale (keystone)
-    const keystone = findRuneById(participant.keystone);
-    
-    // Calculer si le joueur a gagné
-    const hasWon = participant.win;
-    
-    // Couleur basée sur la victoire/défaite et non sur l'équipe
-    const resultColorClass = hasWon 
-      ? (darkMode ? 'bg-blue-900/30' : 'bg-blue-100') 
-      : (darkMode ? 'bg-red-900/30' : 'bg-red-100');
-    
-    const resultBorderClass = hasWon 
-      ? (darkMode ? 'border-blue-700' : 'border-blue-500') 
-      : (darkMode ? 'border-red-800' : 'border-red-500');
+  // Vérification des summoner spells
+  const spell1 = participant.summonerSpells?.spell1 
+    ? summonerSpellsMap[participant.summonerSpells.spell1] 
+    : null;
+  const spell2 = participant.summonerSpells?.spell2 
+    ? summonerSpellsMap[participant.summonerSpells.spell2] 
+    : null;
+  
+  // Obtenir les infos des arbres de runes
+  const primaryTree = getRuneTreeInfo(participant.primaryRuneTree);
+  const secondaryTree = getRuneTreeInfo(participant.secondaryRuneTree);
+  
+  // Trouver la rune principale (keystone)
+  const keystone = findRuneById(participant.keystone);
+  
+  // Calculer si le joueur a gagné
+  const hasWon = participant.win;
+  
+  // Utiliser une couleur de fond grise indépendamment de l'équipe gagnante
+  const resultColorClass = darkMode ? 'bg-gray-800/80' : 'bg-gray-200/80';
+  
+  // Garder la bordure colorée selon victoire/défaite
+  const resultBorderClass = hasWon 
+    ? (darkMode ? 'border-blue-700' : 'border-blue-500') 
+    : (darkMode ? 'border-red-800' : 'border-red-500');
 
-    // Calculer le nombre total de CS
-    const minionKilled = participant.minionKilled || 0;
-    const neutralMinionsKilled = participant.neutralMinionsKilled || 0;
-    const totalCS = minionKilled + neutralMinionsKilled;
+  // Calculer le nombre total de CS
+  const minionKilled = participant.minionKilled || 0;
+  const neutralMinionsKilled = participant.neutralMinionsKilled || 0;
+  const totalCS = minionKilled + neutralMinionsKilled;
+  
+  // Calculer les minutes de jeu et CS/min
+  const gameMinutes = Math.floor((match.gameDuration || 0) / 60);
+  const csPerMin = gameMinutes > 0 ? (totalCS / gameMinutes).toFixed(1) : 0;
+  
+  // Calculer le KDA
+  const kda = participant.deaths > 0 
+    ? (((participant.kills || 0) + (participant.assists || 0)) / participant.deaths).toFixed(2)
+    : "Perfect";
     
-    // Calculer les minutes de jeu et CS/min
-    const gameMinutes = Math.floor((match.gameDuration || 0) / 60);
-    const csPerMin = gameMinutes > 0 ? (totalCS / gameMinutes).toFixed(1) : 0;
-    
-    // Calculer le KDA
-    const kda = participant.deaths > 0 
-      ? (((participant.kills || 0) + (participant.assists || 0)) / participant.deaths).toFixed(2)
-      : "Perfect";
-      
-    // Obtenir toutes les runes du joueur
-    const runesSelections = [];
-    if (participant.perks && participant.perks.styles) {
-      participant.perks.styles.forEach(style => {
-        if (style.selections) {
-          style.selections.forEach(selection => {
-            const rune = findRuneById(selection.perk);
-            if (rune) runesSelections.push(rune);
-          });
-        }
-      });
-    }
+  // Obtenir toutes les runes du joueur
+  const runesSelections = [];
+  if (participant.perks && participant.perks.styles) {
+    participant.perks.styles.forEach(style => {
+      if (style.selections) {
+        style.selections.forEach(selection => {
+          const rune = findRuneById(selection.perk);
+          if (rune) runesSelections.push(rune);
+        });
+      }
+    });
+  }
 
-    // Mettre en évidence le joueur consulté
-    const isCurrentPlayer = participant.gameName?.toLowerCase() === gameName.toLowerCase() && 
-                            participant.tagLine?.toLowerCase() === tagLine.toLowerCase();
-    const highlightClass = isCurrentPlayer ? (darkMode ? 'bg-yellow-900/20' : 'bg-yellow-100/50') : '';
+  // Supposons que les 4 premières runes sont les principales et les suivantes sont secondaires
+  const primaryRunes = runesSelections.slice(0, 4);
+  const secondaryRunes = runesSelections.slice(4);
 
-    return (
-      <div 
-        key={participantIndex} 
-        className={`flex flex-row items-center p-2 mb-1 rounded-md ${resultColorClass} border-l-4 ${resultBorderClass} ${highlightClass}`}
-      >
-        {/* Champion + Pseudo */}
-        <div className="w-1/4 flex items-center">
+  // Mettre en évidence le joueur consulté
+  const isCurrentPlayer = participant.gameName?.toLowerCase() === gameName.toLowerCase() && 
+                          participant.tagLine?.toLowerCase() === tagLine.toLowerCase();
+  const highlightClass = isCurrentPlayer ? (darkMode ? 'bg-yellow-900/20' : 'bg-yellow-100/50') : '';
+
+  return (
+    <div 
+      key={participantIndex} 
+      className={`flex flex-row items-center p-4 mb-2 rounded-md ${resultColorClass} border-l-4 ${resultBorderClass} ${highlightClass}`}
+    >
+      {/* Champion + Pseudo */}
+      <div className="w-1/5 flex items-center">
         {participant.championName && (
-        <img 
-          src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/champion/${
-            participant.championName === "FiddleSticks" ? "Fiddlesticks" : participant.championName
-          }.png`} 
-          alt="Champion"
-          className="w-10 h-10 rounded mr-2 flex-shrink-0"
-          onError={(e) => {
-            e.target.style.display = 'none';
-          }}
-        />
-      )}
-          <div className="flex flex-col overflow-hidden">
-            <span className={`font-medium truncate w-full ${isCurrentPlayer ? 'font-bold' : ''}`}>
-              {participant.gameName || `Joueur ${participantIndex + 1}`}
-              {isCurrentPlayer && <span className="ml-1 text-xs">(Vous)</span>}
-            </span>
-            <span className="text-xs opacity-75">#{participant.tagLine}</span>
-          </div>
-        </div>
-
-        {/* KDA + CS + Spells */}
-        <div className="w-1/3 flex items-center space-x-4 flex-shrink-0">
-          {/* KDA */}
-          <div className="flex items-center w-50">
-            <div className='w-30'>
-              <span className={`px-1 py-0 rounded text-[15px] font-medium`}>
-                {participant.kills || 0}
-              </span>
-              <span className="mx-0.5">/</span>
-              <span className={`px-1 py-0 rounded text-[15px] font-medium ${darkMode ? 'text-red-900' : 'text-red-900'}`}>
-                {participant.deaths || 0}
-              </span>
-              <span className="mx-0.5">/</span>
-              <span className={`px-1 py-0 rounded text-[15px] font-medium`}>
-                {participant.assists || 0}
-              </span>
-            </div>
-            <span className="text-[15px] ml-1">
-              {kda} KDA
-            </span>
-          </div>
-
-          {/* CS */}
-          <div className="flex items-center w-30">
-            <div className='w-10'>
-              <span className={`px-1 py-0 rounded text-[15px] items-center font-medium ${darkMode ? 'bg-yellow-900' : 'bg-yellow-200'}`}>
-                {totalCS}
-              </span>
-            </div>
-            <span className="text-[15px] ml-1">
-              {csPerMin}/min
-            </span>
-          </div>
-
-          {/* Spells */}
-          <div className="flex space-x-1">
-            {spell1 && (
-              <img 
-                src={spell1.icon} 
-                alt={spell1.name} 
-                title={spell1.name}
-                className="w-[30px] h-[30px] rounded"
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                }}
-              />
-            )}
-            {spell2 && (
-              <img 
-                src={spell2.icon} 
-                alt={spell2.name}
-                title={spell2.name}
-                className="w-[30px] h-[30px] rounded"
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                }}
-              />
-            )}
-          </div>
-        </div>
-
-        {/* Runes complètes */}
-        <div className="w-5/12 flex items-center justify-end gap-1 flex-shrink-0">
-          {/* Toutes les runes */}
-          {runesSelections.map((rune, idx) => (
+          <div className="relative mr-3 flex-shrink-0">
             <img 
-              key={idx}
-              src={`https://ddragon.leagueoflegends.com/cdn/img/${rune.icon}`}
-              alt={rune.name}
-              title={rune.name}
-              className={idx === 0 ? "w-[30px] h-[30px]" : "w-[25px] h-[25px]"}
+              src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/champion/${
+                participant.championName === "FiddleSticks" ? "Fiddlesticks" : participant.championName
+              }.png`} 
+              alt="Champion"
+              className="w-12 h-12 rounded flex-shrink-0"
+              onError={(e) => {
+                e.target.style.display = 'none';
+              }}
             />
-          ))}
+            {/* Indicateur de niveau du champion */}
+            <div className="absolute bottom-0 right-0 bg-black text-white text-xs font-bold rounded-sm w-5 h-5 flex items-center justify-center border border-gray-600">
+              {participant.championLevel || '?'}
+            </div>
+          </div>
+        )}
+        <div className="flex flex-col overflow-hidden">
+          <span className={`font-medium text-[17px] truncate w-full ${isCurrentPlayer ? 'font-bold' : ''}`}>
+            {participant.gameName || `Joueur ${participantIndex + 1}`}
+            {isCurrentPlayer && <span className="ml-1 text-xs">(Vous)</span>}
+          </span>
+          <span className="text-xs opacity-75 mt-1">#{participant.tagLine}</span>
         </div>
       </div>
-    );
+
+      {/* KDA + CS dans un cadre - MODIFIÉ POUR ALIGNEMENT VERTICAL */}
+      <div className="w-1/6 flex-shrink-0">
+        <div className={`p-2 rounded-md ${darkMode ? 'bg-gray-700/60' : 'bg-gray-300/60'}`}>
+          <div className="flex flex-col space-y-2">
+            {/* Premier bloc: K/D/A */}
+            <div className="flex items-center">
+              <div className="text-xs text-gray-400 w-12">KDA</div>
+              <div className="flex items-center">
+                <span className={`px-1 py-0 rounded text-[17px] font-medium`}>
+                  {participant.kills || 0}
+                </span>
+                <span className="mx-0.5 text-gray-500">/</span>
+                <span className={`px-1 py-0 rounded text-[17px] font-medium ${darkMode ? 'text-red-600' : 'text-red-700'}`}>
+                  {participant.deaths || 0}
+                </span>
+                <span className="mx-0.5 text-gray-500">/</span>
+                <span className={`px-1 py-0 rounded text-[17px] font-medium`}>
+                  {participant.assists || 0}
+                </span>
+                <span className="ml-2 text-sm font-medium">
+                  ({kda})
+                </span>
+              </div>
+            </div>
+            
+            {/* Deuxième bloc: CS - verticalement aligné */}
+            <div className="flex items-center">
+              <div className="text-xs text-gray-400 w-12">CS</div>
+              <div className="flex items-center">
+                <span className={`px-2 py-0.5 rounded text-[17px] font-medium ${darkMode ? 'bg-yellow-900/50 text-yellow-400' : 'bg-yellow-200 text-yellow-800'}`}>
+                  {totalCS}
+                </span>
+                <span className="ml-2 text-sm">
+                  ({csPerMin}/min)
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Spells + Items dans un même cadre */}
+      <div className="w-1/6 flex-shrink-0 ml-5 h-[87px]">
+        <div className={`p-2 rounded-md ${darkMode ? 'bg-gray-700/60' : 'bg-gray-300/60'}`}>
+          <div className="flex items-center h-[70px]">
+            {/* Summoner Spells */}
+            <div className="flex flex-col space-y-1">
+              {spell1 && (
+                <img 
+                  src={spell1.icon} 
+                  alt={spell1.name} 
+                  title={spell1.name}
+                  className="w-[30px] h-[30px] rounded border border-gray-600"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                  }}
+                />
+              )}
+              {spell2 && (
+                <img 
+                  src={spell2.icon} 
+                  alt={spell2.name}
+                  title={spell2.name}
+                  className="w-[30px] h-[30px] rounded border border-gray-600"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                  }}
+                />
+              )}
+            </div>
+            
+            {/* Séparateur visuel */}
+            <div className={`h-16 w-px mx-2 ${darkMode ? 'bg-gray-600' : 'bg-gray-400'}`}></div>
+            
+            {/* Items */}
+            <div className="grid grid-cols-4 gap-1 max-w-[140px]">
+              {participant.items && participant.items.map((itemId, index) => {
+                if (itemId === 0) return (
+                  <div 
+                    key={index} 
+                    className={`w-[30px] h-[30px] rounded ${index === 6 ? 'bg-yellow-800/30' : 'bg-gray-700/50'} border border-gray-600`}
+                  />
+                );
+                
+                return (
+                  <img 
+                    key={index}
+                    src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/item/${itemId}.png`}
+                    alt=""
+                    title={`Item ID: ${itemId}`}
+                    className="w-[30px] h-[30px] rounded border border-gray-600"
+                    onError={(e) => {
+                      e.target.src = '';
+                      e.target.className = `w-[30px] h-[30px] rounded ${index === 6 ? 'bg-yellow-800/30' : 'bg-gray-700/50'} border border-gray-600`;
+                    }}
+                  />
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Runes - taille uniforme et deux lignes */}
+      <div className="w-1/7 flex-shrink-0 ml-5">
+        <div className={`p-2 h-[85px] rounded-md ${darkMode ? 'bg-gray-700/60' : 'bg-gray-300/60'}`}>
+          {/* Runes principales sur la première ligne */}
+          <div className="flex gap-1 mb-1">
+            {primaryRunes.map((rune, idx) => (
+              <img 
+                key={idx}
+                src={`https://ddragon.leagueoflegends.com/cdn/img/${rune.icon}`}
+                alt={rune.name}
+                title={rune.name}
+                className="w-[30px] h-[30px] rounded"
+              />
+            ))}
+          </div>
+          
+          {/* Runes secondaires sur la deuxième ligne */}
+          <div className="flex gap-1">
+            {secondaryRunes.map((rune, idx) => (
+              <img 
+                key={idx}
+                src={`https://ddragon.leagueoflegends.com/cdn/img/${rune.icon}`}
+                alt={rune.name}
+                title={rune.name}
+                className="w-[30px] h-[30px] rounded"
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 if (isLoading) {
@@ -1898,7 +2941,7 @@ if (!matchData?.data?.matchIds || matchData.data.matchIds.length === 0) {
                           e.target.src = `https://ddragon.leagueoflegends.com/cdn/15.6.1/img/profileicon/1.png`;
                         }}
                       />
-                      <div className={`absolute bottom-0 right-0 px-2 py-1 text-xs font-bold rounded-tl-lg ${darkMode ? 'bg-blue-800 text-white' : 'bg-blue-500 text-white'}`}>
+                      <div className={`absolute bottom-0 right-0 px-2 py-1 text-xs font-bold rounded-tl-lg bg-black text-white`}>
                         {playerData.summonerInfo.summonerLevel || "??"}
                       </div>
                     </div>

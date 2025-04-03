@@ -39,53 +39,35 @@ const LeagueLadder = () => {
   // URL de base de l'API (à ajuster selon votre environnement)
   const API_BASE_URL = 'https://walopvgapi-9c205847a91e.herokuapp.com';
   
-  // Fonction pour vérifier si un joueur est en partie
-  const checkPlayerInGame = async (puuid) => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/spectator/${puuid}`);
-      return response.data.success && response.data.data.isInGame;
-    } catch (err) {
-      console.error(`Error live game search for : ${puuid}:`, err);
-      return false;
-    }
-  };
-  
   // Fonction pour vérifier tous les joueurs par lots
   const checkAllPlayersInGame = async () => {
     if (players.length === 0) return;
     
     setIsCheckingGameStatus(true);
-    const inGameStatus = {...playersInGame};
     
-    // Vérifier les joueurs par lots de 5 pour éviter de surcharger l'API
-    const checkBatch = async (startIndex, batchSize) => {
-      const endIndex = Math.min(startIndex + batchSize, players.length);
-      const batchPromises = [];
+    try {
+      // Récupérer tous les PUUIDs des joueurs
+      const puuids = players.filter(player => player.puuid).map(player => player.puuid);
       
-      for (let i = startIndex; i < endIndex; i++) {
-        const player = players[i];
-        if (player.puuid) {
-          batchPromises.push(
-            checkPlayerInGame(player.puuid).then(isInGame => {
-              inGameStatus[player.puuid] = isInGame;
-            })
-          );
-        }
+      // Envoyer une seule requête batch pour tous les joueurs
+      const response = await axios.post(`${API_BASE_URL}/spectator-batch`, { puuids });
+      
+      if (response.data.success) {
+        const gameStatusResults = response.data.data;
+        const newInGameStatus = {};
+        
+        // Mettre à jour le statut en jeu pour chaque joueur
+        Object.keys(gameStatusResults).forEach(puuid => {
+          newInGameStatus[puuid] = gameStatusResults[puuid].isInGame;
+        });
+        
+        setPlayersInGame(newInGameStatus);
       }
-      
-      await Promise.all(batchPromises);
-      setPlayersInGame({...inGameStatus});
-      
-      // Passer au lot suivant s'il en reste
-      if (endIndex < players.length) {
-        setTimeout(() => checkBatch(endIndex, batchSize), 1000); // Délai d'1 seconde entre les lots
-      } else {
-        setIsCheckingGameStatus(false);
-      }
-    };
-    
-    // Commencer à vérifier par lots de 3 joueurs
-    checkBatch(0, 3);
+    } catch (err) {
+      console.error("Erreur lors de la vérification du statut en jeu:", err);
+    } finally {
+      setIsCheckingGameStatus(false);
+    }
   };
   
   // Fonction pour récupérer les données directement depuis la base de données

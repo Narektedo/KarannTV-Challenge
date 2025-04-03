@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Header from '../components/Header';
 
-
 // Fonction pour déterminer la couleur du winrate
 const getWinrateColor = (winRate, darkMode = true) => {
   // Palette simplifiée :
@@ -26,18 +25,22 @@ const getWinrateColor = (winRate, darkMode = true) => {
 // Composant principal pour le système de ladder
 const LeagueLadder = () => {
   const [players, setPlayers] = useState([]);
-  const [activeTab, setActiveTab] = useState('solo'); // 'solo' ou 'flex'
+  const [activeTab, setActiveTab] = useState('solo'); // 'solo', 'global'
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(null);
   const [refreshStatus, setRefreshStatus] = useState(null);
   const [error, setError] = useState(null);
-  // Nouvel état pour suivre les joueurs en partie
   const [playersInGame, setPlayersInGame] = useState({});
   const [isCheckingGameStatus, setIsCheckingGameStatus] = useState(false);
+  const [playerMatchResults, setPlayerMatchResults] = useState({});
+  const [isLoadingMatchHistory, setIsLoadingMatchHistory] = useState(false);
   
   // URL de base de l'API (à ajuster selon votre environnement)
   const API_BASE_URL = 'https://walopvgapi-9c205847a91e.herokuapp.com';
+  
+  // Durée de validité du cache en minutes (1 heure par défaut)
+  const CACHE_EXPIRY_MINUTES = 60;
   
   // Fonction pour vérifier tous les joueurs par lots
   const checkAllPlayersInGame = async () => {
@@ -79,12 +82,27 @@ const LeagueLadder = () => {
     const currentTab = tabOverride !== null ? tabOverride : activeTab;
     
     try {
-      const response = await axios.get(`${API_BASE_URL}/ladder-data`);
+      // Si on veut le ladder global, on utilise un endpoint différent
+      const endpoint = currentTab === 'global' 
+        ? `${API_BASE_URL}/global-ladder-data` 
+        : `${API_BASE_URL}/ladder-data`;
+      
+      const response = await axios.get(endpoint);
       
       if (response.data.success) {
         // Mettre à jour les joueurs selon l'onglet actif
         const ladderData = response.data;
-        const playerData = currentTab === 'solo' ? ladderData.soloQueue : ladderData.flexQueue;
+        
+        // Récupérer les données appropriées selon l'onglet sélectionné
+        let playerData;
+        
+        if (currentTab === 'global') {
+          // Pour l'onglet global, on utilise directement les données
+          playerData = ladderData.players || [];
+        } else {
+          // Pour solo queue, on utilise les données de soloQueue
+          playerData = ladderData.soloQueue;
+        }
         
         // Les données sont déjà triées par rang côté serveur, on les utilise directement
         setPlayers(playerData);
@@ -109,7 +127,12 @@ const LeagueLadder = () => {
     setRefreshStatus("Loading...");
     
     try {
-      const response = await axios.post(`${API_BASE_URL}/refresh-ladder-data`);
+      // Utiliser l'endpoint approprié selon l'onglet actif
+      const endpoint = activeTab === 'global' 
+        ? `${API_BASE_URL}/refresh-global-ladder-data` 
+        : `${API_BASE_URL}/refresh-ladder-data`;
+      
+      const response = await axios.post(endpoint);
       
       if (response.data.success) {
         setRefreshStatus(`Succès: ${response.data.message}`);
@@ -149,6 +172,136 @@ const LeagueLadder = () => {
     if (total === 0) return 0;
     return ((wins / total) * 100).toFixed(1);
   };
+
+  // Fonction pour récupérer les données du cache
+  const getMatchesFromCache = (puuid) => {
+    try {
+      const cachedData = localStorage.getItem(`match_history_${puuid}`);
+      if (!cachedData) return null;
+      
+      const { data, timestamp } = JSON.parse(cachedData);
+      
+      // Vérifier si le cache est expiré
+      const now = new Date().getTime();
+      const cacheAge = (now - timestamp) / (1000 * 60); // Conversion en minutes
+      
+      if (cacheAge > CACHE_EXPIRY_MINUTES) {
+        // Le cache est expiré, on le supprime et retourne null
+        localStorage.removeItem(`match_history_${puuid}`);
+        return null;
+      }
+      
+      return data;
+    } catch (error) {
+      console.error("Erreur lors de la récupération du cache:", error);
+      return null;
+    }
+  };
+
+  // Fonction pour sauvegarder les données dans le cache
+  const saveMatchesToCache = (puuid, data) => {
+    try {
+      const cacheEntry = {
+        data: data,
+        timestamp: new Date().getTime()
+      };
+      
+      localStorage.setItem(`match_history_${puuid}`, JSON.stringify(cacheEntry));
+    } catch (error) {
+      console.error("Erreur lors de la sauvegarde dans le cache:", error);
+    }
+  };
+
+  // Fonction modifiée pour utiliser le cache lors de la récupération de l'historique des parties
+  const fetchPlayersMatchResults = async () => {
+    if (players.length === 0) return;
+    
+    setIsLoadingMatchHistory(true);
+    
+    try {
+      // Récupérer les résultats pour chaque joueur, par lots de 3
+      const batchSize = 3;
+      const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+      const results = { ...playerMatchResults };
+      let apiCallsMade = 0; // Compteur pour suivre le nombre d'appels API réels
+      
+      for (let i = 0; i < players.length; i += batchSize) {
+        const batch = players.slice(i, i + batchSize);
+        const batchPromises = batch.map(async player => {
+          if (!player.puuid) return;
+          
+          // Vérifier d'abord si les données sont dans le cache
+          const cachedMatches = getMatchesFromCache(player.puuid);
+          
+          if (cachedMatches) {
+            // Utiliser les données du cache si disponibles
+            console.log(`Utilisation du cache pour ${player.gameName}`);
+            results[player.puuid] = cachedMatches;
+            return;
+          }
+          
+          // Si pas de cache valide, faire la requête API
+          try {
+            apiCallsMade++; // Incrémenter le compteur d'appels API
+            console.log(`Appel API pour ${player.gameName} (appel #${apiCallsMade})`);
+            
+            const response = await axios.get(`${API_BASE_URL}/recent-matches/${player.puuid}`);
+            if (response.data.success) {
+              const matchData = response.data.data;
+              results[player.puuid] = matchData;
+              
+              // Sauvegarder dans le cache pour les prochaines fois
+              saveMatchesToCache(player.puuid, matchData);
+            }
+          } catch (error) {
+            console.error(`Erreur lors de la récupération de l'historique pour ${player.gameName}:`, error);
+          }
+        });
+        
+        await Promise.all(batchPromises);
+        
+        // Attendre entre chaque lot pour ne pas surcharger l'API
+        // mais seulement si on a fait des appels API dans ce lot
+        if (i + batchSize < players.length && apiCallsMade > 0) {
+          await delay(1000);
+        }
+      }
+      
+      console.log(`Total des appels API: ${apiCallsMade}/${players.length} joueurs`);
+      setPlayerMatchResults(results);
+    } catch (error) {
+      console.error("Erreur lors du chargement de l'historique des parties:", error);
+    } finally {
+      setIsLoadingMatchHistory(false);
+    }
+  };
+
+  // Fonction pour effacer manuellement le cache (utile pour les tests ou en cas de bug)
+  const clearMatchHistoryCache = () => {
+    try {
+      // Récupérer toutes les clés du localStorage qui commencent par "match_history_"
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('match_history_')) {
+          keysToRemove.push(key);
+        }
+      }
+      
+      // Supprimer chaque clé
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+      
+      console.log(`Cache d'historique de matches effacé (${keysToRemove.length} entrées)`);
+      
+      // Rafraîchir les données seulement si on est sur l'onglet Solo Queue
+      if (activeTab !== 'global') {
+        fetchPlayersMatchResults();
+      }
+    } catch (error) {
+      console.error("Erreur lors du nettoyage du cache:", error);
+    }
+  };
+
   
   // Charger les données au démarrage
   useEffect(() => {
@@ -156,8 +309,9 @@ const LeagueLadder = () => {
   }, []);
   
   // Rafraîchir automatiquement le statut des joueurs en partie toutes les 2 minutes
+  // Mais uniquement pour le ladder SoloQueue (pas pour le Global Ladder qui contient trop de joueurs)
   useEffect(() => {
-    if (players.length === 0) return;
+    if (players.length === 0 || activeTab === 'global') return;
     
     // Vérifier immédiatement au chargement
     checkAllPlayersInGame();
@@ -169,7 +323,7 @@ const LeagueLadder = () => {
     
     // Nettoyer l'intervalle lors du démontage du composant
     return () => clearInterval(intervalId);
-  }, [players]);
+  }, [players, activeTab]);
   
   // Rendu du composant
   return (
@@ -190,10 +344,10 @@ const LeagueLadder = () => {
               Solo Queue
             </button>
             <button
-              className={`px-6 py-3 font-medium ${activeTab === 'flex' ? 'bg-blue-700 text-white' : 'bg-gray-800 text-gray-300'}`}
-              onClick={() => handleTabChange('flex')}
+              className={`px-6 py-3 font-medium ${activeTab === 'global' ? 'bg-blue-700 text-white' : 'bg-gray-800 text-gray-300'}`}
+              onClick={() => handleTabChange('global')}
             >
-              Flex Queue
+              Global Ladder
             </button>
           </div>
         </div>
@@ -207,13 +361,21 @@ const LeagueLadder = () => {
               </span>
             )}
           </div>
-          <div className="flex items-center">
+          <div className="flex items-center space-x-2">
             <button
               className="px-4 py-2 bg-green-700 text-white rounded font-medium disabled:opacity-50 hover:bg-green-600 transition"
               onClick={refreshLadderData}
               disabled={isLoading || isRefreshing}
             >
               {isRefreshing ? 'Loading...' : 'Refresh'}
+            </button>
+            {/* Nouveau bouton pour effacer le cache (facultatif, peut être retiré en production) */}
+            <button
+              className="px-4 py-2 bg-red-700 text-white rounded font-medium hover:bg-red-600 transition text-sm"
+              onClick={clearMatchHistoryCache}
+              title="Effacer le cache d'historique des matches"
+            >
+              Vider le cache
             </button>
           </div>
         </div>
@@ -237,15 +399,17 @@ const LeagueLadder = () => {
       <div className="w-full px-4">
         <div className="bg-gray-800 rounded-lg shadow overflow-x-auto w-1/2 mx-auto border border-gray-700">
           <table className="min-w-full">
-            <thead>
-              <tr className="bg-gray-900 text-gray-300 border-b border-gray-700">
-                <th className="px-4 py-3 text-left w-16">Rang</th>
-                <th className="px-4 py-3 text-left">Joueur</th>
-                <th className="px-4 py-3 text-center">Niveau</th>
-                <th className="px-4 py-3 text-center">Rang</th>
-                <th className="px-4 py-3 text-center">Winrate</th>
-              </tr>
-            </thead>
+          <thead>
+            <tr className="bg-gray-900 text-gray-300 border-b border-gray-700">
+              <th className="px-4 py-3 text-left w-16">Rang</th>
+              <th className="px-4 py-3 text-left">Joueur</th>
+              <th className="px-4 py-3 text-center">
+                {activeTab === 'global' ? 'Région' : 'Historique'}
+              </th>
+              <th className="px-4 py-3 text-center">Rang</th>
+              <th className="px-4 py-3 text-center">Winrate</th>
+            </tr>
+          </thead>
             <tbody className="divide-y divide-gray-700">
               {isLoading ? (
                 <tr>
@@ -295,8 +459,14 @@ const LeagueLadder = () => {
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-center">
-                      <span className="font-semibold text-gray-300">{player.summonerLevel || "?"}</span>
+                    <td className="px-4 py-3">
+                      <div className="flex justify-center">
+                        {activeTab === 'global' ? (
+                          <span className="text-gray-400 text-xs">{player.tagLine || "EUW"}</span>
+                        ) : (
+                          <MatchHistoryBar puuid={player.puuid} />
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-center">

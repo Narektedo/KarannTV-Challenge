@@ -7,7 +7,8 @@ import ProfilePage from "./pages/ProfilePage";
 import PageTest from "./pages/pagetest";
 import PageTestWollows from "./pages/pagetestwollows";
 import AccountPage from "./pages/AccountPage";
-import LadderPage from "./pages/LadderPage";
+import SoloQueueLadderPage from "./pages/SoloQueueLadder";
+import GlobalLadderPage from "./pages/GlobalLadder";
 import LiveGamePage from "./pages/LiveGamePage";
 
 export default function App() {
@@ -19,7 +20,8 @@ export default function App() {
 		<Route path="/test" element={<PageTest />} />
 		<Route path="/test2/:gameName/:tagLine" element={<PageTestWollows />} />
 		<Route path="/profiles/:gameName/:tagLine" element={<AccountPage />} />
-		<Route path="/ladder" element={<LadderPage />} />
+		<Route path="/ladder/soloq" element={<SoloQueueLadderPage />} />
+		<Route path="/ladder/global" element={<GlobalLadderPage />} />
 		<Route path="/live/:gameName/:tagLine" element={<LiveGamePage />} />
 
 			</Routes>

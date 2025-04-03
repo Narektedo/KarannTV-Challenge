@@ -20,6 +20,8 @@ const SummonerSpellsPage = () => {
   const [activeTabs, setActiveTabs] = useState({});
   const [championData, setChampionData] = useState(null);
   const [runeImageCache, setRuneImageCache] = useState({});
+  const [playerRanks, setPlayerRanks] = useState({});
+  const [isLoadingRanks, setIsLoadingRanks] = useState(false);
 
   
 
@@ -194,6 +196,7 @@ const SummonerSpellsPage = () => {
       }
   };
 
+  // champion.json
   useEffect(() => {
     const fetchChampionData = async () => {
       // Vérifier si nous avons déjà les données
@@ -216,7 +219,7 @@ const SummonerSpellsPage = () => {
     fetchChampionData();
   }, []); // Dépendances vides pour ne l'exécuter qu'une fois
 
-  // 2. Ajoutez une fonction de préchargement des images de runes
+  // préchargement des images de runes
   useEffect(() => {
     if (!runesData) return;
     
@@ -254,9 +257,221 @@ const SummonerSpellsPage = () => {
     setRuneImageCache(newCache);
     console.log("Cache des images de runes créé:", Object.keys(newCache).length, "runes en cache");
     
-  }, [runesData]); // Dépendance sur runesData pour précharger quand les données sont disponibles
+  }, [runesData]);
 
-  // 3. Créez une nouvelle fonction getRuneImageUrlCached qui utilise le cache
+ // use effect rank player live game section
+  useEffect(() => {
+    // Fonction pour vérifier si deux tableaux de PUUIDs sont identiques
+    const isPuuidArrayEqual = (prevPuuids, newPuuids) => {
+      if (!prevPuuids || prevPuuids.length !== newPuuids.length) return false;
+      const sortedPrev = [...prevPuuids].sort();
+      const sortedNew = [...newPuuids].sort();
+      return sortedPrev.every((puuid, index) => puuid === sortedNew[index]);
+    };
+    
+    if (!spectatorData || !spectatorData.success || !spectatorData.data || !spectatorData.data.isInGame) {
+      return;
+    }
+
+    const { gameInfo } = spectatorData.data;
+    const participants = gameInfo.participants;
+
+    // Extraire les PUUIDs des participants
+    const puuids = participants
+      .filter(p => p.puuid) // Certains joueurs pourraient ne pas avoir de PUUID
+      .map(p => p.puuid);
+
+    if (puuids.length === 0) {
+      return;
+    }
+
+    // Vérifier si nous avons déjà traité cette combinaison exacte de PUUIDs
+    const processedPuuidsStr = localStorage.getItem('processedLiveGamePuuids');
+    const processedTimestamp = localStorage.getItem('processedLiveGameTimestamp');
+    
+    if (processedPuuidsStr && processedTimestamp) {
+      try {
+        const processedPuuids = JSON.parse(processedPuuidsStr);
+        const timestamp = parseInt(processedTimestamp, 10);
+        const now = Date.now();
+        
+        // Si moins de 10 secondes se sont écoulées et que les PUUIDs sont les mêmes, ignorer cette requête
+        if (now - timestamp < 10000 && isPuuidArrayEqual(processedPuuids, puuids)) {
+          console.log("Requête identique ignorée (moins de 10 secondes entre les appels)");
+          return;
+        }
+      } catch (error) {
+        console.error('Erreur lors de la vérification des PUUIDs traités:', error);
+      }
+    }
+    
+    // Marquer cette combinaison comme traitée
+    localStorage.setItem('processedLiveGamePuuids', JSON.stringify(puuids));
+    localStorage.setItem('processedLiveGameTimestamp', Date.now().toString());
+
+    // Vérifier d'abord le stockage local pour les rangs
+    const cachedRanksStr = localStorage.getItem('livePlayerRanks');
+    const cachedTimestamp = localStorage.getItem('livePlayerRanksTimestamp');
+    
+    if (cachedRanksStr && cachedTimestamp) {
+      try {
+        const cachedRanks = JSON.parse(cachedRanksStr);
+        const timestamp = parseInt(cachedTimestamp, 10);
+        const now = Date.now();
+        
+        // Vérifier si le cache est toujours valide (moins d'une heure)
+        if (now - timestamp < 3600000) {
+          // Vérifier si nous avons tous les PUUIDs nécessaires dans le cache
+          const allPuuidsInCache = puuids.every(puuid => cachedRanks[puuid]);
+          
+          if (allPuuidsInCache) {
+            console.log("Utilisation des données de rang en cache");
+            setPlayerRanks(cachedRanks);
+            return;
+          }
+        }
+      } catch (error) {
+        console.error('Erreur lors de la lecture du cache:', error);
+      }
+    }
+
+    // Si nous n'avons pas de données en cache valides, récupérer depuis l'API
+    const fetchPlayerRanks = async () => {
+      let isMounted = true; // Drapeau pour vérifier si le composant est toujours monté
+      
+      try {
+        setIsLoadingRanks(true);
+        
+        const controller = new AbortController();
+        const signal = controller.signal;
+        
+        const response = await fetch('https://walopvgapi-9c205847a91e.herokuapp.com/live-player-ranks', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ puuids }),
+          signal,
+        });
+
+        // Si le composant a été démonté, abandonner
+        if (!isMounted) return;
+
+        if (!response.ok) {
+          throw new Error(`Erreur HTTP: ${response.status}`);
+        }
+
+        const result = await response.json();
+        
+        // Si le composant a été démonté, abandonner
+        if (!isMounted) return;
+        
+        if (result.success && result.data) {
+          console.log("Données de rang récupérées:", result.data);
+          setPlayerRanks(result.data);
+          
+          // Stocker les données dans le stockage local
+          localStorage.setItem('livePlayerRanks', JSON.stringify(result.data));
+          localStorage.setItem('livePlayerRanksTimestamp', Date.now().toString());
+        } else {
+          throw new Error('Réponse invalide de l\'API');
+        }
+      } catch (error) {
+        if (error.name === 'AbortError') {
+          console.log('Requête annulée');
+        } else {
+          console.error('Erreur lors de la récupération des rangs des joueurs:', error);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingRanks(false);
+        }
+      }
+      
+      // Fonction de nettoyage
+      return () => {
+        isMounted = false;
+        controller.abort();
+      };
+    };
+
+    fetchPlayerRanks();
+    
+  }, [spectatorData]);
+
+  // Fonction pour obtenir l'URL de l'icône de rang (live game section)
+  const getTierImageUrl = (tier) => {
+    if (!tier) return '';
+    
+    const tierLower = tier.toLowerCase();
+    return `https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-mini-crests/${tierLower}.png`;
+  };
+
+  // Fonction pour afficher les informations de rang d'un joueur (live game section)
+  const renderPlayerRank = (puuid) => {
+    if (!puuid || !playerRanks[puuid]) {
+      return (
+        <div className={`ml-2 flex items-center ${darkMode ? 'bg-gray-800/50' : 'bg-gray-200/70'} rounded p-1 min-w-[100px] justify-center`}>
+          <span className="text-xs">{isLoadingRanks ? 'Chargement...' : 'Non classé'}</span>
+        </div>
+      );
+    }
+  
+    const playerData = playerRanks[puuid];
+    
+    // Si le joueur a une erreur, l'afficher
+    if (playerData.error) {
+      return (
+        <div className={`ml-2 flex items-center ${darkMode ? 'bg-gray-800/50' : 'bg-gray-200/70'} rounded p-1 min-w-[100px] justify-center`}>
+          <span className="text-xs text-red-500">Erreur</span>
+        </div>
+      );
+    }
+    
+    // Prioriser SoloQ, utiliser FlexQ comme fallback
+    const rankData = playerData.soloQ || playerData.flexQ;
+    
+    if (!rankData) {
+      return (
+        <div className={`ml-2 flex items-center ${darkMode ? 'bg-gray-800/50' : 'bg-gray-200/70'} rounded p-1 min-w-[100px] justify-center`}>
+          <span className="text-xs">Non classé</span>
+        </div>
+      );
+    }
+    
+    // Déterminer si c'est un rang APEX (Master, Grandmaster, Challenger)
+    const isApexRank = ['MASTER', 'GRANDMASTER', 'CHALLENGER'].includes(rankData.tier);
+    
+    // Appliquer le code couleur pour le winrate
+    const winrateColorClass = getWinrateColor(rankData.winRate, darkMode);
+    
+    return (
+      <div className={`ml-2 w-1/3 flex items-center ${darkMode ? 'bg-gray-800/50' : 'bg-gray-200/70'} rounded p-1`}>
+        <img
+          src={getTierImageUrl(rankData.tier)}
+          alt={rankData.tier}
+          className="w-10 h-10 mr-1"
+          onError={(e) => { 
+            e.target.style.display = 'none';
+            e.target.nextSibling.classList.add('ml-0');
+          }}
+        />
+        <div className="flex flex-col">
+          <div className="text-[15px]">
+            {rankData.tier} {!isApexRank ? rankData.rank : ''} {rankData.leaguePoints} LP
+          </div>
+          <div className="text-xs">
+            <span className={winrateColorClass}>{rankData.winRate}% WR</span>
+          </div>
+          <div className="text-xs">
+            <span className={darkMode ? 'text-blue-400' : 'text-blue-600'}>{rankData.wins}W</span> <span className={darkMode ? 'text-red-400' : 'text-red-600'}>{rankData.losses}L</span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // fonction getRuneImageUrlCached qui utilise le cache
   const getRuneImageUrlCached = useCallback((runeId) => {
     // Si l'URL est dans le cache, l'utiliser
     if (runeImageCache[runeId]) {
@@ -274,7 +489,7 @@ const SummonerSpellsPage = () => {
     return "";
   }, [runeImageCache]);
 
-  // 4. Modifiez le composant RuneIcon pour utiliser le cache d'URLs
+  // composant RuneIcon pour utiliser le cache d'URLs
   const RuneIcon = React.memo(({ rune, className, title }) => {
     // Si rune est un objet complet avec icon
     if (rune && rune.icon) {
@@ -360,6 +575,7 @@ const SummonerSpellsPage = () => {
       };
   };
 
+  // couleur du winrate (personne l'a vu venir)
   const getWinrateColor = (winRate, darkMode = true) => {
       // Palette simplifiée :
       // En dessous de 50% : rouge (de plus en plus intense)
@@ -379,7 +595,7 @@ const SummonerSpellsPage = () => {
       return darkMode ? 'text-red-600' : 'text-red-800'; // Rouge très foncé pour les winrates très faibles
   };
   
-  // 5. Modifiez également StatModIcon de la même manière
+  // icon des statPerks
   const StatModIcon = React.memo(({ statMod, className, title }) => {
       if (statMod && statMod.icon) {
         const iconUrl = `https://ddragon.leagueoflegends.com/cdn/img/${statMod.icon}`;
@@ -538,7 +754,6 @@ const SummonerSpellsPage = () => {
       localStorage.setItem('darkMode', newMode.toString());
   };
 
-  // 7. Optimisez la fonction renderMatchSummary pour éviter les calculs répétés
   // Préparez les données des runes au moment de l'ouverture/fermeture du match
   const toggleMatchDetails = (matchIndex) => {
     // Préparer les données des runes pour tous les participants si on ouvre les détails
@@ -1142,559 +1357,6 @@ const SummonerSpellsPage = () => {
       );
   };
 
-  // Fonction pour rendre la carte d'un joueur avec ses dégâts (dans la vue détaillée)
-  const renderPlayerDamageCard = (participant, match, matchIndex, participantIndex) => {
-    // Vérifier si le joueur est le joueur consulté
-    const isCurrentPlayer = participant.gameName?.toLowerCase() === gameName.toLowerCase() && 
-                            participant.tagLine?.toLowerCase() === tagLine.toLowerCase();
-    const highlightClass = isCurrentPlayer ? (darkMode ? 'bg-yellow-900/20' : 'bg-yellow-100/50') : '';
-
-    // Calculer si le joueur a gagné
-    const hasWon = participant.win;
-    
-    // Utiliser une couleur de fond grise indépendamment de l'équipe gagnante
-    const resultColorClass = darkMode ? 'bg-gray-800/80' : 'bg-gray-200/80';
-    
-    // Garder la bordure colorée selon victoire/défaite
-    const resultBorderClass = hasWon 
-      ? (darkMode ? 'border-blue-700' : 'border-blue-500') 
-      : (darkMode ? 'border-red-800' : 'border-red-500');
-
-    // Extraire les données de dégâts
-    const damageDealt = participant.damageDealt || {
-      totalDamageDealtToChampions: 0,
-      magicDamageDealtToChampions: 0,
-      physicalDamageDealtToChampions: 0,
-      trueDamageDealtToChampions: 0
-    };
-    
-    const damageTaken = participant.damageTaken || {
-      totalDamageTaken: 0,
-      magicDamageTaken: 0,
-      physicalDamageTaken: 0,
-      trueDamageTaken: 0
-    };
-    
-    const damageToStructures = participant.damageToStructures || {
-      damageDealtToTurrets: 0,
-      damageDealtToBuildings: 0,
-      turretTakedowns: 0,
-      inhibitorTakedowns: 0
-    };
-
-    // Calculer les pourcentages pour les graphiques à barres
-    const getPercentage = (value, total) => total > 0 ? (value / total) * 100 : 0;
-    
-    // Trouver le total de dégâts le plus élevé dans l'équipe pour échelle relative
-    const teamId = participant.teamId;
-    const teamPlayers = match.participants.filter(p => p.teamId === teamId);
-    const maxTeamDamageDealt = Math.max(...teamPlayers.map(p => p.damageDealt?.totalDamageDealtToChampions || 0));
-    const maxTeamDamageTaken = Math.max(...teamPlayers.map(p => p.damageTaken?.totalDamageTaken || 0));
-    const maxTeamStructureDamage = Math.max(...teamPlayers.map(p => p.damageToStructures?.damageDealtToTurrets || 0));
-
-    // Fonction pour formater les grands nombres
-    const formatNumber = (num) => {
-      if (num >= 1000) {
-        return (num / 1000).toFixed(1) + 'k';
-      }
-      return num.toString();
-    };
-
-    return (
-      <div 
-        key={participantIndex} 
-        className={`flex flex-col p-4 mb-2 rounded-md ${resultColorClass} border-l-4 ${resultBorderClass} ${highlightClass}`}
-      >
-        {/* En-tête: Champion + Pseudo */}
-        <div className="flex items-center mb-3">
-          {participant.championName && (
-            <div className="relative mr-3 flex-shrink-0">
-              <img 
-                src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/champion/${
-                  participant.championName === "FiddleSticks" ? "Fiddlesticks" : participant.championName
-                }.png`} 
-                alt="Champion"
-                className="w-12 h-12 rounded flex-shrink-0"
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                }}
-              />
-              {/* Indicateur de niveau du champion */}
-              <div className="absolute bottom-0 right-0 bg-black text-white text-xs font-bold rounded-sm w-5 h-5 flex items-center justify-center border border-gray-600">
-                {participant.championLevel || '?'}
-              </div>
-            </div>
-          )}
-          <div className="flex flex-col overflow-hidden">
-            <span className={`font-medium text-[17px] truncate w-full ${isCurrentPlayer ? 'font-bold' : ''}`}>
-              {participant.gameName || `Joueur ${participantIndex + 1}`}
-              {isCurrentPlayer && <span className="ml-1 text-xs">(Vous)</span>}
-            </span>
-            <span className="text-xs opacity-75 mt-1">#{participant.tagLine}</span>
-          </div>
-          
-          {/* KDA à droite */}
-          <div className="ml-auto">
-            <div className="flex items-center">
-              <span className={`font-medium`}>
-                {participant.kills || 0}
-              </span>
-              <span className="mx-0.5 text-gray-500">/</span>
-              <span className={`font-medium ${darkMode ? 'text-red-600' : 'text-red-700'}`}>
-                {participant.deaths || 0}
-              </span>
-              <span className="mx-0.5 text-gray-500">/</span>
-              <span className={`font-medium`}>
-                {participant.assists || 0}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Section des dégâts avec graphiques à barres */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Dégâts infligés aux champions */}
-          <div className={`p-3 rounded-md ${darkMode ? 'bg-gray-700/70' : 'bg-gray-300/70'}`}>
-            <h4 className="text-sm font-semibold mb-2">Dégâts infligés</h4>
-            <div className="flex justify-between items-center mb-1">
-              <span className="text-xs">Total</span>
-              <span className="text-sm font-medium">{formatNumber(damageDealt.totalDamageDealtToChampions)}</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 mb-3">
-              <div 
-                className="bg-blue-600 h-2.5 rounded-full" 
-                style={{ width: `${(damageDealt.totalDamageDealtToChampions / maxTeamDamageDealt) * 100}%` }}
-              ></div>
-            </div>
-
-            {/* Types de dégâts */}
-            <div className="flex flex-col space-y-1">
-              {/* Dégâts physiques */}
-              <div className="flex justify-between items-center">
-                <div className="flex items-center">
-                  <div className="w-2 h-2 rounded-full bg-red-500 mr-1"></div>
-                  <span className="text-xs">Physique</span>
-                </div>
-                <span className="text-xs">{formatNumber(damageDealt.physicalDamageDealtToChampions)}</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-1.5 dark:bg-gray-700">
-                <div 
-                  className="bg-red-500 h-1.5 rounded-full" 
-                  style={{ width: `${getPercentage(damageDealt.physicalDamageDealtToChampions, damageDealt.totalDamageDealtToChampions)}%` }}
-                ></div>
-              </div>
-
-              {/* Dégâts magiques */}
-              <div className="flex justify-between items-center">
-                <div className="flex items-center">
-                  <div className="w-2 h-2 rounded-full bg-blue-500 mr-1"></div>
-                  <span className="text-xs">Magique</span>
-                </div>
-                <span className="text-xs">{formatNumber(damageDealt.magicDamageDealtToChampions)}</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-1.5 dark:bg-gray-700">
-                <div 
-                  className="bg-blue-500 h-1.5 rounded-full" 
-                  style={{ width: `${getPercentage(damageDealt.magicDamageDealtToChampions, damageDealt.totalDamageDealtToChampions)}%` }}
-                ></div>
-              </div>
-
-              {/* Dégâts réels */}
-              <div className="flex justify-between items-center">
-                <div className="flex items-center">
-                  <div className="w-2 h-2 rounded-full bg-white mr-1"></div>
-                  <span className="text-xs">Réel</span>
-                </div>
-                <span className="text-xs">{formatNumber(damageDealt.trueDamageDealtToChampions)}</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-1.5 dark:bg-gray-700">
-                <div 
-                  className="bg-white h-1.5 rounded-full" 
-                  style={{ width: `${getPercentage(damageDealt.trueDamageDealtToChampions, damageDealt.totalDamageDealtToChampions)}%` }}
-                ></div>
-              </div>
-            </div>
-          </div>
-
-          {/* Dégâts reçus */}
-          <div className={`p-3 rounded-md ${darkMode ? 'bg-gray-700/70' : 'bg-gray-300/70'}`}>
-            <h4 className="text-sm font-semibold mb-2">Dégâts reçus</h4>
-            <div className="flex justify-between items-center mb-1">
-              <span className="text-xs">Total</span>
-              <span className="text-sm font-medium">{formatNumber(damageTaken.totalDamageTaken)}</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 mb-3">
-              <div 
-                className="bg-red-600 h-2.5 rounded-full" 
-                style={{ width: `${(damageTaken.totalDamageTaken / maxTeamDamageTaken) * 100}%` }}
-              ></div>
-            </div>
-
-            {/* Types de dégâts reçus */}
-            <div className="flex flex-col space-y-1">
-              {/* Dégâts physiques */}
-              <div className="flex justify-between items-center">
-                <div className="flex items-center">
-                  <div className="w-2 h-2 rounded-full bg-red-500 mr-1"></div>
-                  <span className="text-xs">Physique</span>
-                </div>
-                <span className="text-xs">{formatNumber(damageTaken.physicalDamageTaken)}</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-1.5 dark:bg-gray-700">
-                <div 
-                  className="bg-red-500 h-1.5 rounded-full" 
-                  style={{ width: `${getPercentage(damageTaken.physicalDamageTaken, damageTaken.totalDamageTaken)}%` }}
-                ></div>
-              </div>
-
-              {/* Dégâts magiques */}
-              <div className="flex justify-between items-center">
-                <div className="flex items-center">
-                  <div className="w-2 h-2 rounded-full bg-blue-500 mr-1"></div>
-                  <span className="text-xs">Magique</span>
-                </div>
-                <span className="text-xs">{formatNumber(damageTaken.magicDamageTaken)}</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-1.5 dark:bg-gray-700">
-                <div 
-                  className="bg-blue-500 h-1.5 rounded-full" 
-                  style={{ width: `${getPercentage(damageTaken.magicDamageTaken, damageTaken.totalDamageTaken)}%` }}
-                ></div>
-              </div>
-
-              {/* Dégâts réels */}
-              <div className="flex justify-between items-center">
-                <div className="flex items-center">
-                  <div className="w-2 h-2 rounded-full bg-white mr-1"></div>
-                  <span className="text-xs">Réel</span>
-                </div>
-                <span className="text-xs">{formatNumber(damageTaken.trueDamageTaken)}</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-1.5 dark:bg-gray-700">
-                <div 
-                  className="bg-white h-1.5 rounded-full" 
-                  style={{ width: `${getPercentage(damageTaken.trueDamageTaken, damageTaken.totalDamageTaken)}%` }}
-                ></div>
-              </div>
-            </div>
-          </div>
-
-          {/* Dégâts aux structures */}
-          <div className={`p-3 rounded-md ${darkMode ? 'bg-gray-700/70' : 'bg-gray-300/70'}`}>
-            <h4 className="text-sm font-semibold mb-2">Dégâts aux structures</h4>
-            <div className="flex justify-between items-center mb-1">
-              <span className="text-xs">Total</span>
-              <span className="text-sm font-medium">{formatNumber(damageToStructures.damageDealtToTurrets)}</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 mb-3">
-              <div 
-                className="bg-yellow-600 h-2.5 rounded-full" 
-                style={{ width: `${(damageToStructures.damageDealtToTurrets / maxTeamStructureDamage) * 100}%` }}
-              ></div>
-            </div>
-
-            {/* Statistiques des structures */}
-            <div className="grid grid-cols-2 gap-2 mt-4">
-              <div className={`p-2 rounded ${darkMode ? 'bg-gray-800' : 'bg-gray-200'} text-center`}>
-                <div className="text-xl font-bold">{damageToStructures.turretTakedowns}</div>
-                <div className="text-xs opacity-75">Tours détruites</div>
-              </div>
-              <div className={`p-2 rounded ${darkMode ? 'bg-gray-800' : 'bg-gray-200'} text-center`}>
-                <div className="text-xl font-bold">{damageToStructures.inhibitorTakedowns}</div>
-                <div className="text-xs opacity-75">Inhibs détruits</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  // Fonction pour rendre le graphique à barres des dégâts avec les modifications demandées
-  const renderDamageGraph = (match, matchIndex) => {
-    // État pour suivre si la souris survole la zone du graphique
-    const [isHovering, setIsHovering] = useState(false);
-
-    // Déterminer quel type de statistique afficher
-    const damageType = activeTabs[matchIndex + '_damageType'] || 'champions';
-    
-    // Fonction pour obtenir la valeur de dégâts en fonction du type sélectionné
-    const getDamageValue = (participant) => {
-      if (damageType === 'champions') {
-        return participant.damageDealt?.totalDamageDealtToChampions || 0;
-      } else if (damageType === 'towers') {
-        return participant.damageToStructures?.damageDealtToTurrets || 0;
-      } else if (damageType === 'taken') {
-        return participant.damageTaken?.totalDamageTaken || 0;
-      }
-      return 0;
-    };
-    
-    // Obtenir le titre du graphique en fonction du type sélectionné
-    const getGraphTitle = () => {
-      if (damageType === 'champions') {
-        return "Dégâts infligés aux champions";
-      } else if (damageType === 'towers') {
-        return "Dégâts infligés aux structures";
-      } else if (damageType === 'taken') {
-        return "Dégâts encaissés";
-      }
-      return "";
-    };
-    
-    // Trouver la valeur maximale pour établir l'échelle
-    const maxDamage = Math.max(...match.participants.map(p => getDamageValue(p)));
-    
-    // Calculer les graduations
-    const graduations = [];
-    const numGraduations = 5;
-    for (let i = 1; i <= numGraduations; i++) {
-      graduations.push({
-        percentage: (i / numGraduations) * 100,
-        value: Math.round((i / numGraduations) * maxDamage)
-      });
-    }
-    
-    // Fonction pour formater les grands nombres
-    const formatNumber = (num) => {
-      if (num >= 1000) {
-        return (num / 1000).toFixed(1) + 'k';
-      }
-      return num.toString();
-    };
-    
-    // Fonction pour obtenir les détails de dégâts en fonction du type
-    const getDamageDetails = (participant) => {
-      if (damageType === 'champions') {
-        return {
-          physical: participant.damageDealt?.physicalDamageDealtToChampions || 0,
-          magic: participant.damageDealt?.magicDamageDealtToChampions || 0,
-          true: participant.damageDealt?.trueDamageDealtToChampions || 0
-        };
-      } else if (damageType === 'taken') {
-        return {
-          physical: participant.damageTaken?.physicalDamageTaken || 0,
-          magic: participant.damageTaken?.magicDamageTaken || 0,
-          true: participant.damageTaken?.trueDamageTaken || 0
-        };
-      }
-      // Pour les tours, on n'a pas de répartition des types de dégâts, donc on renvoie juste la valeur totale
-      return {
-        physical: 0,
-        magic: 0,
-        true: 0
-      };
-    };
-    
-    return (
-      <div 
-        className={`p-4 rounded-lg ${darkMode ? 'bg-gray-800/50' : 'bg-gray-100/80'}`}
-        onMouseEnter={() => setIsHovering(true)}
-        onMouseLeave={() => setIsHovering(false)}
-      >
-        <h3 className="text-lg font-semibold text-center mb-4">{getGraphTitle()}</h3>
-        
-        {/* Conteneur pour les graduations et les barres */}
-        <div className="relative">
-          {/* Graduations */}
-          <div className="absolute top-0 bottom-0 left-0 right-0 flex pointer-events-none">
-            {graduations.map((grad, idx) => (
-              <div 
-                key={idx} 
-                className="absolute h-full border-l border-dashed flex items-center justify-center"
-                style={{ left: `${grad.percentage}%`, borderColor: darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}
-              >
-                <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'} ml-1`}>
-                  {formatNumber(grad.value)}
-                </span>
-              </div>
-            ))}
-          </div>
-          
-          {/* Équipe A (100) */}
-          <div className="mb-6 relative">
-            <div className={`font-semibold mb-2 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
-              Équipe bleue {match.winningTeam === 100 && "👑"}
-            </div>
-            
-            <div className="space-y-3">
-              {match.participants
-                .filter(p => p.teamId === 100)
-                .sort((a, b) => getDamageValue(b) - getDamageValue(a)) // Trier par valeur décroissante
-                .map((participant, idx) => {
-                  const damageValue = getDamageValue(participant);
-                  const percentage = maxDamage > 0 ? (damageValue / maxDamage) * 100 : 0;
-                  const damageDetails = getDamageDetails(participant);
-                  
-                  // Calculer les pourcentages pour chaque type de dégât
-                  const totalDamage = damageValue;
-                  const physicalPercentage = totalDamage > 0 ? (damageDetails.physical / totalDamage) * 100 : 0;
-                  const magicPercentage = totalDamage > 0 ? (damageDetails.magic / totalDamage) * 100 : 0;
-                  const truePercentage = totalDamage > 0 ? (damageDetails.true / totalDamage) * 100 : 0;
-                  
-                  return (
-                    <div key={idx} className="flex items-center">
-                      {/* Champion icon sans niveau et pseudo */}
-                      <div className="w-10 h-10 mr-2 flex-shrink-0 relative">
-                        <img 
-                          src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/champion/${
-                            participant.championName === "FiddleSticks" ? "Fiddlesticks" : participant.championName
-                          }.png`} 
-                          alt={participant.championName || "Champion"}
-                          className="w-full h-full rounded"
-                          onError={(e) => { e.target.style.display = 'none'; }}
-                        />
-                      </div>
-                      
-                      {/* Bar container */}
-                      <div className="flex-grow relative h-7 group">
-                        {/* Background bar - gris par défaut */}
-                        <div 
-                          className={`h-full rounded ${darkMode ? 'bg-gray-600' : 'bg-gray-400'} relative`} 
-                          style={{ width: `${Math.max(percentage, 2)}%` }}
-                        >
-                          {/* Afficher le chiffre à la fin de la barre uniquement lorsqu'on survole le graphique */}
-                          {isHovering && (
-                            <div className="absolute right-[-45px] top-1/2 transform -translate-y-1/2 text-sm font-medium">
-                              {formatNumber(damageValue)}
-                            </div>
-                          )}
-                          
-                          {/* Pour les dégâts aux champions, afficher la répartition colorée */}
-                          {damageType !== 'towers' && (
-                            <div className="absolute top-0 left-0 h-full w-full opacity-0 group-hover:opacity-100 transition-opacity">
-                              <div className="relative h-full w-full">
-                                {/* Physical damage (red) */}
-                                <div 
-                                  className="h-full bg-red-500 absolute top-0 left-0 rounded-l flex items-center"
-                                  style={{ width: `${physicalPercentage}%` }}
-                                >
-                                  <span className="text-xs font-medium ml-1 text-white">{formatNumber(damageDetails.physical)}</span>
-                                </div>
-                                
-                                {/* Magic damage (blue) */}
-                                <div 
-                                  className="h-full bg-blue-500 absolute top-0 left-0 rounded-l flex items-center"
-                                  style={{ width: `${magicPercentage}%`, marginLeft: `${physicalPercentage}%` }}
-                                >
-                                  <span className="text-xs font-medium ml-1 text-white">{formatNumber(damageDetails.magic)}</span>
-                                </div>
-                                
-                                {/* True damage (white) */}
-                                <div 
-                                  className="h-full bg-white absolute top-0 left-0 rounded-l flex items-center"
-                                  style={{ 
-                                    width: `${truePercentage}%`, 
-                                    marginLeft: `${physicalPercentage + magicPercentage}%` 
-                                  }}
-                                >
-                                  <span className="text-xs font-medium ml-1 text-gray-800">{formatNumber(damageDetails.true)}</span>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-            </div>
-          </div>
-          
-          {/* Équipe B (200) */}
-          <div className="relative">
-            <div className={`font-semibold mb-2 ${darkMode ? 'text-red-400' : 'text-red-600'}`}>
-              Équipe rouge {match.winningTeam === 200 && "👑"}
-            </div>
-            
-            <div className="space-y-3">
-              {match.participants
-                .filter(p => p.teamId === 200)
-                .sort((a, b) => getDamageValue(b) - getDamageValue(a)) // Trier par valeur décroissante
-                .map((participant, idx) => {
-                  const damageValue = getDamageValue(participant);
-                  const percentage = maxDamage > 0 ? (damageValue / maxDamage) * 100 : 0;
-                  const damageDetails = getDamageDetails(participant);
-                  
-                  // Calculer les pourcentages pour chaque type de dégât
-                  const totalDamage = damageValue;
-                  const physicalPercentage = totalDamage > 0 ? (damageDetails.physical / totalDamage) * 100 : 0;
-                  const magicPercentage = totalDamage > 0 ? (damageDetails.magic / totalDamage) * 100 : 0;
-                  const truePercentage = totalDamage > 0 ? (damageDetails.true / totalDamage) * 100 : 0;
-                  
-                  return (
-                    <div key={idx} className="flex items-center">
-                      {/* Champion icon sans niveau et pseudo */}
-                      <div className="w-10 h-10 mr-2 flex-shrink-0 relative">
-                        <img 
-                          src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/champion/${
-                            participant.championName === "FiddleSticks" ? "Fiddlesticks" : participant.championName
-                          }.png`} 
-                          alt={participant.championName || "Champion"}
-                          className="w-full h-full rounded"
-                          onError={(e) => { e.target.style.display = 'none'; }}
-                        />
-                      </div>
-                      
-                      {/* Bar container */}
-                      <div className="flex-grow relative h-7 group">
-                        {/* Background bar - gris par défaut */}
-                        <div 
-                          className={`h-full rounded ${darkMode ? 'bg-gray-600' : 'bg-gray-400'} relative`} 
-                          style={{ width: `${Math.max(percentage, 2)}%` }}
-                        >
-                          {/* Afficher le chiffre à la fin de la barre uniquement lorsqu'on survole le graphique */}
-                          {isHovering && (
-                            <div className="absolute right-[-45px] top-1/2 transform -translate-y-1/2 text-sm font-medium">
-                              {formatNumber(damageValue)}
-                            </div>
-                          )}
-                          
-                          {/* Pour les dégâts aux champions, afficher la répartition colorée */}
-                          {damageType !== 'towers' && (
-                            <div className="absolute top-0 left-0 h-full w-full opacity-0 group-hover:opacity-100 transition-opacity">
-                              <div className="relative h-full w-full">
-                                {/* Physical damage (red) */}
-                                <div 
-                                  className="h-full bg-red-500 absolute top-0 left-0 rounded-l flex items-center"
-                                  style={{ width: `${physicalPercentage}%` }}
-                                >
-                                  <span className="text-xs font-medium ml-1 text-white">{formatNumber(damageDetails.physical)}</span>
-                                </div>
-                                
-                                {/* Magic damage (blue) */}
-                                <div 
-                                  className="h-full bg-blue-500 absolute top-0 left-0 rounded-l flex items-center"
-                                  style={{ width: `${magicPercentage}%`, marginLeft: `${physicalPercentage}%` }}
-                                >
-                                  <span className="text-xs font-medium ml-1 text-white">{formatNumber(damageDetails.magic)}</span>
-                                </div>
-                                
-                                {/* True damage (white) */}
-                                <div 
-                                  className="h-full bg-white absolute top-0 left-0 rounded-l flex items-center"
-                                  style={{ 
-                                    width: `${truePercentage}%`, 
-                                    marginLeft: `${physicalPercentage + magicPercentage}%` 
-                                  }}
-                                >
-                                  <span className="text-xs font-medium ml-1 text-gray-800">{formatNumber(damageDetails.true)}</span>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   // Créez un composant DamageGraph séparé
   const DamageGraph = React.memo(({ match, matchIndex, darkMode, activeTabs }) => {    // État pour suivre si la souris survole la zone du graphique
     const [isHovering, setIsHovering] = useState(false);
@@ -1997,914 +1659,855 @@ const SummonerSpellsPage = () => {
     );
   });
 
-// Composant LiveGameSection complet avec toutes les modifications
-const LiveGameSection = React.memo(({ spectatorData, isLoading, darkMode, gameName, championData }) => {
-  // État pour stocker la durée actuelle de la partie en secondes
-  const [currentGameDuration, setCurrentGameDuration] = useState(0);
-  
-  const championMap = useMemo(() => {
-    if (!championData || !championData.data) return {};
+  // Composant LiveGameSection complet avec toutes les modifications
+  const LiveGameSection = React.memo(({ spectatorData, isLoading, darkMode, gameName, championData }) => {
+    // État pour stocker la durée actuelle de la partie en secondes
+    const [currentGameDuration, setCurrentGameDuration] = useState(0);
     
-    const mapping = {};
-    Object.values(championData.data).forEach(champion => {
-      mapping[champion.key] = champion.id;
-    });
-    return mapping;
-  }, [championData]);
-
-  // Mapping des summoner spells
-  const summonerSpellsMap = {
-    1: { name: "Cleanse", icon: "https://ddragon.leagueoflegends.com/cdn/15.6.1/img/spell/SummonerBoost.png" },
-    3: { name: "Exhaust", icon: "https://ddragon.leagueoflegends.com/cdn/15.6.1/img/spell/SummonerExhaust.png" },
-    4: { name: "Flash", icon: "https://ddragon.leagueoflegends.com/cdn/15.6.1/img/spell/SummonerFlash.png" },
-    6: { name: "Ghost", icon: "https://ddragon.leagueoflegends.com/cdn/15.6.1/img/spell/SummonerHaste.png" },
-    7: { name: "Heal", icon: "https://ddragon.leagueoflegends.com/cdn/15.6.1/img/spell/SummonerHeal.png" },
-    11: { name: "Smite", icon: "https://ddragon.leagueoflegends.com/cdn/15.6.1/img/spell/SummonerSmite.png" },
-    12: { name: "Teleport", icon: "https://ddragon.leagueoflegends.com/cdn/15.6.1/img/spell/SummonerTeleport.png" },
-    13: { name: "Clarity", icon: "https://ddragon.leagueoflegends.com/cdn/15.6.1/img/spell/SummonerMana.png" },
-    14: { name: "Ignite", icon: "https://ddragon.leagueoflegends.com/cdn/15.6.1/img/spell/SummonerDot.png" },
-    21: { name: "Barrier", icon: "https://ddragon.leagueoflegends.com/cdn/15.6.1/img/spell/SummonerBarrier.png" },
-    32: { name: "Mark", icon: "https://ddragon.leagueoflegends.com/cdn/15.6.1/img/spell/SummonerSnowball.png" },
-    39: { name: "Mark", icon: "https://ddragon.leagueoflegends.com/cdn/15.6.1/img/spell/SummonerSnowURFSnowball_Mark.png" },
-    2201: { name: "Flee", icon: "https://ddragon.leagueoflegends.com/cdn/15.6.1/img/spell/SummonerCherryHold.png"},
-    2202: { name: "CherryFlash", icon: "https://ddragon.leagueoflegends.com/cdn/15.6.1/img/spell/SummonerFlash.png"}
-  };
-
-  // Mettre à jour la durée de la partie en temps réel
-  useEffect(() => {
-    // Si aucune partie en cours ou chargement, pas besoin de timer
-    if (isLoading || !spectatorData || !spectatorData.success || !spectatorData.data || !spectatorData.data.isInGame) {
-      return;
-    }
-    
-    const { gameInfo } = spectatorData.data;
-    
-    // Calculer la durée initiale en secondes
-    let initialDuration = gameInfo.gameLength; // Durée en secondes retournée par l'API
-    
-    // Si gameLength semble incorrect ou n'est pas fourni, calculer depuis gameStartTime
-    if (!initialDuration || initialDuration <= 0) {
-      const gameStartTime = new Date(gameInfo.gameStartTime);
-      const now = new Date();
-      initialDuration = Math.floor((now - gameStartTime) / 1000); // Convertir en secondes
-    }
-    
-    console.log("Durée initiale de la partie:", initialDuration, "secondes");
-    setCurrentGameDuration(initialDuration);
-    
-    // Créer un interval pour mettre à jour la durée chaque seconde
-    const intervalId = setInterval(() => {
-      setCurrentGameDuration(prevDuration => prevDuration + 1);
-    }, 1000);
-    
-    // Nettoyer l'interval lorsque le composant est démonté ou que les données changent
-    return () => clearInterval(intervalId);
-  }, [spectatorData, isLoading]);
-  
-  // Fonction pour formater la durée en minutes:secondes
-  const formatGameDuration = (durationInSeconds) => {
-    const minutes = Math.floor(durationInSeconds / 60);
-    const seconds = durationInSeconds % 60;
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-  };
-  
-  // Fonction pour obtenir l'URL d'image du champion
-  const getChampionImageUrl = (championId) => {
-    // Si nous avons un mapping pour cet ID
-    if (championMap[championId]) {
-      let championName = championMap[championId];
+    const championMap = useMemo(() => {
+      if (!championData || !championData.data) return {};
       
-      // Condition spéciale pour Fiddlesticks
-      if (championName === "FiddleSticks") {
-        championName = "Fiddlesticks"; // Sans le 's' à la fin
+      const mapping = {};
+      Object.values(championData.data).forEach(champion => {
+        mapping[champion.key] = champion.id;
+      });
+      return mapping;
+    }, [championData]);
+
+    // Mapping des summoner spells
+    const summonerSpellsMap = {
+      1: { name: "Cleanse", icon: "https://ddragon.leagueoflegends.com/cdn/15.6.1/img/spell/SummonerBoost.png" },
+      3: { name: "Exhaust", icon: "https://ddragon.leagueoflegends.com/cdn/15.6.1/img/spell/SummonerExhaust.png" },
+      4: { name: "Flash", icon: "https://ddragon.leagueoflegends.com/cdn/15.6.1/img/spell/SummonerFlash.png" },
+      6: { name: "Ghost", icon: "https://ddragon.leagueoflegends.com/cdn/15.6.1/img/spell/SummonerHaste.png" },
+      7: { name: "Heal", icon: "https://ddragon.leagueoflegends.com/cdn/15.6.1/img/spell/SummonerHeal.png" },
+      11: { name: "Smite", icon: "https://ddragon.leagueoflegends.com/cdn/15.6.1/img/spell/SummonerSmite.png" },
+      12: { name: "Teleport", icon: "https://ddragon.leagueoflegends.com/cdn/15.6.1/img/spell/SummonerTeleport.png" },
+      13: { name: "Clarity", icon: "https://ddragon.leagueoflegends.com/cdn/15.6.1/img/spell/SummonerMana.png" },
+      14: { name: "Ignite", icon: "https://ddragon.leagueoflegends.com/cdn/15.6.1/img/spell/SummonerDot.png" },
+      21: { name: "Barrier", icon: "https://ddragon.leagueoflegends.com/cdn/15.6.1/img/spell/SummonerBarrier.png" },
+      32: { name: "Mark", icon: "https://ddragon.leagueoflegends.com/cdn/15.6.1/img/spell/SummonerSnowball.png" },
+      39: { name: "Mark", icon: "https://ddragon.leagueoflegends.com/cdn/15.6.1/img/spell/SummonerSnowURFSnowball_Mark.png" },
+      2201: { name: "Flee", icon: "https://ddragon.leagueoflegends.com/cdn/15.6.1/img/spell/SummonerCherryHold.png"},
+      2202: { name: "CherryFlash", icon: "https://ddragon.leagueoflegends.com/cdn/15.6.1/img/spell/SummonerFlash.png"}
+    };
+
+    // Mettre à jour la durée de la partie en temps réel
+    useEffect(() => {
+      // Si aucune partie en cours ou chargement, pas besoin de timer
+      if (isLoading || !spectatorData || !spectatorData.success || !spectatorData.data || !spectatorData.data.isInGame) {
+        return;
       }
       
-      return `https://ddragon.leagueoflegends.com/cdn/15.6.1/img/champion/${championName}.png`;
-    }
-  };
-    
-  // Fonction pour extraire les informations de runes à partir des données de perks
-  const extractRuneInfo = (perks) => {
-    if (!perks || !perks.perkIds || !perks.perkStyle || !perks.perkSubStyle) {
-      return {
-        keystone: null,
-        primaryRuneTree: null,
-        secondaryRuneTree: null,
-        runeIds: []
-      };
-    } 
-    
-    return {
-      keystone: perks.perkIds[0], // Premier perk = keystone
-      primaryRuneTree: perks.perkStyle,
-      secondaryRuneTree: perks.perkSubStyle,
-      runeIds: perks.perkIds
-    };
-  };
-  
-  // Fonction pour obtenir le nom d'un style de rune à partir de son ID
-  const getRuneStyleName = (styleId) => {
-    const styleNames = {
-      8000: "Precision",
-      8100: "Domination",
-      8200: "Sorcery",
-      8300: "Inspiration",
-      8400: "Resolve"
-    };
-    
-    return styleNames[styleId] || String(styleId);
-  };
-  
-  // Fonction pour obtenir l'URL de l'image d'un style de rune
-  const getRuneStyleImageUrl = (styleId) => {
-    const stylePaths = {
-      8000: "Precision",
-      8100: "Domination",
-      8200: "Sorcery",
-      8300: "Inspiration",
-      8400: "Resolve"
-    };   
-    return "";
-  };
-  
-  // Mapping des IDs de runes vers leurs URLs d'images
-  const runeImageMap = {
-    // Precision (8000)
-    8005: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/PressTheAttack/PressTheAttack.png",
-    8008: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/LethalTempo/LethalTempoTemp.png",
-    8010: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/Conqueror/Conqueror.png",
-    8021: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/FleetFootwork/FleetFootwork.png",
-    9101: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/Overheal.png",
-    9111: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/Triumph.png",
-    8009: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/PresenceOfMind/PresenceOfMind.png",
-    9104: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/LegendAlacrity/LegendAlacrity.png",
-    9103: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/LegendBloodline/LegendBloodline.png",
-    9105: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/LegendHaste/LegendHaste.png",
-    8014: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/CoupDeGrace/CoupDeGrace.png",
-    8017: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/CutDown/CutDown.png",
-    8299: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/LastStand/LastStand.png",
-    
-    // Domination (8100)
-    8112: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/Electrocute/Electrocute.png",
-    8124: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/Predator/Predator.png",
-    8128: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/DarkHarvest/DarkHarvest.png",
-    9923: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/HailOfBlades/HailOfBlades.png",
-    8126: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/CheapShot/CheapShot.png",
-    8139: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/TasteOfBlood/GreenTerror_TasteOfBlood.png",
-    8143: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/SuddenImpact/SuddenImpact.png",
-    8137: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/SixthSense/SixthSense.png",
-    8140: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/GrislyMementos/GrislyMementos.png",
-    8138: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/EyeballCollection/EyeballCollection.png",
-    8135: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/RavenousHunter/RavenousHunter.png",
-    8134: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/IngeniousHunter/IngeniousHunter.png",
-    8105: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/RelentlessHunter/RelentlessHunter.png",
-    8106: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/UltimateHunter/UltimateHunter.png",
-    8141: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/DeepWard/DeepWard.png",
-    
-    // Sorcery (8200)
-    8214: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/SummonAery/SummonAery.png",
-    8229: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/ArcaneComet/ArcaneComet.png",
-    8230: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/PhaseRush/PhaseRush.png",
-    8224: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/NullifyingOrb/Pokeshield.png",
-    8226: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/ManaflowBand/ManaflowBand.png",
-    8243: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/TheUltimateHat/TheUltimateHat.png",
-    8210: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/Transcendence/Transcendence.png",
-    8233: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/AbsoluteFocus/AbsoluteFocus.png",
-    8236: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/GatheringStorm/GatheringStorm.png",
-    8237: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/Scorch/Scorch.png",
-    8232: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/Waterwalking/Waterwalking.png",
-    8234: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/Celerity/CelerityTemp.png",
-    8275: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/NimbusCloak/6361.png",
-    
-    // Resolve (8400)
-    8437: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/GraspOfTheUndying/GraspOfTheUndying.png",
-    8439: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/VeteranAftershock/VeteranAftershock.png",
-    8465: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/Guardian/Guardian.png",
-    8446: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/Demolish/Demolish.png",
-    8463: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/FontOfLife/FontOfLife.png",
-    8401: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/MirrorShell/MirrorShell.png",
-    8429: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/Conditioning/Conditioning.png",
-    8444: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/SecondWind/SecondWind.png",
-    8473: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/BonePlating/BonePlating.png",
-    8451: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/Overgrowth/Overgrowth.png",
-    8453: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/Revitalize/Revitalize.png",
-    8242: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/Unflinching/Unflinching.png",
-    
-    // Inspiration (8300)
-    8351: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Inspiration/GlacialAugment/GlacialAugment.png",
-    8360: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Inspiration/UnsealedSpellbook/UnsealedSpellbook.png",
-    8369: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Inspiration/FirstStrike/FirstStrike.png",
-    8306: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Inspiration/HextechFlashtraption/HextechFlashtraption.png",
-    8304: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Inspiration/MagicalFootwear/MagicalFootwear.png",
-    8313: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Inspiration/PerfectTiming/PerfectTiming.png",
-    8321: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Inspiration/FuturesMarket/FuturesMarket.png",
-    8316: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Inspiration/JackOfAllTrades/JackofAllTrades2.png",
-    8345: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Inspiration/BiscuitDelivery/BiscuitDelivery.png",
-    8347: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Inspiration/CosmicInsight/CosmicInsight.png",
-    8352: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Inspiration/TimeWarpTonic/TimeWarpTonic.png",
-    8410: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/ApproachVelocity/ApproachVelocity.png",
-    
-    // Stats shards
-    5001: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/StatMods/StatModsHealthScalingIcon.png",
-    5002: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/StatMods/StatModsArmorIcon.png",
-    5003: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/StatMods/StatModsMagicResIcon.png",
-    5005: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/StatMods/StatModsAttackSpeedIcon.png",
-    5007: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/StatMods/StatModsCDRScalingIcon.png",
-    5008: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/StatMods/StatModsAdaptiveForceIcon.png",
-    5011: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/StatMods/StatModsHealthScalingIcon.png",
-    5010: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/StatMods/StatModsMovementSpeedIcon.png",
-    5013: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/StatMods/StatModsTenacityIcon.png"
-  };
-  
-  // Fonction pour obtenir l'URL de l'image d'une rune
-  const getRuneImageUrl = (runeId) => {
-    if (runeImageMap[runeId]) {
-      return runeImageMap[runeId];
-    }
-    return "";
-  };
-
-  // Logs pour le débogage
-  if (!spectatorData) {
-    console.log("Pas de données spectateur disponibles");
-  } else if (!spectatorData.success) {
-    console.log("Données spectateur sans succès:", spectatorData);
-  } else if (!spectatorData.data) {
-    console.log("Données spectateur sans data:", spectatorData);
-  } else if (!spectatorData.data.isInGame) {
-    console.log("Joueur pas en partie:", spectatorData.data);
-  }
-
-  if (!spectatorData || !spectatorData.success || !spectatorData.data || !spectatorData.data.isInGame) {
-    return (
-      <div className={`w-full mb-8 p-4 rounded-lg shadow-md ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
-        <div className="flex items-center">
-          <div className={`w-4 h-4 rounded-full ${darkMode ? 'bg-gray-500' : 'bg-gray-400'} mr-2`}></div>
-          <h2 className="text-xl font-bold">Live Game</h2>
-        </div>
-        <p className="mt-2">Ce joueur n'est pas In-Game.</p>
-      </div>
-    );
-  }
-
-  const { gameInfo } = spectatorData.data;
-  
-  // Trouver notre joueur dans la liste des participants
-  const currentPlayer = gameInfo.participants.find(p => 
-    p.puuid === spectatorData.data.puuid || 
-    (p.riotId && p.riotId.includes(gameName))
-  );
-  
-  // Mapper les modes de jeu
-  const getGameModeName = (queueId) => {
-    switch(queueId) {
-      case 400: return 'Normal Draft';
-      case 420: return 'Ranked Solo/Duo';
-      case 430: return 'Normal Blind';
-      case 440: return 'Ranked Flex';
-      case 450: return 'ARAM';
-      case 700: return 'Clash';
-      case 1400: return 'URF';
-      case 1700: return 'Arena';
-      default: return `Mode ${queueId}`;
-    }
-  };
-  
-  // Date de début de partie
-  const gameStartTime = new Date(gameInfo.gameStartTime);
-  const timeSinceStart = Math.floor((new Date() - gameStartTime) / 60000); // En minutes
-  
-  // Trouver les équipes
-  const blueTeam = gameInfo.participants.filter(p => p.teamId === 100);
-  const redTeam = gameInfo.participants.filter(p => p.teamId === 200);
-  
-  // Fonction pour afficher les runes secondaires d'un joueur
-  const renderSecondaryRunes = (perks) => {
-    if (!perks || !perks.perkIds) return null;
-    
-    // Séparer les runes primaires, secondaires et les fragments de statistiques
-    const keystone = perks.perkIds[0];
-    const primaryRunes = perks.perkIds.slice(1, 4); // Runes primaires (sauf keystone)
-    const secondaryRunes = perks.perkIds.slice(4, 6); // Runes secondaires
-    const statShards = perks.perkIds.slice(6); // Fragments de stats
-    
-    return (
-      <div className="flex space-x-1 mt-1">
-        {/* Afficher les runes secondaires */}
-        {secondaryRunes.map((runeId, idx) => (
-          <img
-            key={idx}
-            src={getRuneImageUrl(runeId)}
-            alt={`Rune ${runeId}`}
-            className="w-4 h-4 rounded-full"
-            title={`Rune secondaire ${runeId}`}
-            onError={(e) => { e.target.style.display = 'none'; }}
-          />
-        ))}
-        
-        {/* Afficher les fragments de stats */}
-        {statShards.map((shardId, idx) => (
-          <img
-            key={idx}
-            src={getRuneImageUrl(shardId)}
-            alt={`Shard ${shardId}`}
-            className="w-4 h-4 rounded-full opacity-70"
-            title={`Fragment de stat ${shardId}`}
-            onError={(e) => { e.target.style.display = 'none'; }}
-          />
-        ))}
-      </div>
-    );
-  };
-  
-  return (
-    <div className={`w-full mb-8 rounded-lg shadow-md overflow-hidden ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
-      {/* En-tête de partie en cours */}
-      <div className={`p-4 ${darkMode ? 'bg-green-900' : 'bg-green-600'} text-white`}>
-        <div className="flex items-center">
-          <div className="w-3 h-3 rounded-full bg-green-400 animate-pulse mr-2"></div>
-          <h2 className="text-xl font-bold">Partie en cours</h2>
-        </div>
-        <div className="flex justify-between items-center mt-1">
-          <div>
-            <span className="font-medium">{getGameModeName(gameInfo.gameQueueConfigId)}</span>
-            <span className="mx-2">•</span>
-            {/* Afficher la durée en temps réel */}
-            <span className="font-mono">{formatGameDuration(currentGameDuration)}</span>
-            <span className="mx-2">•</span>
-            <span>Started Since {timeSinceStart} min</span>
-          </div>
-          {gameInfo.observers && gameInfo.observers.encryptionKey && (
-            <div>
-              <button 
-                className={`px-3 py-1 rounded-full text-sm ${
-                  darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-green-700 hover:bg-green-800'
-                }`}
-                onClick={() => {
-                  navigator.clipboard.writeText(gameInfo.observers.encryptionKey);
-                  alert('Clé de spectateur copiée dans le presse-papier');
-                }}
-              >
-                Spectate
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
+      const { gameInfo } = spectatorData.data;
       
-      {/* Contenu de la partie */}
-      <div className="p-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Équipe bleue */}
-          <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-900/30' : 'bg-gray-100'}`}>
-            <h3 className="font-bold text-lg mb-2 text-center">Blue Side</h3>
-            <div className="space-y-2">
-              {blueTeam.map((player, idx) => (
-                <div 
-                  key={idx} 
-                  className={`p-2 rounded ${
-                    player.puuid === spectatorData.data.puuid || (player.riotId && player.riotId.includes(gameName))
-                      ? (darkMode ? 'bg-yellow-900/20' : 'bg-yellow-100')
-                      : ''
-                  }`}
-                >
-                  {/* Pseudo du joueur en haut */}
-                  <div className="font-medium mb-2">{player.riotId ? player.riotId.split('#')[0] : `Joueur ${idx + 1}`}</div>
-                  
-                  {/* Flex conteneur pour icône et summoner spells */}
-                  <div className="flex items-start">
-                    {/* Icône champion */}
-                    <div className="relative">
-                      <img 
-                        src={getChampionImageUrl(player.championId)} 
-                        alt=" "
-                        className="w-[60px] h-[60px] rounded"
-                      />
-                    </div>
-                    
-                    {/* Summoner Spells juste à côté de l'icône */}
-                    <div className={`flex flex-col gap-1 ml-2 ${darkMode ? 'bg-gray-800' : 'bg-gray-200'} p-1 rounded`}>
-                      <img 
-                        src={summonerSpellsMap[player.spell1Id]?.icon || ''}
-                        alt={summonerSpellsMap[player.spell1Id]?.name || 'Spell 1'}
-                        className="w-6 h-6 rounded shadow-sm"
-                        title={summonerSpellsMap[player.spell1Id]?.name || `Spell ID: ${player.spell1Id}`}
-                        onError={(e) => { 
-                          console.error(`Erreur de chargement du sort ${player.spell1Id}`);
-                          e.target.style.display = 'none'; 
-                        }}
-                      />
-                      <img 
-                        src={summonerSpellsMap[player.spell2Id]?.icon || ''}
-                        alt={summonerSpellsMap[player.spell2Id]?.name || 'Spell 2'}
-                        className="w-6 h-6 rounded shadow-sm"
-                        title={summonerSpellsMap[player.spell2Id]?.name || `Spell ID: ${player.spell2Id}`}
-                        onError={(e) => { 
-                          console.error(`Erreur de chargement du sort ${player.spell2Id}`);
-                          e.target.style.display = 'none'; 
-                        }}
-                      />
-                    </div>
-                    
-                    {/* Runes - avec alignement vertical amélioré */}
-                    <div className="ml-1 flex-grow flex items-center">
-                      {player.perks && player.perks.perkIds && player.perks.perkIds.length > 0 && (
-                        <div className={`${darkMode ? 'bg-gray-800/50' : 'bg-gray-200/70'} rounded p-2 w-full mt-1.5 flex items-center`}>
-                          {/* Toutes les runes sur une seule ligne avec alignement vertical */}
-                          <div className="flex items-center h-full">
-                            {/* Runes primaires (1-3) */}
-                            <div className="flex gap-1 items-center h-full">
-                              {player.perks.perkIds.slice(1, 4).map((runeId, index) => (
-                                <div key={`primary-${index}`} className="flex items-center justify-center">
-                                  <img
-                                    src={getRuneImageUrl(runeId)}
-                                    alt={`Rune ${runeId}`}
-                                    className="w-[30px] h-[30px] rounded-full"
-                                    title={`Rune primaire ${runeId}`}
-                                    onError={(e) => { e.target.style.display = 'none'; }}
-                                  />
-                                </div>
-                              ))}
-                            </div>
-                            
-                            {/* Séparateur visuel */}
-                            <div className={`h-8 w-px mx-1 ${darkMode ? 'bg-gray-600' : 'bg-gray-400'}`}></div>
+      // Calculer la durée initiale en secondes
+      let initialDuration = gameInfo.gameLength; // Durée en secondes retournée par l'API
+      
+      // Si gameLength semble incorrect ou n'est pas fourni, calculer depuis gameStartTime
+      if (!initialDuration || initialDuration <= 0) {
+        const gameStartTime = new Date(gameInfo.gameStartTime);
+        const now = new Date();
+        initialDuration = Math.floor((now - gameStartTime) / 1000); // Convertir en secondes
+      }
+      
+      console.log("Durée initiale de la partie:", initialDuration, "secondes");
+      setCurrentGameDuration(initialDuration);
+      
+      // Créer un interval pour mettre à jour la durée chaque seconde
+      const intervalId = setInterval(() => {
+        setCurrentGameDuration(prevDuration => prevDuration + 1);
+      }, 1000);
+      
+      // Nettoyer l'interval lorsque le composant est démonté ou que les données changent
+      return () => clearInterval(intervalId);
+    }, [spectatorData, isLoading]);
+    
+    // Fonction pour formater la durée en minutes:secondes
+    const formatGameDuration = (durationInSeconds) => {
+      const minutes = Math.floor(durationInSeconds / 60);
+      const seconds = durationInSeconds % 60;
+      return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    };
+    
+    // Fonction pour obtenir l'URL d'image du champion
+    const getChampionImageUrl = (championId) => {
+      // Si nous avons un mapping pour cet ID
+      if (championMap[championId]) {
+        let championName = championMap[championId];
+        
+        // Condition spéciale pour Fiddlesticks
+        if (championName === "FiddleSticks") {
+          championName = "Fiddlesticks"; // Sans le 's' à la fin
+        }
+        
+        return `https://ddragon.leagueoflegends.com/cdn/15.6.1/img/champion/${championName}.png`;
+      }
+    };
+    
+    // Mapping des IDs de runes vers leurs URLs d'images
+    const runeImageMap = {
+      // Precision (8000)
+      8005: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/PressTheAttack/PressTheAttack.png",
+      8008: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/LethalTempo/LethalTempoTemp.png",
+      8010: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/Conqueror/Conqueror.png",
+      8021: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/FleetFootwork/FleetFootwork.png",
+      9101: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/Overheal.png",
+      9111: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/Triumph.png",
+      8009: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/PresenceOfMind/PresenceOfMind.png",
+      9104: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/LegendAlacrity/LegendAlacrity.png",
+      9103: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/LegendBloodline/LegendBloodline.png",
+      9105: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/LegendHaste/LegendHaste.png",
+      8014: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/CoupDeGrace/CoupDeGrace.png",
+      8017: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/CutDown/CutDown.png",
+      8299: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/LastStand/LastStand.png",
+      
+      // Domination (8100)
+      8112: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/Electrocute/Electrocute.png",
+      8124: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/Predator/Predator.png",
+      8128: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/DarkHarvest/DarkHarvest.png",
+      9923: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/HailOfBlades/HailOfBlades.png",
+      8126: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/CheapShot/CheapShot.png",
+      8139: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/TasteOfBlood/GreenTerror_TasteOfBlood.png",
+      8143: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/SuddenImpact/SuddenImpact.png",
+      8137: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/SixthSense/SixthSense.png",
+      8140: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/GrislyMementos/GrislyMementos.png",
+      8138: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/EyeballCollection/EyeballCollection.png",
+      8135: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/RavenousHunter/RavenousHunter.png",
+      8134: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/IngeniousHunter/IngeniousHunter.png",
+      8105: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/RelentlessHunter/RelentlessHunter.png",
+      8106: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/UltimateHunter/UltimateHunter.png",
+      8141: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/DeepWard/DeepWard.png",
+      
+      // Sorcery (8200)
+      8214: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/SummonAery/SummonAery.png",
+      8229: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/ArcaneComet/ArcaneComet.png",
+      8230: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/PhaseRush/PhaseRush.png",
+      8224: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/NullifyingOrb/Pokeshield.png",
+      8226: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/ManaflowBand/ManaflowBand.png",
+      8243: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/TheUltimateHat/TheUltimateHat.png",
+      8210: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/Transcendence/Transcendence.png",
+      8233: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/AbsoluteFocus/AbsoluteFocus.png",
+      8236: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/GatheringStorm/GatheringStorm.png",
+      8237: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/Scorch/Scorch.png",
+      8232: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/Waterwalking/Waterwalking.png",
+      8234: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/Celerity/CelerityTemp.png",
+      8275: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/NimbusCloak/6361.png",
+      
+      // Resolve (8400)
+      8437: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/GraspOfTheUndying/GraspOfTheUndying.png",
+      8439: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/VeteranAftershock/VeteranAftershock.png",
+      8465: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/Guardian/Guardian.png",
+      8446: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/Demolish/Demolish.png",
+      8463: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/FontOfLife/FontOfLife.png",
+      8401: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/MirrorShell/MirrorShell.png",
+      8429: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/Conditioning/Conditioning.png",
+      8444: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/SecondWind/SecondWind.png",
+      8473: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/BonePlating/BonePlating.png",
+      8451: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/Overgrowth/Overgrowth.png",
+      8453: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/Revitalize/Revitalize.png",
+      8242: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/Unflinching/Unflinching.png",
+      
+      // Inspiration (8300)
+      8351: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Inspiration/GlacialAugment/GlacialAugment.png",
+      8360: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Inspiration/UnsealedSpellbook/UnsealedSpellbook.png",
+      8369: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Inspiration/FirstStrike/FirstStrike.png",
+      8306: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Inspiration/HextechFlashtraption/HextechFlashtraption.png",
+      8304: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Inspiration/MagicalFootwear/MagicalFootwear.png",
+      8313: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Inspiration/PerfectTiming/PerfectTiming.png",
+      8321: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Inspiration/FuturesMarket/FuturesMarket.png",
+      8316: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Inspiration/JackOfAllTrades/JackofAllTrades2.png",
+      8345: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Inspiration/BiscuitDelivery/BiscuitDelivery.png",
+      8347: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Inspiration/CosmicInsight/CosmicInsight.png",
+      8352: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Inspiration/TimeWarpTonic/TimeWarpTonic.png",
+      8410: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/ApproachVelocity/ApproachVelocity.png",
+      
+      // Stats shards
+      5001: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/StatMods/StatModsHealthScalingIcon.png",
+      5002: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/StatMods/StatModsArmorIcon.png",
+      5003: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/StatMods/StatModsMagicResIcon.png",
+      5005: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/StatMods/StatModsAttackSpeedIcon.png",
+      5007: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/StatMods/StatModsCDRScalingIcon.png",
+      5008: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/StatMods/StatModsAdaptiveForceIcon.png",
+      5011: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/StatMods/StatModsHealthScalingIcon.png",
+      5010: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/StatMods/StatModsMovementSpeedIcon.png",
+      5013: "https://ddragon.leagueoflegends.com/cdn/img/perk-images/StatMods/StatModsTenacityIcon.png"
+    };
+    
+    // Fonction pour obtenir l'URL de l'image d'une rune
+    const getRuneImageUrl = (runeId) => {
+      if (runeImageMap[runeId]) {
+        return runeImageMap[runeId];
+      }
+      return "";
+    };
 
-                            {/* Runes secondaires (4-5) avec indicateur visuel */}
-                            <div className="flex gap-1 items-center h-full">
-                              {player.perks.perkIds.slice(4, 6).map((runeId, index) => (
-                                <div key={`secondary-${index}`} className="flex items-center justify-center">
-                                  <img
-                                    src={getRuneImageUrl(runeId)}
-                                    alt={`Rune ${runeId}`}
-                                    className="w-[30px] h-[30px] rounded-full"
-                                    title={`Rune secondaire ${runeId}`}
-                                    onError={(e) => { e.target.style.display = 'none'; }}
-                                  />
-                                </div>
-                              ))}
-                            </div>
-                            
-                            {/* Séparateur visuel */}
-                            <div className={`h-8 w-px mx-1 ${darkMode ? 'bg-gray-600' : 'bg-gray-400'}`}></div>
-                            
-                            {/* Fragments de stats (6-8) */}
-                            <div className="flex items-center h-full">
-                              {player.perks.perkIds.slice(6).map((runeId, index) => (
-                                <div key={`stat-${index}`} className="flex items-center justify-center mx-0.5">
-                                  <img
-                                    src={getRuneImageUrl(runeId)}
-                                    alt={`Shard ${runeId}`}
-                                    className="w-5 h-5 rounded-full"
-                                    title={`Fragment de stat ${runeId}`}
-                                    onError={(e) => { e.target.style.display = 'none'; }}
-                                  />
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+    // Logs pour le débogage
+    if (!spectatorData) {
+      console.log("Pas de données spectateur disponibles");
+    } else if (!spectatorData.success) {
+      console.log("Données spectateur sans succès:", spectatorData);
+    } else if (!spectatorData.data) {
+      console.log("Données spectateur sans data:", spectatorData);
+    } else if (!spectatorData.data.isInGame) {
+      console.log("Joueur pas en partie:", spectatorData.data);
+    }
+
+    if (!spectatorData || !spectatorData.success || !spectatorData.data || !spectatorData.data.isInGame) {
+      return (
+        <div className={`w-full mb-8 p-4 rounded-lg shadow-md ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+          <div className="flex items-center">
+            <div className={`w-4 h-4 rounded-full ${darkMode ? 'bg-gray-500' : 'bg-gray-400'} mr-2`}></div>
+            <h2 className="text-xl font-bold">Live Game</h2>
           </div>
-                    
-          {/* Équipe rouge */}
-          <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-900/30' : 'bg-gray-100'}`}>
-            <h3 className="font-bold text-lg mb-2 text-center">Red Side</h3>
-            <div className="space-y-2">
-              {redTeam.map((player, idx) => (
-                <div 
-                  key={idx} 
-                  className={`p-2 rounded ${
-                    player.puuid === spectatorData.data.puuid || (player.riotId && player.riotId.includes(gameName))
-                      ? (darkMode ? 'bg-yellow-900/20' : 'bg-yellow-100')
-                      : ''
-                  }`}
-                >
-                  {/* Pseudo du joueur en haut */}
-                  <div className="font-medium mb-2">{player.riotId ? player.riotId.split('#')[0] : `Joueur ${idx + 1}`}</div>
-                  
-                  {/* Flex conteneur pour icône et summoner spells */}
-                  <div className="flex items-start">
-                    {/* Icône champion */}
-                    <div className="relative">
-                      <img 
-                        src={getChampionImageUrl(player.championId)} 
-                        alt={`Champion ${championMap[player.championId] || player.championId}`}
-                        className="w-[60px] h-[60px] rounded"
-                        onError={(e) => {
-                          console.error(`Erreur de chargement de l'image pour le champion ID ${player.championId}`);
-                          e.target.style.backgroundColor = '#333';
-                          e.target.style.display = 'flex';
-                          e.target.style.justifyContent = 'center';
-                          e.target.style.alignItems = 'center';
-                          e.target.textContent = '?';
-                        }}
-                      />
-                    </div>
-                    
-                    {/* Summoner Spells juste à côté de l'icône */}
-                    <div className={`flex flex-col gap-1 ml-2 ${darkMode ? 'bg-gray-800' : 'bg-gray-200'} p-1 rounded`}>
-                      <img 
-                        src={summonerSpellsMap[player.spell1Id]?.icon || ''}
-                        alt={summonerSpellsMap[player.spell1Id]?.name || 'Spell 1'}
-                        className="w-6 h-6 rounded shadow-sm"
-                        title={summonerSpellsMap[player.spell1Id]?.name || `Spell ID: ${player.spell1Id}`}
-                        onError={(e) => { 
-                          console.error(`Erreur de chargement du sort ${player.spell1Id}`);
-                          e.target.style.display = 'none'; 
-                        }}
-                      />
-                      <img 
-                        src={summonerSpellsMap[player.spell2Id]?.icon || ''}
-                        alt={summonerSpellsMap[player.spell2Id]?.name || 'Spell 2'}
-                        className="w-6 h-6 rounded shadow-sm"
-                        title={summonerSpellsMap[player.spell2Id]?.name || `Spell ID: ${player.spell2Id}`}
-                        onError={(e) => { 
-                          console.error(`Erreur de chargement du sort ${player.spell2Id}`);
-                          e.target.style.display = 'none'; 
-                        }}
-                      />
-                    </div>
-                    
-                    {/* Runes - avec alignement vertical amélioré */}
-                    <div className="ml-1 flex-grow">
-                      {player.perks && player.perks.perkIds && player.perks.perkIds.length > 0 && (
-                        <div className={`${darkMode ? 'bg-gray-800/50' : 'bg-gray-200/70'} rounded p-2 w-full mt-1.5 flex items-center`}>
-                          {/* Toutes les runes sur une seule ligne avec alignement vertical */}
-                          <div className="flex items-center h-full">
-                            {/* Runes primaires (1-3) */}
-                            <div className="flex gap-1 items-center h-full">
-                              {player.perks.perkIds.slice(1, 4).map((runeId, index) => (
-                                <div key={`primary-${index}`} className="flex items-center justify-center">
-                                  <img
-                                    src={getRuneImageUrl(runeId)}
-                                    alt={`Rune ${runeId}`}
-                                    className="w-[30px] h-[30px] rounded-full"
-                                    title={`Rune primaire ${runeId}`}
-                                    onError={(e) => { e.target.style.display = 'none'; }}
-                                  />
-                                </div>
-                              ))}
-                            </div>
-                            
-                            {/* Séparateur visuel */}
-                            <div className={`h-8 w-px mx-1 ${darkMode ? 'bg-gray-600' : 'bg-gray-400'}`}></div>
-                            
-                            {/* Runes secondaires (4-5) avec indicateur visuel */}
-                            <div className="flex gap-1 items-center h-full">
-                              {player.perks.perkIds.slice(4, 6).map((runeId, index) => (
-                                <div key={`secondary-${index}`} className="flex items-center justify-center">
-                                  <img
-                                    src={getRuneImageUrl(runeId)}
-                                    alt={`Rune ${runeId}`}
-                                    className="w-[30px] h-[30px] rounded-full"
-                                    title={`Rune secondaire ${runeId}`}
-                                    onError={(e) => { e.target.style.display = 'none'; }}
-                                  />
-                                </div>
-                              ))}
-                            </div>
-                            
-                            {/* Séparateur visuel */}
-                            <div className={`h-8 w-px mx-1 ${darkMode ? 'bg-gray-600' : 'bg-gray-400'}`}></div>
-                            
-                            {/* Fragments de stats (6-8) */}
-                            <div className="flex items-center h-full">
-                              {player.perks.perkIds.slice(6).map((runeId, index) => (
-                                <div key={`stat-${index}`} className="flex items-center justify-center mx-0.5">
-                                  <img
-                                    src={getRuneImageUrl(runeId)}
-                                    alt={`Shard ${runeId}`}
-                                    className="w-5 h-5 rounded-full"
-                                    title={`Fragment de stat ${runeId}`}
-                                    onError={(e) => { e.target.style.display = 'none'; }}
-                                  />
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
+          <p className="mt-2">Ce joueur n'est pas In-Game.</p>
+        </div>
+      );
+    }
+
+    const { gameInfo } = spectatorData.data;
+    
+    // Trouver notre joueur dans la liste des participants
+    const currentPlayer = gameInfo.participants.find(p => 
+      p.puuid === spectatorData.data.puuid || 
+      (p.riotId && p.riotId.includes(gameName))
+    );
+    
+    // Mapper les modes de jeu
+    const getGameModeName = (queueId) => {
+      switch(queueId) {
+        case 400: return 'Normal Draft';
+        case 420: return 'Ranked Solo/Duo';
+        case 430: return 'Normal Blind';
+        case 440: return 'Ranked Flex';
+        case 450: return 'ARAM';
+        case 700: return 'Clash';
+        case 1400: return 'URF';
+        case 1700: return 'Arena';
+        default: return `Mode ${queueId}`;
+      }
+    };
+    
+    // Date de début de partie
+    const gameStartTime = new Date(gameInfo.gameStartTime);
+    const timeSinceStart = Math.floor((new Date() - gameStartTime) / 60000); // En minutes
+    
+    // Trouver les équipes
+    const blueTeam = gameInfo.participants.filter(p => p.teamId === 100);
+    const redTeam = gameInfo.participants.filter(p => p.teamId === 200);
+    
+    return (
+      <div className={`w-full mb-8 rounded-lg shadow-md overflow-hidden ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+        {/* En-tête de partie en cours */}
+        <div className={`p-4 ${darkMode ? 'bg-green-900' : 'bg-green-600'} text-white`}>
+          <div className="flex items-center">
+            <div className="w-3 h-3 rounded-full bg-green-400 animate-pulse mr-2"></div>
+            <h2 className="text-xl font-bold">Partie en cours</h2>
+          </div>
+          <div className="flex justify-between items-center mt-1">
+            <div>
+              <span className="font-medium">{getGameModeName(gameInfo.gameQueueConfigId)}</span>
+              <span className="mx-2">•</span>
+              {/* Afficher la durée en temps réel */}
+              <span className="font-mono">{formatGameDuration(currentGameDuration)}</span>
+              <span className="mx-2">•</span>
+              <span>Started Since {timeSinceStart} min</span>
             </div>
+            {gameInfo.observers && gameInfo.observers.encryptionKey && (
+              <div>
+                <button 
+                  className={`px-3 py-1 rounded-full text-sm ${
+                    darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-green-700 hover:bg-green-800'
+                  }`}
+                  onClick={() => {
+                    navigator.clipboard.writeText(gameInfo.observers.encryptionKey);
+                    alert('Clé de spectateur copiée dans le presse-papier');
+                  }}
+                >
+                  Spectate
+                </button>
+              </div>
+            )}
           </div>
         </div>
         
-       {/* Bannissements */}
-      <div className="mt-4">
-        <div className="flex flex-wrap gap-2 justify-center">
-          {gameInfo.bannedChampions && gameInfo.bannedChampions.map((ban, idx) => (
-            <div key={idx} className="text-center">
-              <div className={`relative w-[50px] h-[50px] rounded overflow-hidden ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
-                {ban.championId !== -1 && (
-                  <>
-                    <img 
-                      src={getChampionImageUrl(ban.championId)} 
-                      alt={`Banned Champion ${championMap[ban.championId] || ban.championId}`}
-                      className="w-[50px] h-[50px] object-cover opacity-60"
-                      onError={(e) => { e.target.style.display = 'none'; }}
-                    />
-                  </>
-                )}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+        {/* Contenu de la partie */}
+        <div className="p-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Équipe bleue */}
+            <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-900/30' : 'bg-gray-100'}`}>
+              <h3 className="font-bold text-lg mb-2 text-center">Blue Side</h3>
+              <div className="space-y-2">
+                {blueTeam.map((player, idx) => (
+                  <div 
+                    key={idx} 
+                    className={`p-2 rounded ${
+                      player.puuid === spectatorData.data.puuid || (player.riotId && player.riotId.includes(gameName))
+                        ? (darkMode ? 'bg-yellow-900/20' : 'bg-yellow-100')
+                        : ''
+                    }`}
+                  >
+                    {/* Pseudo du joueur en haut */}
+                    <div className="font-medium mb-2">{player.riotId ? player.riotId.split('#')[0] : `Joueur ${idx + 1}`}</div>
+                    
+                    {/* Flex conteneur pour icône et summoner spells */}
+                    <div className="flex items-start">
+                      {/* Icône champion */}
+                      <div className="relative">
+                        <img 
+                          src={getChampionImageUrl(player.championId)} 
+                          alt=" "
+                          className="w-[60px] h-[60px] rounded"
+                        />
+                      </div>
+                      
+                      {/* Summoner Spells juste à côté de l'icône */}
+                      <div className={`flex flex-col gap-1 ml-2 ${darkMode ? 'bg-gray-800' : 'bg-gray-200'} p-1 rounded`}>
+                        <img 
+                          src={summonerSpellsMap[player.spell1Id]?.icon || ''}
+                          alt={summonerSpellsMap[player.spell1Id]?.name || 'Spell 1'}
+                          className="w-6 h-6 rounded shadow-sm"
+                          title={summonerSpellsMap[player.spell1Id]?.name || `Spell ID: ${player.spell1Id}`}
+                          onError={(e) => { 
+                            console.error(`Erreur de chargement du sort ${player.spell1Id}`);
+                            e.target.style.display = 'none'; 
+                          }}
+                        />
+                        <img 
+                          src={summonerSpellsMap[player.spell2Id]?.icon || ''}
+                          alt={summonerSpellsMap[player.spell2Id]?.name || 'Spell 2'}
+                          className="w-6 h-6 rounded shadow-sm"
+                          title={summonerSpellsMap[player.spell2Id]?.name || `Spell ID: ${player.spell2Id}`}
+                          onError={(e) => { 
+                            console.error(`Erreur de chargement du sort ${player.spell2Id}`);
+                            e.target.style.display = 'none'; 
+                          }}
+                        />
+                      </div>
+                      
+                      {/* Runes - avec alignement vertical amélioré */}
+                      <div className="ml-1 flex items-center">
+                        {player.perks && player.perks.perkIds && player.perks.perkIds.length > 0 && (
+                          <div className={`${darkMode ? 'bg-gray-800/50' : 'bg-gray-200/70'} rounded p-2 w-fit mt-1.5 flex items-center`}>
+                            {/* Toutes les runes sur une seule ligne avec alignement vertical */}
+                            <img
+                                  src={getRuneImageUrl(player.perks.perkIds[0])}
+                                  alt={`Keystone ${player.perks.perkIds[0]}`}
+                                  className="w-[35px] h-[35px] rounded-full"
+                                  title={`Keystone ${player.perks.perkIds[0]}`}
+                                  onError={(e) => { 
+                                    console.error(`Erreur de chargement de la rune ${player.perks.perkIds[0]}`);
+                                    e.target.style.display = 'none'; 
+                                  }}
+                                />
+                            <div className="flex items-center h-full">
+                              {/* Runes primaires (1-3) */}
+                              <div className="flex gap-1 items-center h-full">
+                                {player.perks.perkIds.slice(1, 4).map((runeId, index) => (
+                                  <div key={`primary-${index}`} className="flex items-center justify-center">
+                                    <img
+                                      src={getRuneImageUrl(runeId)}
+                                      alt={`Rune ${runeId}`}
+                                      className="w-[30px] h-[30px] rounded-full"
+                                      title={`Rune primaire ${runeId}`}
+                                      onError={(e) => { e.target.style.display = 'none'; }}
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+                              
+                              {/* Séparateur visuel */}
+                              <div className={`h-8 w-px mx-1 ${darkMode ? 'bg-gray-600' : 'bg-gray-400'}`}></div>
+
+                              {/* Runes secondaires (4-5) avec indicateur visuel */}
+                              <div className="flex gap-1 items-center h-full">
+                                {player.perks.perkIds.slice(4, 6).map((runeId, index) => (
+                                  <div key={`secondary-${index}`} className="flex items-center justify-center">
+                                    <img
+                                      src={getRuneImageUrl(runeId)}
+                                      alt={`Rune ${runeId}`}
+                                      className="w-[30px] h-[30px] rounded-full"
+                                      title={`Rune secondaire ${runeId}`}
+                                      onError={(e) => { e.target.style.display = 'none'; }}
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+                              
+                              {/* Séparateur visuel */}
+                              <div className={`h-8 w-px mx-1 ${darkMode ? 'bg-gray-600' : 'bg-gray-400'}`}></div>
+                              
+                              {/* Fragments de stats (6-8) */}
+                              <div className="flex items-center h-full">
+                                {player.perks.perkIds.slice(6).map((runeId, index) => (
+                                  <div key={`stat-${index}`} className="flex items-center justify-center mx-0.5">
+                                    <img
+                                      src={getRuneImageUrl(runeId)}
+                                      alt={`Shard ${runeId}`}
+                                      className="w-5 h-5 rounded-full"
+                                      title={`Fragment de stat ${runeId}`}
+                                      onError={(e) => { e.target.style.display = 'none'; }}
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      {/* NOUVEAU: Affichage du rang */}
+                      {renderPlayerRank(player.puuid)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+                      
+            {/* Équipe rouge */}
+            <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-900/30' : 'bg-gray-100'}`}>
+              <h3 className="font-bold text-lg mb-2 text-center">Red Side</h3>
+              <div className="space-y-2">
+                {redTeam.map((player, idx) => (
+                  <div 
+                    key={idx} 
+                    className={`p-2 rounded ${
+                      player.puuid === spectatorData.data.puuid || (player.riotId && player.riotId.includes(gameName))
+                        ? (darkMode ? 'bg-yellow-900/20' : 'bg-yellow-100')
+                        : ''
+                    }`}
+                  >
+                    {/* Pseudo du joueur en haut */}
+                    <div className="font-medium mb-2">{player.riotId ? player.riotId.split('#')[0] : `Joueur ${idx + 1}`}</div>
+                    
+                    {/* Flex conteneur pour icône et summoner spells */}
+                    <div className="flex items-start">
+                      {/* Icône champion */}
+                      <div className="relative">
+                        <img 
+                          src={getChampionImageUrl(player.championId)} 
+                          alt={`Champion ${championMap[player.championId] || player.championId}`}
+                          className="w-[60px] h-[60px] rounded"
+                          onError={(e) => {
+                            console.error(`Erreur de chargement de l'image pour le champion ID ${player.championId}`);
+                            e.target.style.backgroundColor = '#333';
+                            e.target.style.display = 'flex';
+                            e.target.style.justifyContent = 'center';
+                            e.target.style.alignItems = 'center';
+                            e.target.textContent = '?';
+                          }}
+                        />
+                      </div>
+                      
+                      {/* Summoner Spells juste à côté de l'icône */}
+                      <div className={`flex flex-col gap-1 ml-2 ${darkMode ? 'bg-gray-800' : 'bg-gray-200'} p-1 rounded`}>
+                        <img 
+                          src={summonerSpellsMap[player.spell1Id]?.icon || ''}
+                          alt={summonerSpellsMap[player.spell1Id]?.name || 'Spell 1'}
+                          className="w-6 h-6 rounded shadow-sm"
+                          title={summonerSpellsMap[player.spell1Id]?.name || `Spell ID: ${player.spell1Id}`}
+                          onError={(e) => { 
+                            console.error(`Erreur de chargement du sort ${player.spell1Id}`);
+                            e.target.style.display = 'none'; 
+                          }}
+                        />
+                        <img 
+                          src={summonerSpellsMap[player.spell2Id]?.icon || ''}
+                          alt={summonerSpellsMap[player.spell2Id]?.name || 'Spell 2'}
+                          className="w-6 h-6 rounded shadow-sm"
+                          title={summonerSpellsMap[player.spell2Id]?.name || `Spell ID: ${player.spell2Id}`}
+                          onError={(e) => { 
+                            console.error(`Erreur de chargement du sort ${player.spell2Id}`);
+                            e.target.style.display = 'none'; 
+                          }}
+                        />
+                      </div>
+                      
+                      {/* Runes - avec alignement vertical amélioré */}
+                      <div className="ml-1">
+                        {player.perks && player.perks.perkIds && player.perks.perkIds.length > 0 && (
+                          <div className={`${darkMode ? 'bg-gray-800/50' : 'bg-gray-200/70'} rounded p-2 w-fit mt-1.5 flex items-center`}>
+                            {/* Toutes les runes sur une seule ligne avec alignement vertical */}
+                            <img
+                                  src={getRuneImageUrl(player.perks.perkIds[0])}
+                                  alt={`Keystone ${player.perks.perkIds[0]}`}
+                                  className="w-[35px] h-[35px] rounded-full"
+                                  title={`Keystone ${player.perks.perkIds[0]}`}
+                                  onError={(e) => { 
+                                    console.error(`Erreur de chargement de la rune ${player.perks.perkIds[0]}`);
+                                    e.target.style.display = 'none'; 
+                                  }}
+                                />
+                            <div className="flex items-center h-full">
+                              {/* Runes primaires (1-3) */}
+                              <div className="flex gap-1 items-center h-full">
+                                {player.perks.perkIds.slice(1, 4).map((runeId, index) => (
+                                  <div key={`primary-${index}`} className="flex items-center justify-center">
+                                    <img
+                                      src={getRuneImageUrl(runeId)}
+                                      alt={`Rune ${runeId}`}
+                                      className="w-[30px] h-[30px] rounded-full"
+                                      title={`Rune primaire ${runeId}`}
+                                      onError={(e) => { e.target.style.display = 'none'; }}
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+                              
+                              {/* Séparateur visuel */}
+                              <div className={`h-8 w-px mx-1 ${darkMode ? 'bg-gray-600' : 'bg-gray-400'}`}></div>
+                              
+                              {/* Runes secondaires (4-5) avec indicateur visuel */}
+                              <div className="flex gap-1 items-center h-full">
+                                {player.perks.perkIds.slice(4, 6).map((runeId, index) => (
+                                  <div key={`secondary-${index}`} className="flex items-center justify-center">
+                                    <img
+                                      src={getRuneImageUrl(runeId)}
+                                      alt={`Rune ${runeId}`}
+                                      className="w-[30px] h-[30px] rounded-full"
+                                      title={`Rune secondaire ${runeId}`}
+                                      onError={(e) => { e.target.style.display = 'none'; }}
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+                              
+                              {/* Séparateur visuel */}
+                              <div className={`h-8 w-px mx-1 ${darkMode ? 'bg-gray-600' : 'bg-gray-400'}`}></div>
+                              
+                              {/* Fragments de stats (6-8) */}
+                              <div className="flex items-center h-full">
+                                {player.perks.perkIds.slice(6).map((runeId, index) => (
+                                  <div key={`stat-${index}`} className="flex items-center justify-center mx-0.5">
+                                    <img
+                                      src={getRuneImageUrl(runeId)}
+                                      alt={`Shard ${runeId}`}
+                                      className="w-5 h-5 rounded-full"
+                                      title={`Fragment de stat ${runeId}`}
+                                      onError={(e) => { e.target.style.display = 'none'; }}
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      {/* NOUVEAU: Affichage du rang */}
+                      {renderPlayerRank(player.puuid)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          
+        {/* Bannissements */}
+        <div className="mt-4">
+          <div className="flex flex-wrap gap-2 justify-center">
+            {gameInfo.bannedChampions && gameInfo.bannedChampions.map((ban, idx) => (
+              <div key={idx} className="text-center">
+                <div className={`relative w-[50px] h-[50px] rounded overflow-hidden ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
+                  {ban.championId !== -1 && (
+                    <>
+                      <img 
+                        src={getChampionImageUrl(ban.championId)} 
+                        alt={`Banned Champion ${championMap[ban.championId] || ban.championId}`}
+                        className="w-[50px] h-[50px] object-cover opacity-60"
+                        onError={(e) => { e.target.style.display = 'none'; }}
+                      />
+                    </>
+                  )}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        </div>
+      </div>
+    );
+  });
+
+  // De même, créons un composant mémorisé pour les icônes de champion
+  const ChampionIcon = React.memo(({ championName, className }) => {
+    return (
+      <img 
+        src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/champion/${
+          championName === "FiddleSticks" ? "Fiddlesticks" : championName
+        }.png`} 
+        alt={championName || "Champion"}
+        className={className || "w-12 h-12 rounded"}
+        onError={(e) => { e.target.style.display = 'none'; }}
+      />
+    );
+  });
+
+  // Fonction pour rendre la carte d'un joueur (dans la vue détaillée)
+  const renderPlayerCard = (participant, match, matchIndex, participantIndex) => {
+    // Vérification des summoner spells
+    const spell1 = participant.summonerSpells?.spell1 
+      ? summonerSpellsMap[participant.summonerSpells.spell1] 
+      : null;
+    const spell2 = participant.summonerSpells?.spell2 
+      ? summonerSpellsMap[participant.summonerSpells.spell2] 
+      : null;
+    
+    // Obtenir les infos des arbres de runes
+    const primaryTree = getRuneTreeInfo(participant.primaryRuneTree);
+    const secondaryTree = getRuneTreeInfo(participant.secondaryRuneTree);
+    
+    // Trouver la rune principale (keystone)
+    const keystone = findRuneById(participant.keystone);
+    
+    // Calculer si le joueur a gagné
+    const hasWon = participant.win;
+    
+    // Utiliser une couleur de fond grise indépendamment de l'équipe gagnante
+    const resultColorClass = darkMode ? 'bg-gray-800/80' : 'bg-gray-200/80';
+    
+    // Garder la bordure colorée selon victoire/défaite
+    const resultBorderClass = hasWon 
+      ? (darkMode ? 'border-blue-700' : 'border-blue-500') 
+      : (darkMode ? 'border-red-800' : 'border-red-500');
+
+    // Calculer le nombre total de CS
+    const minionKilled = participant.minionKilled || 0;
+    const neutralMinionsKilled = participant.neutralMinionsKilled || 0;
+    const totalCS = minionKilled + neutralMinionsKilled;
+    
+    // Calculer les minutes de jeu et CS/min
+    const gameMinutes = Math.floor((match.gameDuration || 0) / 60);
+    const csPerMin = gameMinutes > 0 ? (totalCS / gameMinutes).toFixed(1) : 0;
+    
+    // Calculer le KDA
+    const kda = participant.deaths > 0 
+      ? (((participant.kills || 0) + (participant.assists || 0)) / participant.deaths).toFixed(2)
+      : "Perfect";
+      
+    // Obtenir toutes les runes du joueur
+    const runesSelections = [];
+    let statsMods = [];
+    
+    if (participant.perks && participant.perks.styles) {
+      participant.perks.styles.forEach(style => {
+        if (style.selections) {
+          style.selections.forEach(selection => {
+            const rune = findRuneById(selection.perk);
+            if (rune) runesSelections.push(rune);
+          });
+        }
+      });
+      
+      // Récupérer les stats mods s'ils existent
+      if (participant.perks.statPerks) {
+        const statsMap = {
+          5008: { name: "Adaptive Force", icon: "perk-images/StatMods/StatModsAdaptiveForceIcon.png" },
+          5005: { name: "Attack Speed", icon: "perk-images/StatMods/StatModsAttackSpeedIcon.png" },
+          5007: { name: "CDR", icon: "perk-images/StatMods/StatModsCDRScalingIcon.png" },
+          5002: { name: "Armor", icon: "perk-images/StatMods/StatModsArmorIcon.png" },
+          5003: { name: "Magic Resist", icon: "perk-images/StatMods/StatModsMagicResIcon.png" },
+          5001: { name: "Health", icon: "perk-images/StatMods/StatModsHealthScalingIcon.png" },
+          5011: { name: "Health", icon: "perk-images/StatMods/StatModsHealthScalingIcon.png" },
+          5013: { name: "Tenacity", icon : "perk-images/StatMods/StatModsTenacityIcon.png"},
+          5010: { name: "Movement Speed", icon : "perk-images/StatMods/StatModsMovementSpeedIcon.png"}
+        };
+        
+        // Traiter chaque stat mod
+        ['defense', 'flex', 'offense'].forEach(slot => {
+          const perkId = participant.perks.statPerks[slot];
+          if (perkId && statsMap[perkId]) {
+            statsMods.push(statsMap[perkId]);
+          }
+        });
+      }
+    }
+
+    // Supposons que les 4 premières runes sont les principales et les suivantes sont secondaires
+    const primaryRunes = runesSelections.slice(0, 4);
+    const secondaryRunes = runesSelections.slice(4);
+
+    // Mettre en évidence le joueur consulté
+    const isCurrentPlayer = participant.gameName?.toLowerCase() === gameName.toLowerCase() && 
+                            participant.tagLine?.toLowerCase() === tagLine.toLowerCase();
+    const highlightClass = isCurrentPlayer ? (darkMode ? 'bg-yellow-900/20' : 'bg-yellow-100/50') : '';
+
+    return (
+      <div 
+        key={participantIndex} 
+        className={`flex flex-row items-center p-0.5 mb-1 rounded-md ${resultColorClass} border-l-4 ${resultBorderClass} ${highlightClass}`}
+      >
+        {/* Champion + Pseudo */}
+        <div className="w-1/5 flex items-center">
+        {participant.championName && (
+          <div className="relative mr-2 flex-shrink-0">
+            <ChampionIcon 
+              championName={participant.championName}
+              className="w-12 h-12 rounded flex-shrink-0"
+            />
+            {/* Indicateur de niveau du champion */}
+            <div className="absolute bottom-0 right-0 bg-black text-white text-xs font-bold rounded-sm w-5 h-5 flex items-center justify-center border border-gray-600">
+              {participant.championLevel || '?'}
+            </div>
+          </div>
+        )}
+          <div className="flex flex-col overflow-hidden">
+            <span className={`font-medium text-[17px] truncate w-full leading-tight ${isCurrentPlayer ? 'font-bold' : ''}`}>
+              {participant.gameName || `Joueur ${participantIndex + 1}`}
+              {isCurrentPlayer && <span className="ml-1 text-xs">(Vous)</span>}
+            </span>
+            <span className="text-xs opacity-75 leading-none">#{participant.tagLine}</span>
+          </div>
+        </div>
+
+        {/* KDA + CS dans un cadre */}
+        <div className="w-1/6 flex-shrink-0">
+          <div className={`p-1 rounded-md h-[68px] ${darkMode ? 'bg-gray-700/60' : 'bg-gray-300/60'}`}>
+            <div className="flex flex-col h-full justify-center space-y-1">
+              {/* Premier bloc: K/D/A */}
+              <div className="flex items-center">
+                <div className="text-xs text-gray-400 w-12">KDA</div>
+                <div className="flex items-center">
+                  <span className={`px-1 py-0 rounded text-[17px] font-medium leading-tight`}>
+                    {participant.kills || 0}
+                  </span>
+                  <span className="mx-0.5 text-gray-500">/</span>
+                  <span className={`px-1 py-0 rounded text-[17px] font-medium leading-tight ${darkMode ? 'text-red-600' : 'text-red-700'}`}>
+                    {participant.deaths || 0}
+                  </span>
+                  <span className="mx-0.5 text-gray-500">/</span>
+                  <span className={`px-1 py-0 rounded text-[17px] font-medium leading-tight`}>
+                    {participant.assists || 0}
+                  </span>
+                  <span className="ml-2 text-sm font-medium">
+                    ({kda})
+                  </span>
+                </div>
+              </div>
+              
+              {/* Deuxième bloc: CS */}
+              <div className="flex items-center">
+                <div className="text-xs text-gray-400 w-12">CS</div>
+                <div className="flex items-center">
+                  <span className={`px-2 py-0 rounded text-[17px] font-medium leading-tight ${darkMode ? 'bg-yellow-900/50 text-yellow-400' : 'bg-yellow-200 text-yellow-800'}`}>
+                    {totalCS}
+                  </span>
+                  <span className="ml-2 text-sm">
+                    ({csPerMin}/min)
+                  </span>
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+        
+        {/* Spells + Items dans un même cadre */}
+        <div className="w-1/8 flex-shrink-0 ml-4">
+          <div className={`p-1 rounded-md h-[68px] ${darkMode ? 'bg-gray-700/60' : 'bg-gray-300/60'}`}>
+            <div className="flex items-center h-full">
+              {/* Summoner Spells */}
+              <div className="flex flex-col justify-center space-y-1">
+                {spell1 && (
+                  <img 
+                    src={spell1.icon} 
+                    alt={spell1.name} 
+                    title={spell1.name}
+                    className="w-[27px] h-[27px] rounded border border-gray-600"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                    }}
+                  />
+                )}
+                {spell2 && (
+                  <img 
+                    src={spell2.icon} 
+                    alt={spell2.name}
+                    title={spell2.name}
+                    className="w-[27px] h-[27px] rounded border border-gray-600"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                    }}
+                  />
+                )}
+              </div>
+              
+              {/* Séparateur visuel */}
+              <div className={`h-14 w-px mx-1 ${darkMode ? 'bg-gray-600' : 'bg-gray-400'}`}></div>
+              
+              {/* Items */}
+              <div className="grid grid-cols-4 gap-0.5 max-w-[140px]">
+                {participant.items && participant.items.map((itemId, index) => {
+                  if (itemId === 0) return (
+                    <div 
+                      key={index} 
+                      className={`w-[27px] h-[27px] rounded ${index === 6 ? 'bg-yellow-800/30' : 'bg-gray-700/50'} border border-gray-600`}
+                    />
+                  );
+                  
+                  return (
+                    <img 
+                      key={index}
+                      src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/item/${itemId}.png`}
+                      alt=""
+                      title={`Item ID: ${itemId}`}
+                      className="w-[27px] h-[27px] rounded border border-gray-600"
+                      onError={(e) => {
+                        e.target.src = '';
+                        e.target.className = `w-[27px] h-[27px] rounded ${index === 6 ? 'bg-yellow-800/30' : 'bg-gray-700/50'} border border-gray-600`;
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Runes - taille uniforme et deux lignes */}
+        <div className="w-1/10 flex-shrink-0 ml-4">
+          <div className={`p-1 rounded-md h-[68px] ${darkMode ? 'bg-gray-700/60' : 'bg-gray-300/60'} flex items-center`}>
+            <div className="flex flex-col justify-center h-full">
+              {/* Runes principales sur la première ligne */}
+              <div className="flex gap-0.5 mb-0.5">
+                {primaryRunes.map((rune, idx) => (
+                  <RuneIcon 
+                    key={idx}
+                    rune={rune}
+                    className="w-[27px] h-[27px] rounded"
+                  />
+                ))}
+              </div>
+              
+              {/* Runes secondaires sur la deuxième ligne */}
+              <div className="flex gap-0.5 mb-0.5">
+                {secondaryRunes.map((rune, idx) => (
+                  <RuneIcon 
+                    key={idx}
+                    rune={rune}
+                    className="w-[27px] h-[27px] rounded"
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Stats Mods sur la troisième ligne */}
+        <div className={`p-1 rounded-md h-[68px] ${darkMode ? 'bg-gray-700/60' : 'bg-gray-300/60'} ml-1 items-center`}>
+          {statsMods.map((statMod, idx) => (
+            <StatModIcon 
+              key={idx}
+              statMod={statMod}
+              className="w-[20px] h-[20px] rounded"
+            />
           ))}
         </div>
       </div>
-      </div>
-    </div>
-  );
-});
-
-// De même, créons un composant mémorisé pour les icônes de champion
-const ChampionIcon = React.memo(({ championName, className }) => {
-  return (
-    <img 
-      src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/champion/${
-        championName === "FiddleSticks" ? "Fiddlesticks" : championName
-      }.png`} 
-      alt={championName || "Champion"}
-      className={className || "w-12 h-12 rounded"}
-      onError={(e) => { e.target.style.display = 'none'; }}
-    />
-  );
-});
-
-// Fonction pour rendre la carte d'un joueur (dans la vue détaillée)
-const renderPlayerCard = (participant, match, matchIndex, participantIndex) => {
-  // Vérification des summoner spells
-  const spell1 = participant.summonerSpells?.spell1 
-    ? summonerSpellsMap[participant.summonerSpells.spell1] 
-    : null;
-  const spell2 = participant.summonerSpells?.spell2 
-    ? summonerSpellsMap[participant.summonerSpells.spell2] 
-    : null;
-  
-  // Obtenir les infos des arbres de runes
-  const primaryTree = getRuneTreeInfo(participant.primaryRuneTree);
-  const secondaryTree = getRuneTreeInfo(participant.secondaryRuneTree);
-  
-  // Trouver la rune principale (keystone)
-  const keystone = findRuneById(participant.keystone);
-  
-  // Calculer si le joueur a gagné
-  const hasWon = participant.win;
-  
-  // Utiliser une couleur de fond grise indépendamment de l'équipe gagnante
-  const resultColorClass = darkMode ? 'bg-gray-800/80' : 'bg-gray-200/80';
-  
-  // Garder la bordure colorée selon victoire/défaite
-  const resultBorderClass = hasWon 
-    ? (darkMode ? 'border-blue-700' : 'border-blue-500') 
-    : (darkMode ? 'border-red-800' : 'border-red-500');
-
-  // Calculer le nombre total de CS
-  const minionKilled = participant.minionKilled || 0;
-  const neutralMinionsKilled = participant.neutralMinionsKilled || 0;
-  const totalCS = minionKilled + neutralMinionsKilled;
-  
-  // Calculer les minutes de jeu et CS/min
-  const gameMinutes = Math.floor((match.gameDuration || 0) / 60);
-  const csPerMin = gameMinutes > 0 ? (totalCS / gameMinutes).toFixed(1) : 0;
-  
-  // Calculer le KDA
-  const kda = participant.deaths > 0 
-    ? (((participant.kills || 0) + (participant.assists || 0)) / participant.deaths).toFixed(2)
-    : "Perfect";
-    
-  // Obtenir toutes les runes du joueur
-  const runesSelections = [];
-  let statsMods = [];
-  
-  if (participant.perks && participant.perks.styles) {
-    participant.perks.styles.forEach(style => {
-      if (style.selections) {
-        style.selections.forEach(selection => {
-          const rune = findRuneById(selection.perk);
-          if (rune) runesSelections.push(rune);
-        });
-      }
-    });
-    
-    // Récupérer les stats mods s'ils existent
-    if (participant.perks.statPerks) {
-      const statsMap = {
-        5008: { name: "Adaptive Force", icon: "perk-images/StatMods/StatModsAdaptiveForceIcon.png" },
-        5005: { name: "Attack Speed", icon: "perk-images/StatMods/StatModsAttackSpeedIcon.png" },
-        5007: { name: "CDR", icon: "perk-images/StatMods/StatModsCDRScalingIcon.png" },
-        5002: { name: "Armor", icon: "perk-images/StatMods/StatModsArmorIcon.png" },
-        5003: { name: "Magic Resist", icon: "perk-images/StatMods/StatModsMagicResIcon.png" },
-        5001: { name: "Health", icon: "perk-images/StatMods/StatModsHealthScalingIcon.png" },
-        5011: { name: "Health", icon: "perk-images/StatMods/StatModsHealthScalingIcon.png" },
-        5013: { name: "Tenacity", icon : "perk-images/StatMods/StatModsTenacityIcon.png"},
-        5010: { name: "Movement Speed", icon : "perk-images/StatMods/StatModsMovementSpeedIcon.png"}
-      };
-      
-      // Traiter chaque stat mod
-      ['defense', 'flex', 'offense'].forEach(slot => {
-        const perkId = participant.perks.statPerks[slot];
-        if (perkId && statsMap[perkId]) {
-          statsMods.push(statsMap[perkId]);
-        }
-      });
-    }
-  }
-
-  // Supposons que les 4 premières runes sont les principales et les suivantes sont secondaires
-  const primaryRunes = runesSelections.slice(0, 4);
-  const secondaryRunes = runesSelections.slice(4);
-
-  // Mettre en évidence le joueur consulté
-  const isCurrentPlayer = participant.gameName?.toLowerCase() === gameName.toLowerCase() && 
-                          participant.tagLine?.toLowerCase() === tagLine.toLowerCase();
-  const highlightClass = isCurrentPlayer ? (darkMode ? 'bg-yellow-900/20' : 'bg-yellow-100/50') : '';
-
-  return (
-    <div 
-      key={participantIndex} 
-      className={`flex flex-row items-center p-0.5 mb-1 rounded-md ${resultColorClass} border-l-4 ${resultBorderClass} ${highlightClass}`}
-    >
-      {/* Champion + Pseudo */}
-      <div className="w-1/5 flex items-center">
-      {participant.championName && (
-        <div className="relative mr-2 flex-shrink-0">
-          <ChampionIcon 
-            championName={participant.championName}
-            className="w-12 h-12 rounded flex-shrink-0"
-          />
-          {/* Indicateur de niveau du champion */}
-          <div className="absolute bottom-0 right-0 bg-black text-white text-xs font-bold rounded-sm w-5 h-5 flex items-center justify-center border border-gray-600">
-            {participant.championLevel || '?'}
-          </div>
-        </div>
-      )}
-        <div className="flex flex-col overflow-hidden">
-          <span className={`font-medium text-[17px] truncate w-full leading-tight ${isCurrentPlayer ? 'font-bold' : ''}`}>
-            {participant.gameName || `Joueur ${participantIndex + 1}`}
-            {isCurrentPlayer && <span className="ml-1 text-xs">(Vous)</span>}
-          </span>
-          <span className="text-xs opacity-75 leading-none">#{participant.tagLine}</span>
-        </div>
-      </div>
-
-      {/* KDA + CS dans un cadre */}
-      <div className="w-1/6 flex-shrink-0">
-        <div className={`p-1 rounded-md h-[68px] ${darkMode ? 'bg-gray-700/60' : 'bg-gray-300/60'}`}>
-          <div className="flex flex-col h-full justify-center space-y-1">
-            {/* Premier bloc: K/D/A */}
-            <div className="flex items-center">
-              <div className="text-xs text-gray-400 w-12">KDA</div>
-              <div className="flex items-center">
-                <span className={`px-1 py-0 rounded text-[17px] font-medium leading-tight`}>
-                  {participant.kills || 0}
-                </span>
-                <span className="mx-0.5 text-gray-500">/</span>
-                <span className={`px-1 py-0 rounded text-[17px] font-medium leading-tight ${darkMode ? 'text-red-600' : 'text-red-700'}`}>
-                  {participant.deaths || 0}
-                </span>
-                <span className="mx-0.5 text-gray-500">/</span>
-                <span className={`px-1 py-0 rounded text-[17px] font-medium leading-tight`}>
-                  {participant.assists || 0}
-                </span>
-                <span className="ml-2 text-sm font-medium">
-                  ({kda})
-                </span>
-              </div>
-            </div>
-            
-            {/* Deuxième bloc: CS */}
-            <div className="flex items-center">
-              <div className="text-xs text-gray-400 w-12">CS</div>
-              <div className="flex items-center">
-                <span className={`px-2 py-0 rounded text-[17px] font-medium leading-tight ${darkMode ? 'bg-yellow-900/50 text-yellow-400' : 'bg-yellow-200 text-yellow-800'}`}>
-                  {totalCS}
-                </span>
-                <span className="ml-2 text-sm">
-                  ({csPerMin}/min)
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      {/* Spells + Items dans un même cadre */}
-      <div className="w-1/8 flex-shrink-0 ml-4">
-        <div className={`p-1 rounded-md h-[68px] ${darkMode ? 'bg-gray-700/60' : 'bg-gray-300/60'}`}>
-          <div className="flex items-center h-full">
-            {/* Summoner Spells */}
-            <div className="flex flex-col justify-center space-y-1">
-              {spell1 && (
-                <img 
-                  src={spell1.icon} 
-                  alt={spell1.name} 
-                  title={spell1.name}
-                  className="w-[27px] h-[27px] rounded border border-gray-600"
-                  onError={(e) => {
-                    e.target.style.display = 'none';
-                  }}
-                />
-              )}
-              {spell2 && (
-                <img 
-                  src={spell2.icon} 
-                  alt={spell2.name}
-                  title={spell2.name}
-                  className="w-[27px] h-[27px] rounded border border-gray-600"
-                  onError={(e) => {
-                    e.target.style.display = 'none';
-                  }}
-                />
-              )}
-            </div>
-            
-            {/* Séparateur visuel */}
-            <div className={`h-14 w-px mx-1 ${darkMode ? 'bg-gray-600' : 'bg-gray-400'}`}></div>
-            
-            {/* Items */}
-            <div className="grid grid-cols-4 gap-0.5 max-w-[140px]">
-              {participant.items && participant.items.map((itemId, index) => {
-                if (itemId === 0) return (
-                  <div 
-                    key={index} 
-                    className={`w-[27px] h-[27px] rounded ${index === 6 ? 'bg-yellow-800/30' : 'bg-gray-700/50'} border border-gray-600`}
-                  />
-                );
-                
-                return (
-                  <img 
-                    key={index}
-                    src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/item/${itemId}.png`}
-                    alt=""
-                    title={`Item ID: ${itemId}`}
-                    className="w-[27px] h-[27px] rounded border border-gray-600"
-                    onError={(e) => {
-                      e.target.src = '';
-                      e.target.className = `w-[27px] h-[27px] rounded ${index === 6 ? 'bg-yellow-800/30' : 'bg-gray-700/50'} border border-gray-600`;
-                    }}
-                  />
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Runes - taille uniforme et deux lignes */}
-      <div className="w-1/10 flex-shrink-0 ml-4">
-        <div className={`p-1 rounded-md h-[68px] ${darkMode ? 'bg-gray-700/60' : 'bg-gray-300/60'} flex items-center`}>
-          <div className="flex flex-col justify-center h-full">
-            {/* Runes principales sur la première ligne */}
-            <div className="flex gap-0.5 mb-0.5">
-              {primaryRunes.map((rune, idx) => (
-                <RuneIcon 
-                  key={idx}
-                  rune={rune}
-                  className="w-[27px] h-[27px] rounded"
-                />
-              ))}
-            </div>
-            
-            {/* Runes secondaires sur la deuxième ligne */}
-            <div className="flex gap-0.5 mb-0.5">
-              {secondaryRunes.map((rune, idx) => (
-                <RuneIcon 
-                  key={idx}
-                  rune={rune}
-                  className="w-[27px] h-[27px] rounded"
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Stats Mods sur la troisième ligne */}
-      <div className={`p-1 rounded-md h-[68px] ${darkMode ? 'bg-gray-700/60' : 'bg-gray-300/60'} ml-1 items-center`}>
-        {statsMods.map((statMod, idx) => (
-          <StatModIcon 
-            key={idx}
-            statMod={statMod}
-            className="w-[20px] h-[20px] rounded"
-          />
-        ))}
-      </div>
-    </div>
-  );
-};
+    );
+  };
 
 if (isLoading) {
     return (
